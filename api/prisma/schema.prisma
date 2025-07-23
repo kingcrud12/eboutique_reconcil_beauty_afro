@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  firstName    String
+  lastName     String
+  email        String        @unique
+  password     String
+  role         Role          @default(user)
+  address      String?
+  orders       Order[]       @relation("UserOrders")
+  appointments Appointment[]
+  carts        Cart[]
+}
+
+model Guest {
+  id           Int           @id @default(autoincrement())
+  firstName    String?
+  lastName     String?
+  email        String?
+  address      String?
+  orders       Order[]       @relation("GuestOrders")
+  appointments Appointment[]
+  carts        Cart[]
+}
+
+model Product {
+  id          Int        @id @default(autoincrement())
+  name        String
+  description String?
+  price       Decimal    @db.Decimal(10, 2)
+  stock       Int        @default(0)
+  imageUrl    String?
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+}
+
+model Service {
+  id           Int           @id @default(autoincrement())
+  name         String
+  duration     Int           // in minutes
+  price        Decimal       @db.Decimal(10, 2)
+  appointments Appointment[]
+}
+
+model Appointment {
+  id             Int                @id @default(autoincrement())
+  date           DateTime
+  hour           DateTime
+  status         AppointmentStatus  @default(pending)
+  depositPaid    Boolean            @default(false)
+
+  userId         Int?
+  guestId        Int?
+  serviceId      Int
+
+  user           User?      @relation(fields: [userId], references: [id])
+  guest          Guest?     @relation(fields: [guestId], references: [id])
+  service        Service    @relation(fields: [serviceId], references: [id])
+}
+
+model Cart {
+  id          Int       @id @default(autoincrement())
+  createdAt   DateTime  @default(now())
+
+  userId      Int?
+  guestId     Int?
+
+  user        User?     @relation(fields: [userId], references: [id])
+  guest       Guest?    @relation(fields: [guestId], references: [id])
+  items       CartItem[]
+}
+
+model CartItem {
+  id         Int      @id @default(autoincrement())
+  quantity   Int      @default(1)
+
+  cartId     Int
+  productId  Int
+
+  cart       Cart     @relation(fields: [cartId], references: [id])
+  product    Product  @relation(fields: [productId], references: [id])
+}
+
+model Order {
+  id               Int         @id @default(autoincrement())
+  total            Decimal     @db.Decimal(10, 2)
+  status           OrderStatus @default(pending)
+  createdAt        DateTime    @default(now())
+  deliveryAddress  String
+  paymentIntentId  String?
+
+  userId           Int?
+  guestId          Int?
+
+  user             User?       @relation("UserOrders", fields: [userId], references: [id])
+  guest            Guest?      @relation("GuestOrders", fields: [guestId], references: [id])
+
+  items            OrderItem[]
+}
+
+model OrderItem {
+  id           Int      @id @default(autoincrement())
+  quantity     Int
+  unitPrice    Decimal  @db.Decimal(10, 2)
+
+  orderId      Int
+  productId    Int
+
+  order        Order    @relation(fields: [orderId], references: [id])
+  product      Product  @relation(fields: [productId], references: [id])
+}
+
+enum Role {
+  user
+  admin
+}
+
+enum AppointmentStatus {
+  pending
+  confirmed
+  canceled
+}
+
+enum OrderStatus {
+  pending
+  paid
+  canceled
+}
