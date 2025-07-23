@@ -1,27 +1,44 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link,useNavigate } from "react-router-dom";
+import api from "../api/api";
+
 
 const Register = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [confirmEmail, setConfirmEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (email !== confirmEmail) {
-      setError("Les adresses email ne correspondent pas.");
-      return;
+    setError("");
+  
+    try {
+      const response = await api.post("/user", {
+        firstName,
+        lastName,
+        email,
+        password,
+      });
+  
+      if (response.status === 201 || response.status === 200) {
+        navigate("/Login");
+      } else {
+        setError("Une erreur inattendue s’est produite.");
+      }
+    } catch (error: any) {
+      console.error("Erreur d'inscription :", error);
+  
+      if (error.response?.status === 400) {
+        setError("Cette adresse email est déjà utilisée.");
+      } else {
+        setError("Une erreur est survenue. Veuillez réessayer.");
+      }
     }
-
-    // TODO: Envoyer les données à l'API (register)
-    console.log("Inscription avec :", { firstName, lastName, email, password });
-
-    setError(""); // reset erreur
   };
+  
 
   return (
     <div className="mt-[90px] flex items-center justify-center min-h-screen bg-gray-50 px-4">
@@ -72,18 +89,6 @@ const Register = () => {
           </div>
 
           <div>
-            <label htmlFor="confirmEmail" className="block text-sm font-medium text-gray-700">Confirmez votre email</label>
-            <input
-              id="confirmEmail"
-              type="email"
-              value={confirmEmail}
-              onChange={(e) => setConfirmEmail(e.target.value)}
-              required
-              className="mt-1 w-full px-4 py-2 border rounded-md border-gray-300"
-            />
-          </div>
-
-          <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">Mot de passe</label>
             <input
               id="password"
@@ -105,7 +110,7 @@ const Register = () => {
 
         <p className="text-sm text-center mt-6 text-gray-600">
           Déjà un compte ?{" "}
-          <Link to="/login" className="text-slate-800 font-medium hover:underline">
+          <Link to="/Login" className="text-slate-800 font-medium hover:underline">
             Se connecter
           </Link>
         </p>
