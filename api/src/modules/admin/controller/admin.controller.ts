@@ -15,6 +15,7 @@ import { UserService } from '../../user/Services/user.service';
 import { Role } from '@prisma/client';
 import { LoginDto } from 'src/modules/auth/Models/login.dto';
 import { JwtRequest } from 'src/modules/auth/jwt/Jwt-request.interface';
+import { AuthService } from 'src/modules/auth/Services/auth.service';
 
 @Controller('admin')
 export class AdminController {
@@ -22,25 +23,21 @@ export class AdminController {
     private readonly adminService: AdminService,
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private readonly authservice: AuthService,
   ) {}
 
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
     const { email, password } = loginDto;
 
-    const user = await this.userService.verifyUser({ email });
+    const user = await this.authservice.validateUser(email, password);
 
     if (!user) {
       throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
     }
-    if (user.role !== Role.admin) {
-      throw new HttpException(
-        'Access denied: Admin only',
-        HttpStatus.UNAUTHORIZED,
-      );
-    }
+    await this.ensureIsAdmin(user);
 
-    return await this.adminService.login(email, password);
+    return await this.adminService.login(email);
   }
 
   @Post('logout')
@@ -52,14 +49,17 @@ export class AdminController {
   @Get('users')
   async getAllUsers(@Req() req: JwtRequest) {
     const user = req.user;
+    await this.ensureIsAdmin(user);
+    return this.adminService.getAllUsers();
+  }
 
+  private ensureIsAdmin(user: { role: string }) {
     if (user.role !== Role.admin) {
       throw new HttpException(
         'Access denied: Admin only',
         HttpStatus.UNAUTHORIZED,
       );
     }
-
-    return this.adminService.getAllUsers();
+    return Promise.resolve();
   }
 }
