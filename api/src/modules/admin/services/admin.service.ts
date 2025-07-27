@@ -16,9 +16,8 @@ export class AdminService {
     return this.userService.getUsers();
   }
 
-  async login(email: string, password: string): Promise<{ token: string }> {
-    const user = await this.authService.validateUser(email, password);
-
+  async login(email: string): Promise<{ token: string }> {
+    const user = await this.userService.getByEmail(email);
     const payload = { sub: user.id, email: user.email, role: user.role };
     const token = this.jwtService.sign(payload);
     return { token };

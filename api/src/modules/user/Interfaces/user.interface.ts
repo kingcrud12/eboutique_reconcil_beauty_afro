@@ -33,5 +33,5 @@ export interface IUserprivate {
   password: string;
   email: string;
   adress?: string | null;
-  role?: string;
+  role: string;
 }
