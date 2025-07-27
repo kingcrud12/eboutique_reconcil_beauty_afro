@@ -7,6 +7,7 @@ export interface IProduct {
   price: Decimal;
   stock: number;
   imageUrl?: string;
+  category?: string;
 }
 
 export interface IProductUpdate {
@@ -15,6 +16,7 @@ export interface IProductUpdate {
   price?: number;
   stock?: number;
   imageUrl?: string;
+  category?: string;
 }
 
 export interface IProductCreate {
@@ -23,4 +25,5 @@ export interface IProductCreate {
   price: number;
   stock: number;
   imageUrl?: string;
+  category?: string;
 }

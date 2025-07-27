@@ -38,6 +38,7 @@ model Product {
   price       Decimal    @db.Decimal(10, 2)
   stock       Int        @default(0)
   imageUrl    String?
+  category    String?
   cartItems   CartItem[]
   orderItems  OrderItem[]
 }

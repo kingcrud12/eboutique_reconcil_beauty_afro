@@ -43,6 +43,10 @@ export class CreateProductDto implements IProductCreate {
   @IsNotEmpty()
   @IsString()
   stock: number;
+
+  @IsOptional()
+  @IsString()
+  category?: string;
 }
 
 export class UpdateProductDto implements IProductUpdate {
@@ -55,7 +59,6 @@ export class UpdateProductDto implements IProductUpdate {
     description: 'Product description',
     example: 'Embrace your beauty',
   })
-  @IsNotEmpty()
   @IsOptional()
   description?: string;
 
@@ -63,14 +66,13 @@ export class UpdateProductDto implements IProductUpdate {
     description: 'Product price',
     example: '9,50 euros',
   })
-  @IsEmail()
+  @IsOptional()
   price?: number;
 
   @ApiProperty({
     description: 'Product stock',
     example: '2',
   })
-  @MinLength(6)
   @IsOptional()
   stock?: number;
 
@@ -81,6 +83,10 @@ export class UpdateProductDto implements IProductUpdate {
   @IsOptional()
   @IsOptional()
   imageUrl?: string | null;
+
+  @IsOptional()
+  @IsString()
+  category?: string;
 }
 
 export class ProductDto implements IProduct {
@@ -122,4 +128,8 @@ export class ProductDto implements IProduct {
   @IsOptional()
   @IsString()
   imageUrl?: string | null;
+
+  @IsOptional()
+  @IsString()
+  category?: string;
 }

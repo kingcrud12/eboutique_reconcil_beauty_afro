@@ -17,7 +17,7 @@ const About = () => {
         <div className="md:w-1/2">
           <h1 className="text-4xl font-bold mb-4">À propos de nous</h1>
           <p className="text-lg leading-relaxed text-gray-700">
-            Paulette Siewe Emassi, fondatrice de <strong>Arc en Ciel Mawema</strong>, est une femme passionnée par la beauté naturelle et le bien-être des femmes afrodescendantes.
+            Paulette Siewe Emassi, fondatrice de <strong>Arcenciel Mawema</strong>, est une femme passionnée par la beauté naturelle et le bien-être des femmes afrodescendantes.
             Son aventure commence dans un petit salon familial, motivée par l’envie de proposer des produits capillaires et corporels adaptés, naturels et inspirants.
           </p>
           <p className="mt-4 text-lg leading-relaxed text-gray-700">
