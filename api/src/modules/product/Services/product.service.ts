@@ -20,6 +20,7 @@ export class ProductService {
         price: data.price,
         stock: Number(data.stock),
         imageUrl: data.imageUrl ?? null,
+        category: data.category ?? null,
       },
     });
 
@@ -59,6 +60,7 @@ export class ProductService {
       price: product.price as Decimal,
       stock: product.stock,
       imageUrl: product.imageUrl,
+      category: product.category as string | undefined,
     };
   }
 

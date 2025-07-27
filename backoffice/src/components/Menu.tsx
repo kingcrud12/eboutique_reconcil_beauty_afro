@@ -9,9 +9,13 @@ import {
   Calendar,
   Scissors
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from '../contexts/AuthContext'; 
+
 
 function Menu() {
+  const navigate = useNavigate();
+  const {logout } = useAuth();
   return (
     <div className="bg-slate-900 text-white w-[240px] min-h-screen py-6 px-4 flex flex-col justify-between">
       
@@ -61,10 +65,16 @@ function Menu() {
 
       {/* DÉCONNEXION */}
       <div className="mt-10">
-        <button className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md w-full">
-          <LogOut className="w-5 h-5" />
-          Déconnexion
-        </button>
+        <button
+        onClick={() => {
+      logout();
+      navigate('/Login'); // Redirige vers la page de login
+    }}
+    className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md w-full"
+  >
+    <LogOut className="w-5 h-5" />
+    Déconnexion
+  </button>
       </div>
     </div>
   );
