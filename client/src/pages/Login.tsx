@@ -18,7 +18,7 @@ const Login = () => {
       const { token } = response.data;
 
       localStorage.setItem("token", token); // Stocke le token localement
-      login(); // Mets à jour le contexte global
+      login(token); // Mets à jour le contexte global
       navigate("/"); // Redirige vers la page d’accueil
 
     } catch (error: any) {
