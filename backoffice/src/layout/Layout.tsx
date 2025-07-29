@@ -5,12 +5,12 @@ import { Outlet } from 'react-router-dom';
 
 function Layout() {
   return (
-    <div className="flex">
+    <div className="flex min-h-screen">
       {/* Menu vertical à gauche */}
       <Menu />
 
       {/* Contenu principal à droite */}
-      <main className="flex-1 bg-gray-100 min-h-screen">
+      <main className="flex-1 bg-gray-100 p-6 overflow-auto">
         <FilterMenu /> {/* Affiché en haut du contenu principal */}
         <Outlet />
       </main>
