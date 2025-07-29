@@ -88,7 +88,7 @@ function Appbar() {
   </div>
 
   {/* Navigation desktop */}
-  <div className="hidden md:flex justify-center space-x-10 mt-2 text-sm font-medium">
+  <div className="hidden md:flex justify-center space-x-10 mt-[-20px] text-sm font-medium">
     <Link to="/Products" className="hover:text-gray-300">Nos produits</Link>
     <Link to="/About" className="hover:text-gray-300">A propos de nous</Link>
     <Link to="/Appointment" className="hover:text-gray-300">Prenez rendez-vous</Link>

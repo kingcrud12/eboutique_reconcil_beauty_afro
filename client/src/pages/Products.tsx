@@ -56,7 +56,7 @@ const Products = () => {
             className="bg-gray-50 p-4 rounded-xl shadow hover:shadow-md transition"
           >
             <img
-              src={`http://localhost:3003${product.imageUrl}`}
+              src={`${process.env.REACT_APP_BASE_URL}${product.imageUrl}`}
               alt={product.name}
               className="mx-auto h-40 object-contain"
             />
