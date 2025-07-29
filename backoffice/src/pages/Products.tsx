@@ -7,9 +7,7 @@ import { IProduct } from "../api/product.interfaces";
 function Products() {
   const navigate = useNavigate();
   const [products, setProducts] = useState<IProduct[]>([]);
-  const [showModal, setShowModal] = useState(false);
-  const [productToDelete, setProductToDelete] = useState<number | null>(null);
-  const baseUrl = "http://localhost:3003";
+  const baseUrl = "ttps://eboutique-reconcil-beauty-afro.onrender.com/shop";
 
   const productColumns = [
     { label: "Image", field: "image" },
@@ -25,7 +23,7 @@ function Products() {
     products.map((product) => ({
       image: (
         <img
-          src={`${baseUrl}${product.imageUrl}`}
+        src={`${baseUrl}${product.imageUrl}`}
           alt={product.name}
           className="w-10 h-10 rounded object-cover"
         />
@@ -45,10 +43,7 @@ function Products() {
           </button>
           <button
             className="bg-red-600 text-white text-sm px-3 py-1 rounded hover:bg-red-700"
-            onClick={() => {
-              setProductToDelete(product.id);
-              setShowModal(true);
-            }}
+            onClick={() => handleDelete(product.id)}
           >
             Supprimer
           </button>
@@ -69,16 +64,16 @@ function Products() {
     fetchProducts();
   }, []);
 
-  const confirmDelete = async () => {
-    if (productToDelete !== null) {
-      try {
-        await api.delete(`/products/${productToDelete}`);
-        setProducts((prev) => prev.filter((p) => p.id !== productToDelete));
-        setShowModal(false);
-        setProductToDelete(null);
-      } catch (error) {
-        console.error("Erreur lors de la suppression :", error);
-      }
+  const handleDelete = async (id: number) => {
+    try {
+      await api.delete(`/products/${id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+    } catch (error) {
+      console.error("Erreur lors de la suppression :", error);
     }
   };
 
@@ -93,31 +88,7 @@ function Products() {
           Ajouter un produit
         </button>
       </div>
-
       <DataTable columns={productColumns} data={formatProductData(products)} />
-
-      {/* MODAL DE CONFIRMATION */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full text-center">
-            <h2 className="text-lg font-semibold mb-4">Êtes-vous sûr de vouloir réaliser cette action ?</h2>
-            <div className="flex justify-center space-x-4">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
-                Supprimer
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
