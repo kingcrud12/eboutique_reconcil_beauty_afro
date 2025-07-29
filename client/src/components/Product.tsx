@@ -27,10 +27,10 @@ function Product() {
         {products.map((product) => (
           <div
             key={product.id}
-            className="bg-gray-50 p-4 rounded-xl shadow hover:shadow-md transition"
+            className=" p-4 rounded-xl shadow hover:shadow-md transition"
           >
             <img
-              src={`http://localhost:3003${product.imageUrl}`}
+              src={`https://eboutique-reconcil-beauty-afro.onrender.com${product.imageUrl}`}
               alt={product.name}
               className="mx-auto h-40 object-contain"
             />

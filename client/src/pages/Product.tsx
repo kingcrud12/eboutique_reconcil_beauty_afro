@@ -28,7 +28,7 @@ function Product() {
       <div className="bg-white p-6 rounded-lg shadow space-y-4">
         <div className="flex justify-center">
           <img
-            src={`${process.env.REACT_APP_BASE_URL}${product.imageUrl}`}
+            src={`https://eboutique-reconcil-beauty-afro.onrender.com${product.imageUrl}`}
             alt={product.name}
             className="w-64 h-64 object-contain rounded"
           />
