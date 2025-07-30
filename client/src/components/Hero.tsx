@@ -1,14 +1,15 @@
-import React from 'react'
+import React from 'react';
 
 function Hero() {
   return (
-    <div className="flex w-auto">
-      <div>
-        <img src="/Black_hair.gif" alt="hero_picture" className="md:w-[700px] sm:w-[200px] lg:w-[1920px] h-[760px]" />
-      </div>
+    <div className="w-full">
+      <img
+        src="/Black_hair.gif"
+        alt="hero_picture"
+        className="w-full h-[300px] sm:h-[400px] md:h-[600px] lg:h-[760px] object-cover"
+      />
     </div>
-    
-  )
+  );
 }
 
-export default Hero
+export default Hero;
