@@ -13,7 +13,10 @@ const bootstrap = async () => {
     },
   });
 
-  app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
+  app.use(
+    '/uploads/products',
+    express.static(join(__dirname, '..', 'uploads')),
+  );
   app.setGlobalPrefix('shop');
 
   const config = new DocumentBuilder()
