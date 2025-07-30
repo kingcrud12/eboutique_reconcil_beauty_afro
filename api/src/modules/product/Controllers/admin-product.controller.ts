@@ -15,6 +15,7 @@ import {
   Get,
   Patch,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ProductService } from '../Services/product.service';
@@ -25,7 +26,8 @@ import { JwtRequest } from 'src/modules/auth/jwt/Jwt-request.interface';
 import { Role } from '@prisma/client';
 import { Product as PrismaProduct } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { uploadToCloudinary } from 'src/utils/cloudinary.service';
+import { CloudinaryService } from 'src/utils/cloudinary.service';
+import { memoryStorage } from 'multer';
 
 @Controller('admin/products')
 @UseGuards(JwtAuthGuard)
@@ -33,11 +35,17 @@ export class AdminProductController {
   constructor(
     private readonly productService: ProductService,
     private readonly prisma: PrismaService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: memoryStorage(),
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
   async create(
     @Body() data: CreateProductDto,
     @Req() req: JwtRequest,
@@ -57,20 +65,9 @@ export class AdminProductController {
       );
     }
 
-    let imageUrl: string | null = null;
+    if (!image) throw new BadRequestException('Aucune image fournie');
 
-    if (image) {
-      try {
-        const result = await uploadToCloudinary(image, 'products');
-        imageUrl = result.secure_url;
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (error) {
-        throw new HttpException(
-          'Erreur lors de l’upload de l’image sur Cloudinary',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-    }
+    const imageUrl = await this.cloudinaryService.uploadToCloudinary(image);
 
     return this.productService.create({ ...data, imageUrl });
   }
