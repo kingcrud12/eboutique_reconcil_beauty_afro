@@ -4,6 +4,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as express from 'express';
 import { join } from 'path';
+import './config/cloudinary.config';
 
 const bootstrap = async () => {
   const app = await NestFactory.create(AppModule, {
