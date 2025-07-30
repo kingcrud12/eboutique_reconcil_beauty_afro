@@ -13,10 +13,7 @@ const bootstrap = async () => {
     },
   });
 
-  app.use(
-    '/uploads/products',
-    express.static(join(__dirname, '..', 'uploads')),
-  );
+  app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
   app.setGlobalPrefix('shop');
 
   const config = new DocumentBuilder()
@@ -41,7 +38,7 @@ const bootstrap = async () => {
 
   app.enableCors();
 
-  const port = process.env.PORT || 3000; // <= ICI
+  const port = process.env.PORT || 3000;
   await app.listen(port);
 
   console.log(`✅ Server is running: http://localhost:${port}/shop`);

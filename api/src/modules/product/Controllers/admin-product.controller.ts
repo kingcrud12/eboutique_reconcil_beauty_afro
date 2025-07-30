@@ -17,8 +17,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
 import { ProductService } from '../Services/product.service';
 import { CreateProductDto, UpdateProductDto } from '../Models/product.dto';
 import { IProduct } from '../Interfaces/product.interface';
@@ -27,6 +25,7 @@ import { JwtRequest } from 'src/modules/auth/jwt/Jwt-request.interface';
 import { Role } from '@prisma/client';
 import { Product as PrismaProduct } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { uploadToCloudinary } from 'src/utils/cloudinary.service';
 
 @Controller('admin/products')
 @UseGuards(JwtAuthGuard)
@@ -38,27 +37,15 @@ export class AdminProductController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  @UseInterceptors(
-    FileInterceptor('image', {
-      storage: diskStorage({
-        destination: './uploads/products',
-        filename: (req, file, cb) => {
-          const uniqueSuffix =
-            Date.now() + '-' + Math.round(Math.random() * 1e9);
-          const ext = extname(file.originalname);
-          cb(null, `product-${uniqueSuffix}${ext}`);
-        },
-      }),
-    }),
-  )
+  @UseInterceptors(FileInterceptor('image'))
   async create(
     @Body() data: CreateProductDto,
     @Req() req: JwtRequest,
     @UploadedFile() image?: Express.Multer.File,
   ): Promise<IProduct> {
-    const imageUrl = image ? `/uploads/products/${image.filename}` : null;
     const user = req.user;
     this.ensureIsAdmin(user);
+
     const existing = await this.prisma.product.findUnique({
       where: { name: data.name },
     });
@@ -69,6 +56,22 @@ export class AdminProductController {
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    let imageUrl: string | null = null;
+
+    if (image) {
+      try {
+        const result = await uploadToCloudinary(image, 'products');
+        imageUrl = result.secure_url;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (error) {
+        throw new HttpException(
+          'Erreur lors de l’upload de l’image sur Cloudinary',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+    }
+
     return this.productService.create({ ...data, imageUrl });
   }
 
