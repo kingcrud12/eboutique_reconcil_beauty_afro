@@ -7,7 +7,6 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { AdminModule } from './modules/admin/admin.module';
 import { ProductModule } from './modules/product/product.module';
-import { CloudinaryService } from './utils/cloudinary.service';
 
 @Module({
   imports: [
@@ -19,7 +18,6 @@ import { CloudinaryService } from './utils/cloudinary.service';
     ProductModule,
   ],
   controllers: [AppController],
-  providers: [AppService, CloudinaryService],
-  exports: [CloudinaryService],
+  providers: [AppService],
 })
 export class AppModule {}
