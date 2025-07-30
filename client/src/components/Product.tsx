@@ -30,7 +30,7 @@ function Product() {
             className=" p-4 rounded-xl shadow hover:shadow-md transition"
           >
             <img
-              src={`https://eboutique-reconcil-beauty-afro.onrender.com${product.imageUrl}`}
+              src={product.imageUrl}
               alt={product.name}
               className="mx-auto h-40 object-contain"
             />
