@@ -7,7 +7,6 @@ import { IProduct } from "../api/product.interfaces";
 function Products() {
   const navigate = useNavigate();
   const [products, setProducts] = useState<IProduct[]>([]);
-  const baseUrl = "https://eboutique-reconcil-beauty-afro.onrender.com";
 
   const productColumns = [
     { label: "Image", field: "image" },
@@ -23,7 +22,7 @@ function Products() {
     products.map((product) => ({
       image: (
         <img
-        src={`${baseUrl}${product.imageUrl}`}
+        src={product.imageUrl}
           alt={product.name}
           className="w-10 h-10 rounded object-cover"
         />
