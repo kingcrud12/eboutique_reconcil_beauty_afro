@@ -28,23 +28,23 @@ function Product() {
 
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((product) => (
-            <div
-              key={product.id}
-              className="bg-gray-50 p-4 rounded-xl shadow hover:shadow-md transition"
-            >
-              <img
-                src={product.imageUrl}
-                alt={product.name}
-                className="mx-auto h-32 sm:h-40 object-contain"
-              />
-              <Link to={`/product/${product.id}`}>
-                <div className="mt-4 text-left sm:text-center">
-                  <h3 className="font-semibold text-gray-800 text-sm sm:text-base">{product.name}</h3>
-                  <p className="text-xs sm:text-sm text-slate-500 mt-1">{product.description}</p>
-                  <p className="text-green-600 font-bold mt-1 text-sm">{product.price} €</p>
-                </div>
-              </Link>
-            </div>
+             <div
+             key={product.id}
+             className="bg-white max-w-xs w-full mx-auto p-4 rounded-xl shadow hover:shadow-md transition flex flex-col items-center text-center"
+           >
+             <img
+               src={product.imageUrl}
+               alt={product.name}
+               className="h-32 sm:h-40 object-contain mb-4"
+             />
+             <Link to={`/product/${product.id}`} className="w-full">
+               <div>
+                 <h3 className="font-semibold text-gray-800 text-base">{product.name}</h3>
+                 <p className="text-sm text-slate-500 mt-1">{product.description}</p>
+                 <p className="text-green-600 font-bold mt-2">{product.price} €</p>
+               </div>
+             </Link>
+           </div>
           ))}
         </div>
       </div>
