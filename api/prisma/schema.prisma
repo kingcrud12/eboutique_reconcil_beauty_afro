@@ -14,7 +14,7 @@ model User {
   email        String        @unique
   password     String
   role         Role          @default(user)
-  address      String?
+  adress      String?       @db.Text
   orders       Order[]       @relation("UserOrders")
   appointments Appointment[]
   carts        Cart[]

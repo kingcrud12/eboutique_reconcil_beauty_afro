@@ -1,6 +1,5 @@
-// src/utils/cloudinary.service.ts
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import cloudinary from '../config/cloudinary.config'; // Ce fichier contient déjà cloudinary.config(...)
+import cloudinary from '../config/cloudinary.config';
 import { Readable } from 'stream';
 
 @Injectable()
