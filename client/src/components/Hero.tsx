@@ -6,7 +6,7 @@ function Hero() {
       <img
         src="/Black_hair.gif"
         alt="hero_picture"
-        className="w-full h-[300px] sm:h-[400px] md:h-[600px] lg:h-[760px] object-cover"
+        className="w-full h-[520px] sm:h-[400px] md:h-[600px] lg:h-[760px] object-cover"
       />
     </div>
   );
