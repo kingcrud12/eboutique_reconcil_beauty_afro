@@ -101,7 +101,7 @@ function Account() {
                   <li><strong>Adresse :</strong> {user?.adress || 'Non renseignée'}</li>
                 </ul>
                 <button
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  className="bg-black text-white px-4 py-2 rounded"
                   onClick={() => setIsEditingAccount(true)}
                 >
                   Modifier mes informations
@@ -132,7 +132,7 @@ function Account() {
                 <h2 className="text-lg font-medium mb-4">Mon adresse de livraison :</h2>
                 <p><strong>Adresse :</strong> {user?.adress || 'Non renseignée'}</p>
                 <button
-                  className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  className="mt-4 bg-black text-white px-4 py-2 rounded "
                   onClick={() => setIsEditingAddress(true)}
                 >
                   Modifier l’adresse
