@@ -28,7 +28,7 @@ function Appbar() {
 
   const handleLoginRedirect = () => {
     setUserModalOpen(false);
-    navigate('/login');
+    navigate('/Login');
   };
 
   return (
