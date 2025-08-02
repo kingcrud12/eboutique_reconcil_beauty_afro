@@ -7,9 +7,31 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { AdminModule } from './modules/admin/admin.module';
 import { ProductModule } from './modules/product/product.module';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { join } from 'path';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 
 @Module({
   imports: [
+    MailerModule.forRoot({
+      transport: {
+        service: 'gmail',
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      },
+      defaults: {
+        from: '"Mon Eshop" <dipitay@gmail.com>',
+      },
+      template: {
+        dir: join(__dirname, '..', 'src', 'templates'),
+        adapter: new HandlebarsAdapter(),
+        options: {
+          strict: true,
+        },
+      },
+    }),
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     UserModule,

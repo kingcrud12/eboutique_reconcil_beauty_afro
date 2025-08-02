@@ -1,66 +1,160 @@
-import React from "react";
-import { User, MapPin, PackageCheck, Clock } from "lucide-react";
+import React, { useEffect, useState } from 'react';
+import api from '../api/api';
 
-const Account = () => {
-  const user = {
-    firstName: "Yann",
-    lastName: "Dipita",
-    email: "yann@example.com",
-    time: new Date().toLocaleTimeString(),
+interface IUser {
+  firstName: string;
+  lastName: string;
+  email: string;
+  adress?: string;
+}
+
+function Account() {
+  const [user, setUser] = useState<IUser | null>(null);
+  const [formData, setFormData] = useState<IUser>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    adress: '',
+  });
+
+  const [showAccountCard, setShowAccountCard] = useState(true);
+  const [showAddressCard, setShowAddressCard] = useState(false);
+
+  const [isEditingAccount, setIsEditingAccount] = useState(false);
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+
+  useEffect(() => {
+    api.get('/user/me')
+      .then((res) => {
+        setUser(res.data);
+        setFormData(res.data);
+      })
+      .catch((err) => console.error('Erreur récupération user :', err));
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmitAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.patch('/user/me', formData);
+      setUser(formData);
+      setIsEditingAccount(false);
+    } catch (err) {
+      console.error('Erreur mise à jour du compte :', err);
+    }
+  };
+
+  const handleSubmitAddress = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.patch('/user/me', { adress: formData.adress });
+      setUser((prev) => prev ? { ...prev, adress: formData.adress } : null);
+      setIsEditingAddress(false);
+    } catch (err) {
+      console.error('Erreur mise à jour adresse :', err);
+    }
   };
 
   return (
-    <div className="mt-[90px] px-4 py-10 bg-white text-slate-800 min-h-screen">
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-2xl font-bold mb-8 text-center">Bienvenue {user.firstName} !</h1>
+    <div className="p-6 max-w-6xl mx-auto mt-[160px] mb-[100px]">
+      <h1 className="text-2xl font-bold text-center mb-[80px]">Bienvenue {user?.firstName} !</h1>
 
-        <div className="flex flex-col md:flex-row gap-8">
-          {/* Carte utilisateur */}
-          <div className="bg-slate-100 p-6 rounded-xl shadow-md w-full md:w-1/3">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="bg-slate-300 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg">
-                {user.firstName[0]}{user.lastName[0]}
-              </div>
-              <div>
-                <p className="font-semibold text-lg">{user.firstName} {user.lastName}</p>
-                <div className="flex items-center text-sm text-gray-600 mt-1">
-                  <Clock className="w-4 h-4 mr-1" />
-                  {user.time}
-                </div>
-              </div>
-            </div>
-
-            <ul className="space-y-3 text-sm">
-              <li className="flex items-center gap-2 hover:underline cursor-pointer">
-                <User className="w-4 h-4" />
-                Mon compte
-              </li>
-              <li className="flex items-center gap-2 hover:underline cursor-pointer">
-                <MapPin className="w-4 h-4" />
-                Mes adresses de livraison
-              </li>
-              <li className="flex items-center gap-2 hover:underline cursor-pointer">
-                <PackageCheck className="w-4 h-4" />
-                Mes commandes
-              </li>
-            </ul>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Section gauche */}
+        <div className="bg-gray-100 p-6 rounded shadow">
+          <div className="text-lg font-semibold mb-2">
+            {user?.firstName} {user?.lastName}
           </div>
-
-          {/* Contenu principal (placeholder) */}
-          <div className="flex-1 bg-slate-50 border rounded-lg shadow-sm p-6 text-center">
-            <p className="text-gray-500">Vos informations de compte et historique apparaîtront ici.</p>
-            <div className="mt-10">
-              <img
-                src="/empty-box.svg"
-                alt="Rien à afficher"
-                className="mx-auto w-28 opacity-70"
-              />
-            </div>
+          <div className="text-sm text-gray-600 mb-4">
+            🕒 {new Date().toLocaleTimeString()}
           </div>
+          <ul className="space-y-2 text-sm">
+            <li>
+              👤 <button onClick={() => {
+                setShowAccountCard(true);
+                setShowAddressCard(false);
+              }}>Mon compte</button>
+            </li>
+            <li>
+              📍 <button onClick={() => {
+                setShowAddressCard(true);
+                setShowAccountCard(false);
+              }}>Mes adresses de livraison</button>
+            </li>
+            <li>🛒 Mes commandes</li>
+          </ul>
         </div>
+
+        {/* Section droite */}
+        {showAccountCard && (
+          <div className="bg-gray-100 p-6 rounded shadow text-sm w-full">
+            {!isEditingAccount ? (
+              <>
+                <h2 className="text-lg font-medium mb-4">Vos informations de compte :</h2>
+                <ul className="space-y-2 mb-4">
+                  <li><strong>Nom :</strong> {user?.lastName}</li>
+                  <li><strong>Prénom :</strong> {user?.firstName}</li>
+                  <li><strong>Email :</strong> {user?.email}</li>
+                  <li><strong>Adresse :</strong> {user?.adress || 'Non renseignée'}</li>
+                </ul>
+                <button
+                  className="bg-black text-white px-4 py-2 rounded"
+                  onClick={() => setIsEditingAccount(true)}
+                >
+                  Modifier mes informations
+                </button>
+              </>
+            ) : (
+              <>
+                <h2 className="text-lg font-medium mb-4">Modifier mes informations :</h2>
+                <form onSubmit={handleSubmitAccount} className="space-y-4">
+                  <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Nom" className="w-full p-2 border rounded" />
+                  <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="Prénom" className="w-full p-2 border rounded" />
+                  <input type="email" disabled name="email" value={formData.email} onChange={handleChange} placeholder="Email" className="w-full p-2 border cursor-not-allowed rounded" />
+                  <input type="text" name="adress" value={formData.adress} onChange={handleChange} placeholder="Adresse" className="w-full p-2 border rounded" />
+                  <div className="flex gap-2">
+                    <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Enregistrer</button>
+                    <button type="button" onClick={() => setIsEditingAccount(false)} className="bg-gray-300 px-4 py-2 rounded">Annuler</button>
+                  </div>
+                </form>
+              </>
+            )}
+          </div>
+        )}
+
+        {showAddressCard && (
+          <div className="bg-gray-50 p-6 rounded shadow text-sm w-full">
+            {!isEditingAddress ? (
+              <>
+                <h2 className="text-lg font-medium mb-4">Mon adresse de livraison :</h2>
+                <p><strong>Adresse :</strong> {user?.adress || 'Non renseignée'}</p>
+                <button
+                  className="mt-4 bg-black text-white px-4 py-2 rounded "
+                  onClick={() => setIsEditingAddress(true)}
+                >
+                  Modifier l’adresse
+                </button>
+              </>
+            ) : (
+              <>
+                <h2 className="text-lg font-medium mb-4">Modifier mon adresse :</h2>
+                <form onSubmit={handleSubmitAddress} className="space-y-4">
+                  <input type="text" name="adress" value={formData.adress} onChange={handleChange} placeholder="Nouvelle adresse" className="w-full p-2 border rounded" />
+                  <div className="flex gap-2">
+                    <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Enregistrer</button>
+                    <button type="button" onClick={() => setIsEditingAddress(false)} className="bg-gray-300 px-4 py-2 rounded">Annuler</button>
+                  </div>
+                </form>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
-};
+}
 
 export default Account;

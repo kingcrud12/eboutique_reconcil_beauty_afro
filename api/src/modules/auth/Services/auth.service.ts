@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Patch, Req, UseGuards } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../../user/Services/user.service';
 import * as bcrypt from 'bcrypt';
 import { IUserprivate } from '../../user/Interfaces/user.interface';
+import { JwtAuthGuard } from '../jwt/jwt-auth.guard';
+import { JwtRequest } from '../jwt/Jwt-request.interface';
 
 @Injectable()
 export class AuthService {
@@ -44,5 +46,12 @@ export class AuthService {
     return {
       message: 'Logged out successfully (client must discard the token)',
     };
+  }
+  @Patch('confirm-account')
+  @UseGuards(JwtAuthGuard)
+  async confirmAccount(@Req() req: JwtRequest) {
+    const userId = req.user.userId;
+
+    return this.userService.update(userId, { isConfirmed: true });
   }
 }

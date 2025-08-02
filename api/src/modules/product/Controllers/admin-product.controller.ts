@@ -15,10 +15,9 @@ import {
   Get,
   Patch,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
 import { ProductService } from '../Services/product.service';
 import { CreateProductDto, UpdateProductDto } from '../Models/product.dto';
 import { IProduct } from '../Interfaces/product.interface';
@@ -27,6 +26,8 @@ import { JwtRequest } from 'src/modules/auth/jwt/Jwt-request.interface';
 import { Role } from '@prisma/client';
 import { Product as PrismaProduct } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CloudinaryService } from 'src/utils/cloudinary.service';
+import { memoryStorage } from 'multer';
 
 @Controller('admin/products')
 @UseGuards(JwtAuthGuard)
@@ -34,21 +35,15 @@ export class AdminProductController {
   constructor(
     private readonly productService: ProductService,
     private readonly prisma: PrismaService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   @UseGuards(JwtAuthGuard)
   @Post()
   @UseInterceptors(
     FileInterceptor('image', {
-      storage: diskStorage({
-        destination: './uploads/products',
-        filename: (req, file, cb) => {
-          const uniqueSuffix =
-            Date.now() + '-' + Math.round(Math.random() * 1e9);
-          const ext = extname(file.originalname);
-          cb(null, `product-${uniqueSuffix}${ext}`);
-        },
-      }),
+      storage: memoryStorage(),
+      limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
   async create(
@@ -56,9 +51,9 @@ export class AdminProductController {
     @Req() req: JwtRequest,
     @UploadedFile() image?: Express.Multer.File,
   ): Promise<IProduct> {
-    const imageUrl = image ? `/uploads/products/${image.filename}` : null;
     const user = req.user;
     this.ensureIsAdmin(user);
+
     const existing = await this.prisma.product.findUnique({
       where: { name: data.name },
     });
@@ -69,6 +64,11 @@ export class AdminProductController {
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    if (!image) throw new BadRequestException('Aucune image fournie');
+
+    const imageUrl = await this.cloudinaryService.uploadToCloudinary(image);
+
     return this.productService.create({ ...data, imageUrl });
   }
 

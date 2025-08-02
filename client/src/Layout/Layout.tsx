@@ -5,7 +5,7 @@ import Footer from '../components/Footer';
 
 function Layout() {
   return (
-    <div>
+    <div className="w-full overflow-x-hidden">
         <Appbar/>
         <main>
             <Outlet/>

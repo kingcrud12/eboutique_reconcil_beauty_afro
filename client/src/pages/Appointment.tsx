@@ -3,7 +3,7 @@ import Calendar from "react-calendar";
 import 'react-calendar/dist/Calendar.css';
 
 const prestations = [
-  { id: 1, name: "Tresses simples", price: "25€", image: "hair_1.jpg" },
+  { id: 1, name: "Tresses simples", price: "25€", image: "/hair_1.jpg" },
   { id: 2, name: "Nattes collées", price: "30€", image: "hair_2.jpg" },
   { id: 3, name: "Perruque pose + coupe", price: "45€", image: "hair_2.jpg" },
   { id: 4, name: "Coiffure enfant", price: "20€", image: "hair_3.jpg" },

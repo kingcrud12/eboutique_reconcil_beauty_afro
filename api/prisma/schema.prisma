@@ -13,8 +13,9 @@ model User {
   lastName     String
   email        String        @unique
   password     String
+  isConfirmed  Boolean       @default(false)
   role         Role          @default(user)
-  address      String?
+  adress       String?       @db.Text
   orders       Order[]       @relation("UserOrders")
   appointments Appointment[]
   carts        Cart[]
@@ -34,7 +35,7 @@ model Guest {
 model Product {
   id          Int        @id @default(autoincrement())
   name        String     @unique
-  description String?
+  description String?    @db.Text
   price       Decimal    @db.Decimal(10, 2)
   stock       Int        @default(0)
   imageUrl    String?

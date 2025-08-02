@@ -14,38 +14,55 @@ function Product() {
       .finally(() => setLoading(false));
   }, []);
 
+  const truncateText = (text: string, maxLength = 120): string => {
+    if (!text) return '';
+    return text.length > maxLength ? text.slice(0, maxLength).trim() + '…' : text;
+  };
+
   if (loading) {
     return <div className="py-16 text-center">Chargement des produits...</div>;
   }
-
   return (
-    <div className="py-16 px-4 text-center bg-white">
-      <h2 className="text-3xl font-bold text-gray-900">Nos Produits</h2>
-      <p className="text-gray-500 mt-2 mb-10">Commandez pour vous ou vos proches</p>
+  <div className="py-16 px-4 sm:px-6 lg:px-8 bg-white font-sans">
+    <div className="max-w-7xl mx-auto text-center">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+        Nos Produits
+      </h2>
+      <p className="text-gray-500 mt-2 mb-10 text-sm sm:text-base">
+        Commandez pour vous ou vos proches
+      </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {products.map((product) => (
           <div
             key={product.id}
-            className="bg-gray-50 p-4 rounded-xl shadow hover:shadow-md transition"
+            className="bg-white max-w-xs w-full mx-auto p-4 rounded-xl shadow hover:shadow-md transition flex flex-col items-center text-center"
           >
             <img
-              src={`http://localhost:3003${product.imageUrl}`}
+              src={product.imageUrl}
               alt={product.name}
-              className="mx-auto h-40 object-contain"
+              className="h-32 sm:h-40 object-contain mb-4"
             />
-            <Link to={`/product/${product.id}`}>
-            <div className="mt-4">
-              <h3 className="font-semibold text-gray-800">{product.name}</h3>
-              <p className="text-sm text-slate-500 mt-2">{product.description}</p>
-              <p className="text-green-600 font-bold mt-1">{product.price} €</p>
-            </div>
+            <Link to={`/product/${product.id}`} className="w-full">
+              <div>
+                <h3 className="font-semibold text-gray-800 text-base mb-2 font-sans">
+                  {product.name}
+                </h3>
+                <p className="text-sm text-slate-600 mt-1 text-center line-clamp-3">
+                  {truncateText(product.description)}
+                </p>
+                <p className="text-green-600 font-bold mt-3 text-base">
+                  {product.price} €
+                </p>
+              </div>
             </Link>
           </div>
         ))}
       </div>
     </div>
-  );
+  </div>
+);
+
 }
 
 export default Product;

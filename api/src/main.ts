@@ -4,20 +4,25 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as express from 'express';
 import { join } from 'path';
-
-const PORT: number = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+import './config/cloudinary.config';
 
 const bootstrap = async () => {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    cors: {
+      origin: '*',
+      credentials: true,
+    },
+  });
+
   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
   app.setGlobalPrefix('shop');
 
   const config = new DocumentBuilder()
-    .setTitle('Your API')
-    .setDescription('Your API description')
+    .setTitle('Eshop API')
+    .setDescription('Eshop API built for arcenciel Manwema')
     .setVersion('1.0')
-    .addBearerAuth() // si tu utilises JWT Bearer
-    .addTag('Projects')
+    .addBearerAuth()
+    .addTag('Endpoints')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
@@ -33,10 +38,12 @@ const bootstrap = async () => {
   );
 
   app.enableCors();
-  await app.listen(PORT);
+
+  const port = process.env.PORT || 3000;
+  await app.listen(port);
+
+  console.log(`,✅ Server is running: http://localhost:${port}/shop`);
+  console.log('Template path resolved:', join(__dirname, 'templates'));
 };
 
-bootstrap()
-  .then(() => console.log(`Server is running: http://localhost:${PORT}/shop`))
-
-  .catch((err) => console.error(err));
+bootstrap().catch((err) => console.error(err));

@@ -5,6 +5,7 @@ import { UserModule } from '../user/user.module';
 import { AdminModule } from '../admin/admin.module';
 import { JwtModule } from '@nestjs/jwt';
 import { AdminProductController } from './Controllers/admin-product.controller';
+import { CloudinaryModule } from 'src/utils/cloudinary.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AdminProductController } from './Controllers/admin-product.controller';
     }),
     UserModule,
     AdminModule,
+    CloudinaryModule,
   ],
   controllers: [ProductController, AdminProductController],
   providers: [ProductService],
