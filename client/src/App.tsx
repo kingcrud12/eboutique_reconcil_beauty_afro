@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import PrivateRoute from "./components/PrivateRoute";
 import Product from "./pages/Product";
+import ConfirmAccount from "./pages/ConfirmAccount";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="Login" element={<Login />} />
           <Route path="Register" element={<Register />} />
           <Route path="/product/:productId" element={<Product />} />
+          <Route path="/confirm" element={<ConfirmAccount />} />
 
           <Route
             path="Account"
