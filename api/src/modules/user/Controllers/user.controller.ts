@@ -15,18 +15,26 @@ import { JwtAuthGuard } from '../../auth/jwt/jwt-auth.guard';
 import { IUser, IUserCreate } from '../Interfaces/user.interface';
 import { CreateUserDto, UpdateUserDto } from '../Models/user.dto';
 import { JwtRequest } from '../../auth/jwt/Jwt-request.interface';
+import { MailService } from 'src/modules/mailer/mailer.service';
+import { AuthService } from 'src/modules/auth/Services/auth.service';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly mailerService: MailService,
+    private readonly authService: AuthService,
+  ) {}
 
   @Post()
   async create(@Body() userDto: CreateUserDto) {
     const user = await this.isUserExistOrNot(userDto.email);
+    const { email, password } = userDto;
     if (user) {
       throw new HttpException('Email already in use', HttpStatus.BAD_REQUEST);
     }
-
+    const { token } = await this.authService.login(email, password);
+    await this.mailerService.sendConfirmationEmail(user.email, token);
     return await this.userService.create(userDto);
   }
 
