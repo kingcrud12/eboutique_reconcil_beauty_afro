@@ -10,6 +10,7 @@ import Register from "./pages/Register";
 import PrivateRoute from "./components/PrivateRoute";
 import Product from "./pages/Product";
 import ConfirmAccount from "./pages/ConfirmAccount";
+import CheckEmail from "./pages/CheckEmail";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           <Route path="Register" element={<Register />} />
           <Route path="/product/:productId" element={<Product />} />
           <Route path="/confirm-account" element={<ConfirmAccount />} />
+          <Route path="/Check" element={<CheckEmail />} />
 
           <Route
             path="Account"
