@@ -23,7 +23,7 @@ function App() {
           <Route path="Login" element={<Login />} />
           <Route path="Register" element={<Register />} />
           <Route path="/product/:productId" element={<Product />} />
-          <Route path="/confirm" element={<ConfirmAccount />} />
+          <Route path="/confirm-account" element={<ConfirmAccount />} />
 
           <Route
             path="Account"
