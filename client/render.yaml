@@ -1,5 +1,7 @@
 staticPublishPath: build
+buildCommand: npm run build
+startCommand: serve -s build
 routes:
   - type: rewrite
-    source: /.*  # match toutes les routes
+    source: /.*
     destination: /index.html
