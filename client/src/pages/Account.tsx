@@ -113,7 +113,7 @@ function Account() {
                 <form onSubmit={handleSubmitAccount} className="space-y-4">
                   <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Nom" className="w-full p-2 border rounded" />
                   <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="Prénom" className="w-full p-2 border rounded" />
-                  <input type="email" disabled name="email" value={formData.email} onChange={handleChange} placeholder="Email" className="w-full p-2 border rounded" />
+                  <input type="email" disabled name="email" value={formData.email} onChange={handleChange} placeholder="Email" className="w-full p-2 border cursor-not-allowed rounded" />
                   <input type="text" name="adress" value={formData.adress} onChange={handleChange} placeholder="Adresse" className="w-full p-2 border rounded" />
                   <div className="flex gap-2">
                     <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Enregistrer</button>
