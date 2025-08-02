@@ -5,16 +5,14 @@ import {
   HttpStatus,
   Patch,
   Post,
-  Req,
+  Query,
   UnauthorizedException,
-  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from '../Services/auth.service';
 import { LoginDto } from '../Models/login.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { UserService } from 'src/modules/user/Services/user.service';
-import { JwtRequest } from '../jwt/Jwt-request.interface';
-import { JwtAuthGuard } from '../jwt/jwt-auth.guard';
+import { JwtService } from '@nestjs/jwt';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -22,6 +20,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly userService: UserService,
+    private readonly jwtService: JwtService,
   ) {}
 
   @Post('login')
@@ -42,14 +41,29 @@ export class AuthController {
   }
 
   @Patch('confirm-account')
-  @UseGuards(JwtAuthGuard)
-  async confirmAccount(@Req() req: JwtRequest) {
-    const userId = req.user.userId;
-
-    if (!userId) {
-      throw new HttpException('member only', HttpStatus.UNAUTHORIZED);
+  async confirmAccount(@Query('token') token: string) {
+    if (!token) {
+      throw new HttpException('Token manquant', HttpStatus.BAD_REQUEST);
     }
 
-    return this.userService.update(userId, { isConfirmed: true });
+    try {
+      const payload = this.jwtService.verify<IJwtPayload>(token);
+
+      const userId = Number(payload.sub);
+
+      await this.userService.update(userId, { isConfirmed: true });
+
+      return { message: 'Votre compte a été confirmé avec succès.' };
+    } catch {
+      throw new HttpException(
+        'Lien invalide ou expiré',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+    interface IJwtPayload {
+      sub: string | number;
+      iat?: number;
+      exp?: number;
+    }
   }
 }
