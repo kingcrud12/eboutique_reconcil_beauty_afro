@@ -110,6 +110,7 @@ export class UserService {
         id: true,
         email: true,
         password: true,
+        isConfirmed: true,
         firstName: true,
         lastName: true,
         adress: true,

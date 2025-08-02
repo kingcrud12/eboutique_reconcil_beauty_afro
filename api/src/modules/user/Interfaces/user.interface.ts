@@ -17,13 +17,14 @@ export interface IUserCreate {
 }
 
 export interface IUserUpdate {
-  id: number;
+  id?: number;
   firstName?: string;
   lastName?: string;
   email?: string;
   name?: string;
   password?: string;
   adress?: string | null;
+  isConfirmed?: boolean;
 }
 
 export interface IUserprivate {

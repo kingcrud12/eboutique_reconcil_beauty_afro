@@ -6,7 +6,7 @@ export class MailService {
   constructor(private readonly mailerService: MailerService) {}
 
   async sendConfirmationEmail(to: string, token: string) {
-    const confirmUrl = `https://https://eboutique-reconcil-beauty-afro-shop.onrender.com/confirm-account?token=${token}`;
+    const confirmUrl = `https://eboutique-reconcil-beauty-afro.onrender.com/confirm-account?token=${token}`;
 
     await this.mailerService.sendMail({
       to,
