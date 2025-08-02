@@ -18,17 +18,17 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
-          <Route path="Products" element={<Products />} />
-          <Route path="About" element={<About />} />
-          <Route path="Appointment" element={<Appointment />} />
-          <Route path="Login" element={<Login />} />
-          <Route path="Register" element={<Register />} />
-          <Route path="/product/:productId" element={<Product />} />
-          <Route path="/confirm-account" element={<ConfirmAccount />} />
-          <Route path="/Check" element={<CheckEmail />} />
+          <Route path="products" element={<Products />} />
+          <Route path="about" element={<About />} />
+          <Route path="appointment" element={<Appointment />} />
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
+          <Route path="product/:productId" element={<Product />} />
+          <Route path="confirm-account" element={<ConfirmAccount />} />
+          <Route path="check" element={<CheckEmail />} />
 
           <Route
-            path="Account"
+            path="account"
             element={
               <PrivateRoute>
                 <Account />

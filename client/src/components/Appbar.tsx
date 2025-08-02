@@ -28,7 +28,7 @@ function Appbar() {
 
   const handleLoginRedirect = () => {
     setUserModalOpen(false);
-    navigate('/Login');
+    navigate('/login');
   };
 
   return (
@@ -61,7 +61,7 @@ function Appbar() {
           {isAuthenticated ? (
             <>
               <Link
-                to="/Account"
+                to="/account"
                 className="block px-4 py-2 hover:bg-gray-100 text-sm"
                 onClick={() => setUserModalOpen(false)}
               >
@@ -89,17 +89,17 @@ function Appbar() {
 
   {/* Navigation desktop */}
   <div className="hidden md:flex justify-center space-x-10 mt-[-20px] text-sm font-medium">
-    <Link to="/Products" className="hover:text-gray-300">Nos produits</Link>
-    <Link to="/About" className="hover:text-gray-300">A propos de nous</Link>
-    <Link to="/Appointment" className="hover:text-gray-300">Prenez rendez-vous</Link>
+    <Link to="/products" className="hover:text-gray-300">Nos produits</Link>
+    <Link to="/about" className="hover:text-gray-300">A propos de nous</Link>
+    <Link to="/appointment" className="hover:text-gray-300">Prenez rendez-vous</Link>
   </div>
 
   {/* Menu mobile */}
   {menuOpen && (
     <div className="md:hidden mt-2 flex flex-col space-y-2 text-sm font-medium">
-      <Link to="/Products" className="hover:text-gray-300">Nos produits</Link>
-      <Link to="/About" className="hover:text-gray-300">A propos de nous</Link>
-      <Link to="/Appointment" className="hover:text-gray-300">Prenez rendez-vous</Link>
+      <Link to="/products" className="hover:text-gray-300">Nos produits</Link>
+      <Link to="/about" className="hover:text-gray-300">A propos de nous</Link>
+      <Link to="/appointment" className="hover:text-gray-300">Prenez rendez-vous</Link>
     </div>
   )}
 </div>

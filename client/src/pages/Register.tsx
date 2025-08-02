@@ -24,7 +24,7 @@ const Register = () => {
       });
   
       if (response.status === 201 || response.status === 200) {
-        navigate("/Check");
+        navigate("/check");
       } else {
         setError("Une erreur inattendue s’est produite.");
       }
