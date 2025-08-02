@@ -62,7 +62,7 @@ function ProductDetails() {
 
       <div className="space-y-4">
         <img
-          src={`http://localhost:3003${product.imageUrl}`}
+          src={product.imageUrl}
           alt={product.name}
           className="w-[-20px] h-32 object-cover rounded border"
         />

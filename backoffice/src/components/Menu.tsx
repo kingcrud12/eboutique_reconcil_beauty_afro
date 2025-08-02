@@ -20,10 +20,12 @@ function Menu() {
     <div className="bg-slate-900 text-white w-[240px] min-h-screen py-6 px-4 flex flex-col justify-between">
       
       {/* LOGO */}
+      <Link to="/Orders">
       <div className="mb-2">
         <img src="/AM_LOGO.png" alt="Logo" className="text-xl font-bold text-center text-pink-400 mt-[-60px]" />
         <p className="text-xs text-center text-gray-300 mt-[-50px] mb-[-120px]">Reconcil' Afro beauty back office</p>
       </div>
+      </Link>
 
       {/* MENU PRINCIPAL */}
       <nav className="space-y-[50px] mt-[140px]">

@@ -1,29 +1,29 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import api from "../api/api"; // ← adapte le chemin selon ton projet
-import { useAuth } from "../contexts/AuthContext"; // ← le hook du contexte
+import api from "../api/api";
+import { useAuth } from "../contexts/AuthContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage("");
 
     try {
       const response = await api.post("/auth/login", { email, password });
-
       const { token } = response.data;
 
-      localStorage.setItem("token", token); // Stocke le token localement
-      login(token); // Mets à jour le contexte global
-      navigate("/"); // Redirige vers la page d’accueil
-
+      localStorage.setItem("token", token);
+      login(token);
+      navigate("/");
     } catch (error: any) {
       console.error("Erreur de connexion :", error.response?.data || error);
-      alert("Email ou mot de passe incorrect.");
+      setErrorMessage("Email ou mot de passe incorrect.");
     }
   };
 
@@ -67,10 +67,16 @@ const Login = () => {
 
         <p className="text-sm text-center mt-6 text-gray-600">
           Pas encore de compte ?{" "}
-          <Link to="/Register" className="text-slate-800 font-medium hover:underline">
+          <Link to="/register" className="text-slate-800 font-medium hover:underline">
             Créer un compte
           </Link>
         </p>
+
+        {errorMessage && (
+          <p className="mt-4 text-sm text-red-600 text-center font-medium">
+            {errorMessage}
+          </p>
+        )}
       </div>
     </div>
   );

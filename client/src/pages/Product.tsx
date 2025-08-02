@@ -18,35 +18,66 @@ function Product() {
     }
   }, [productId]);
 
-  if (loading) return <div className="p-6">Chargement...</div>;
-  if (!product) return <div className="p-6 text-red-600">Produit introuvable</div>;
+  const formatDescription = (description: string | undefined) => {
+    if (!description) return null;
+
+    const parts = description.split(/✅/).map(p => p.trim()).filter(Boolean);
+    const intro = parts.shift();
+
+    return (
+      <div className="space-y-2 text-sm leading-relaxed">
+        <p>{intro}</p>
+        {parts.length > 0 && (
+          <ul className="list-disc list-inside">
+            {parts.map((line, index) => (
+              <li key={index}>✅ {line}</li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+  };
+
+  if (loading) return <div className="p-6 text-center">Chargement...</div>;
+  if (!product) return <div className="p-6 text-red-600 text-center">Produit introuvable</div>;
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Détail du produit</h1>
+    <div className="font-sans py-16 px-4 sm:px-6 lg:px-8 bg-white min-h-screen mt-[100px] shadow">
+      <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-md">
+        <h1 className="text-2xl font-bold text-center mb-8">Détails du produit</h1>
 
-      <div className="bg-white p-6 rounded-lg shadow space-y-4">
-        <div className="flex justify-center">
-          <img
-            src={`http://localhost:3003${product.imageUrl}`}
-            alt={product.name}
-            className="w-64 h-64 object-contain rounded"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+          {/* Image */}
+          <div className="flex justify-center">
+            <img
+              src={product.imageUrl}
+              alt={product.name}
+              className="max-h-96 w-auto object-contain rounded"
+            />
+          </div>
+
+          {/* Détails texte */}
+          <div className="text-left space-y-4 text-gray-800">
+            <p className="text-lg font-semibold">{product.name}</p>
+
+            <div>{formatDescription(product.description)}</div>
+
+            <p>
+              <strong>Prix :</strong>{" "}
+              <span className="text-green-600 font-semibold">{product.price} €</span>
+            </p>
+            <p>
+              <strong>Stock :</strong> {product.stock}
+            </p>
+
+            <button
+              onClick={() => navigate("/products")}
+              className="mt-4 bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded transition w-full sm:w-auto"
+            >
+              ⬅️ Retour
+            </button>
+          </div>
         </div>
-
-        <div className="space-y-2">
-          <p><strong>Nom :</strong> {product.name}</p>
-          <p><strong>Description :</strong> {product.description}</p>
-          <p><strong>Prix :</strong> {product.price} €</p>
-          <p><strong>Stock :</strong> {product.stock}</p>
-        </div>
-
-        <button
-          onClick={() => navigate('/Products')}
-          className="mt-4 bg-gray-700 text-white px-4 py-2 rounded"
-        >
-          ⬅️ Retour
-        </button>
       </div>
     </div>
   );

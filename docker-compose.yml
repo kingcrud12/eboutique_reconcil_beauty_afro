@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8
+    container_name: eboutique_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: eboutique
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  api:
+    build: ./api
+    container_name: eboutique_api
+    restart: always
+    depends_on:
+      - mysql
+    env_file:
+      - ./api/.env
+    ports:
+      - "3003:3003"
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && node dist/main"
+
+  client:
+    build: ./client
+    container_name: eboutique_client
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+
+  backoffice:
+    build: ./backoffice
+    container_name: eboutique_backoffice
+    ports:
+      - "3001:80"
+    depends_on:
+      - api
+
+volumes:
+  mysql-data:

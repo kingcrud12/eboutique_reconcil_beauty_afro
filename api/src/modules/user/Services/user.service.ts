@@ -54,6 +54,7 @@ export class UserService {
         firstName: createUser.firstName,
         lastName: createUser.lastName,
         password: hashedPassword,
+        adress: createUser.adress,
       },
     });
 
@@ -71,7 +72,7 @@ export class UserService {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
-      adress: user.address,
+      adress: user.adress,
     };
   }
 
@@ -82,7 +83,7 @@ export class UserService {
       lastName: user.lastName,
       email: user.email,
       password: user.password,
-      adress: user.address,
+      adress: user.adress,
       role: user.role,
     };
   }
@@ -94,7 +95,7 @@ export class UserService {
       lastName: user.lastName,
       email: user.email,
       password: user.password,
-      adress: user.address,
+      adress: user.adress,
     };
   }
   async verifyUser(params: {
@@ -109,10 +110,11 @@ export class UserService {
         id: true,
         email: true,
         password: true,
+        isConfirmed: true,
         firstName: true,
         lastName: true,
-        address: true,
-        role: true, // 👈 Ajout du rôle ici
+        adress: true,
+        role: true,
       },
     });
   }
