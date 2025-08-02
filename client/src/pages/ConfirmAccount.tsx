@@ -17,7 +17,7 @@ function ConfirmAccount() {
     }
 
     api
-      .patch(`/confirm-account?token=${token}`)
+      .patch(`/auth/confirm-account?token=${token}`)
       .then(() => {
         setMessage("Votre compte a bien été confirmé !");
         setTimeout(() => {
