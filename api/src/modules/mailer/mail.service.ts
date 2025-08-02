@@ -11,7 +11,7 @@ export class MailService {
     await this.mailerService.sendMail({
       to,
       subject: 'Confirmez votre compte',
-      template: 'confirm',
+      template: './confirm',
       context: {
         url: confirmUrl,
       },
