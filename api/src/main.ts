@@ -42,7 +42,8 @@ const bootstrap = async () => {
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
-  console.log(`✅ Server is running: http://localhost:${port}/shop`);
+  console.log(`,✅ Server is running: http://localhost:${port}/shop`);
+  console.log('Template path resolved:', join(__dirname, 'templates'));
 };
 
 bootstrap().catch((err) => console.error(err));
