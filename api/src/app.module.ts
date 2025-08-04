@@ -22,7 +22,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
         },
       },
       defaults: {
-        from: '"Mon Eshop" <dipitay@gmail.com>',
+        from: '"Reconcil Beauty Afro" <dipitay@gmail.com>',
       },
       template: {
         dir: join(__dirname, '..', 'src', 'templates'),
