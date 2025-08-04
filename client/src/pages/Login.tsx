@@ -7,12 +7,16 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [showResetLink, setShowResetLink] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
+    setShowResetLink(false);
+    setResetSent(false);
 
     try {
       const response = await api.post("/auth/login", { email, password });
@@ -24,6 +28,20 @@ const Login = () => {
     } catch (error: any) {
       console.error("Erreur de connexion :", error.response?.data || error);
       setErrorMessage("Email ou mot de passe incorrect.");
+      if (error.response?.status === 401) {
+        setShowResetLink(true);
+      }
+    }
+  };
+
+  const handleSendResetLink = async () => {
+    try {
+      await api.post("/send-password-reset-link", { email });
+      setResetSent(true);
+      setShowResetLink(false);
+    } catch (error: any) {
+      console.error("Erreur d'envoi de l'e-mail de réinitialisation :", error.response?.data || error);
+      setErrorMessage("Impossible d’envoyer l’e-mail. Veuillez réessayer.");
     }
   };
 
@@ -65,18 +83,35 @@ const Login = () => {
           </button>
         </form>
 
+        {errorMessage && (
+          <p className="mt-4 text-sm text-red-600 text-center font-medium">
+            {errorMessage}
+          </p>
+        )}
+
+        {showResetLink && (
+          <p className="mt-4 text-sm text-center">
+            <button
+              onClick={handleSendResetLink}
+              className="text-blue-600 hover:underline"
+            >
+              Mot de passe oublié ? Cliquez ici pour recevoir un lien de réinitialisation.
+            </button>
+          </p>
+        )}
+
+        {resetSent && (
+          <p className="mt-4 text-sm text-green-600 text-center font-medium">
+            Un e-mail de réinitialisation a été envoyé si le compte existe.
+          </p>
+        )}
+
         <p className="text-sm text-center mt-6 text-gray-600">
           Pas encore de compte ?{" "}
           <Link to="/register" className="text-slate-800 font-medium hover:underline">
             Créer un compte
           </Link>
         </p>
-
-        {errorMessage && (
-          <p className="mt-4 text-sm text-red-600 text-center font-medium">
-            {errorMessage}
-          </p>
-        )}
       </div>
     </div>
   );
