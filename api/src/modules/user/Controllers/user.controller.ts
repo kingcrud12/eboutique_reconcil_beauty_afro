@@ -9,6 +9,7 @@ import {
   UseGuards,
   HttpStatus,
   HttpException,
+  Query,
 } from '@nestjs/common';
 import { UserService } from '../Services/user.service';
 import { JwtAuthGuard } from '../../auth/jwt/jwt-auth.guard';
@@ -68,6 +69,52 @@ export class UserController {
       message: 'User updated successfully',
       user: updatedUser,
     };
+  }
+
+  @Post('send-password-reset-link')
+  async resetPasswordLink(@Body('email') email: string) {
+    const user = await this.userService.getByEmail(email);
+
+    if (!user) {
+      throw new HttpException('Utilisateur introuvable', HttpStatus.NOT_FOUND);
+    }
+
+    const token = this.jwtService.sign({ sub: user.id }, { expiresIn: '15m' });
+
+    await this.mailerService.sendPasswordResetEmail(user.email, token);
+
+    return { message: 'Un e-mail de réinitialisation a été envoyé.' };
+  }
+
+  @Patch('reset-password')
+  async resetPassword(
+    @Query('token') token: string,
+    @Body() body: { password: string },
+  ) {
+    if (!token) {
+      throw new HttpException('Token manquant', HttpStatus.BAD_REQUEST);
+    }
+
+    let payload: { sub: string };
+    try {
+      payload = await this.jwtService.verifyAsync(token);
+    } catch {
+      throw new HttpException(
+        'Token invalide ou expiré',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const userId = Number(payload.sub);
+    const updatedUser = await this.userService.update(userId, {
+      password: body.password,
+    });
+
+    if (!updatedUser) {
+      throw new HttpException('Utilisateur introuvable', HttpStatus.NOT_FOUND);
+    }
+
+    return { message: 'Mot de passe mis à jour avec succès' };
   }
 
   async isUserExistOrNot(

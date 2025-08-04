@@ -17,4 +17,16 @@ export class MailService {
       },
     });
   }
+  async sendPasswordResetEmail(to: string, token: string) {
+    const resetUrl = `https://eboutique-reconcil-beauty-afro.vercel.app/reset-password?token=${token}`;
+    await this.mailerService.sendMail({
+      to,
+      subject: 'Réinitialisation de votre mot de passe',
+      template: 'reset-password',
+      context: {
+        url: resetUrl,
+        year: new Date().getFullYear(),
+      },
+    });
+  }
 }
