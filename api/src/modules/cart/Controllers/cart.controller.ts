@@ -1,0 +1,151 @@
+import {
+  Body,
+  Controller,
+  Post,
+  Put,
+  Delete,
+  Param,
+  HttpStatus,
+  HttpException,
+  ParseIntPipe,
+  Get,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { CartService } from '../Services/cart.service';
+import { CreateCartDto, UpdateCartDto } from '../Models/cart.dto';
+import {
+  ICart,
+  ICartCreate,
+  ICartCreateUpdate,
+} from '../Interfaces/cart.interface';
+import { ApiResponse } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../auth/jwt/jwt-auth.guard';
+import { JwtRequest } from '../../auth/jwt/Jwt-request.interface';
+
+@Controller('cart')
+export class CartController {
+  constructor(private readonly cartService: CartService) {}
+
+  @Post()
+  async create(@Body() createCartDto: CreateCartDto): Promise<ICartCreate> {
+    try {
+      const cart: ICartCreate = this.mapToCartCreate(createCartDto);
+      return await this.cartService.create(cart);
+    } catch {
+      throw new HttpException(
+        'Erreur lors de la création du panier',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put(':id')
+  @ApiResponse({ status: 200, description: 'Panier mis à jour avec succès' })
+  async update(
+    @Req() req: JwtRequest,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateCartDto: UpdateCartDto,
+  ): Promise<ICart> {
+    const userId = req.user.userId;
+    const cart = await this.cartService.getCartById(id);
+
+    if (!cart) {
+      throw new HttpException('Panier introuvable', HttpStatus.NOT_FOUND);
+    }
+
+    if (cart.userId !== userId) {
+      throw new HttpException(
+        'Accès interdit à ce panier',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    try {
+      const updateData: ICartCreateUpdate = this.mapToCartUpdate(updateCartDto);
+      return await this.cartService.updateCart(id, updateData);
+    } catch {
+      throw new HttpException(
+        'Erreur lors de la mise à jour du panier',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  @ApiResponse({ status: 200, description: 'Panier supprimé avec succès' })
+  async delete(
+    @Req() req: JwtRequest,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ICart> {
+    const userId = req.user.userId;
+    const cart = await this.cartService.getCartById(id);
+
+    if (!cart) {
+      throw new HttpException('Panier introuvable', HttpStatus.NOT_FOUND);
+    }
+
+    if (cart.userId !== userId) {
+      throw new HttpException(
+        'Accès interdit à ce panier',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    try {
+      return await this.cartService.deleteCart(id);
+    } catch {
+      throw new HttpException(
+        'Erreur lors de la suppression du panier',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  async get(
+    @Req() req: JwtRequest,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<ICart> {
+    const userId = req.user.userId;
+    const cart = await this.cartService.getCartById(id);
+
+    if (!cart) {
+      throw new HttpException('Panier introuvable', HttpStatus.NOT_FOUND);
+    }
+
+    if (cart.userId !== userId) {
+      throw new HttpException(
+        'Accès interdit à ce panier',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    return cart;
+  }
+
+  private mapToCartCreate(dto: CreateCartDto): ICartCreate {
+    return {
+      userId: dto.userId,
+      guestId: dto.guestId,
+      items: dto.items?.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+      })),
+    };
+  }
+
+  private mapToCartUpdate(dto: UpdateCartDto): ICartCreateUpdate {
+    return {
+      userId: dto.userId,
+      guestId: dto.guestId,
+      items: dto.items?.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+      })),
+    };
+  }
+}

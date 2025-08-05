@@ -1,9 +1,9 @@
 import {
-  IsEmail,
+  IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
-  MinLength,
 } from 'class-validator';
 
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -91,7 +91,8 @@ export class UpdateProductDto implements IProductUpdate {
 
 export class ProductDto implements IProduct {
   @ApiProperty()
-  id!: number;
+  @IsInt()
+  id: number;
 
   @ApiProperty({ description: 'Product name', example: 'Shampoo' })
   @IsNotEmpty()
@@ -108,17 +109,18 @@ export class ProductDto implements IProduct {
 
   @ApiProperty({
     description: 'Product price',
-    example: '9,50 euros',
+    example: 9.5,
   })
-  @IsEmail()
+  @IsNotEmpty()
+  @IsNumber()
   price: Decimal;
 
   @ApiProperty({
     description: 'Product stock',
-    example: '2',
+    example: 2,
   })
-  @MinLength(6)
-  @IsString()
+  @IsNotEmpty()
+  @IsInt()
   stock: number;
 
   @ApiPropertyOptional({
@@ -129,6 +131,10 @@ export class ProductDto implements IProduct {
   @IsString()
   imageUrl?: string | null;
 
+  @ApiPropertyOptional({
+    description: 'Product category',
+    example: 'Cheveux',
+  })
   @IsOptional()
   @IsString()
   category?: string;
