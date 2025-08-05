@@ -41,6 +41,20 @@ export class CartController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('user')
+  async getUserCarts(@Req() req: JwtRequest): Promise<ICart[]> {
+    const userId = req.user.userId;
+
+    const carts = await this.cartService.getCartsByUser(userId);
+
+    if (!carts) {
+      return []; // Aucun panier trouvé
+    }
+
+    return carts;
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Put(':id')
   @ApiResponse({ status: 200, description: 'Panier mis à jour avec succès' })
   async update(
@@ -125,20 +139,6 @@ export class CartController {
     }
 
     return cart;
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('user')
-  async getUserCarts(@Req() req: JwtRequest): Promise<ICart[]> {
-    const userId = req.user.userId;
-
-    const carts = await this.cartService.getCartsByUser(userId);
-
-    if (!carts) {
-      return []; // Aucun panier trouvé
-    }
-
-    return carts;
   }
 
   private mapToCartCreate(dto: CreateCartDto): ICartCreate {
