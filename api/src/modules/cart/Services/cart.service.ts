@@ -57,6 +57,39 @@ export class CartService {
     return this.exportToCartInterface(cart);
   }
 
+  async getCarts(): Promise<ICart[] | null> {
+    const carts = await this.prisma.cart.findMany({
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+
+    if (!carts) return null;
+
+    return carts.map((cart) => this.exportToCartInterface(cart));
+  }
+
+  async getCartsByUser(userId: number): Promise<ICart[] | null> {
+    const carts = await this.prisma.cart.findMany({
+      where: { userId },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+
+    if (!carts || carts.length === 0) return null;
+
+    return carts.map((cart) => this.exportToCartInterface(cart));
+  }
+
   async updateCart(id: number, data: ICartCreateUpdate): Promise<ICart | null> {
     const existingCart = await this.prisma.cart.findUnique({
       where: { id },
@@ -64,8 +97,6 @@ export class CartService {
     });
 
     if (!existingCart) return null;
-
-    // Met à jour les infos user/guest si présentes
     await this.prisma.cart.update({
       where: { id },
       data: {
@@ -73,8 +104,6 @@ export class CartService {
         guestId: data.guestId ?? undefined,
       },
     });
-
-    // Gérer les produits à ajouter / modifier / supprimer
     if (data.items && data.items.length > 0) {
       for (const item of data.items) {
         const existingItem = await this.prisma.cartItem.findFirst({
@@ -88,7 +117,6 @@ export class CartService {
           const newQuantity = Number(existingItem.quantity + item.quantity);
 
           if (newQuantity <= 0) {
-            // ❌ Supprimer si quantité à 0 ou moins
             await this.prisma.cartItem.delete({
               where: { id: existingItem.id },
             });
@@ -100,7 +128,6 @@ export class CartService {
             });
           }
         } else {
-          // ✅ Création si pas encore dans le panier et quantité > 0
           if (item.quantity > 0) {
             await this.prisma.cartItem.create({
               data: {
@@ -110,12 +137,10 @@ export class CartService {
               },
             });
           }
-          // sinon : ignorer item.quantity <= 0 sur nouvel item
         }
       }
     }
 
-    // 🔁 Rechargement du panier mis à jour
     const updatedCart = await this.prisma.cart.findUnique({
       where: { id },
       include: {

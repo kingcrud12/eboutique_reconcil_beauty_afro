@@ -12,6 +12,13 @@ export interface ICart {
   items: ICartItem[];
 }
 
+export interface ICarts {
+  userId?: number;
+  guestId?: number;
+  createdAt: Date;
+  items: ICartItem[];
+}
+
 export interface ICartCreate {
   userId?: number;
   guestId?: number;
