@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import { AuthProvider } from './contexts/AuthContext'; // 👈 adapte le chemin si besoin
+import { AuthProvider } from './contexts/AuthContext';
+import { CartProvider } from './contexts/CartContext'; // 👈 ajoute l'import CartContext
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -12,7 +13,9 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <AuthProvider>
-      <App />
+      <CartProvider> {/* 👈 englobe App ici */}
+        <App />
+      </CartProvider>
     </AuthProvider>
   </React.StrictMode>
 );

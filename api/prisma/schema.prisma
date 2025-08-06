@@ -26,7 +26,7 @@ model Guest {
   firstName    String?
   lastName     String?
   email        String?
-  address      String?
+  adress       String?       @db.Text
   orders       Order[]       @relation("GuestOrders")
   appointments Appointment[]
   carts        Cart[]
@@ -82,7 +82,7 @@ model Cart {
 
 model CartItem {
   id         Int      @id @default(autoincrement())
-  quantity   Int      @default(1)
+  quantity   Int 
 
   cartId     Int
   productId  Int
