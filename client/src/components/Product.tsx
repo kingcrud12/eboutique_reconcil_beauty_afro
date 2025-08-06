@@ -13,35 +13,47 @@ function Product() {
   const [popinMsg, setPopinMsg] = useState<string | null>(null);
 
   const { fetchCart, firstCart } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
     api.get('/products')
       .then(res => setProducts(res.data))
-      .catch(err => console.error("Erreur récupération produits :", err))
+      .catch(err => {
+        console.error("Erreur récupération produits :", err);
+        setPopinMsg("Erreur chargement produits");
+      })
       .finally(() => setLoading(false));
   }, []);
 
   const handleAddToCart = async (productId: number) => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user) {
       setPopinMsg("Veuillez vous connecter pour ajouter un produit.");
       return;
     }
-    if (!firstCart) {
-      setPopinMsg("Aucun panier actif trouvé.");
-      return;
-    }
+
+    setAddingToCart(productId);
 
     try {
-      setAddingToCart(productId);
-      await api.put(`/cart/${firstCart.id}`, {
-        items: [{ productId, quantity: 1 }],
-      });
+      let cartId: number;
+
+      if (!firstCart) {
+        const res = await api.post('/cart', {
+          userId: user.id,
+          items: [{ productId, quantity: 1 }],
+        });
+        cartId = res.data.id;
+      } else {
+        cartId = firstCart.id;
+        await api.put(`/cart/${cartId}`, {
+          items: [{ productId, quantity: 1 }],
+        });
+      }
+
       await fetchCart();
-      setPopinMsg("Produit ajouté au panier !");
+      setPopinMsg("Produit ajouté au panier !");
     } catch (err) {
       console.error('Erreur ajout panier :', err);
-      setPopinMsg("Erreur : impossible d’ajouter.");
+      setPopinMsg("Impossible d’ajouter au panier.");
     } finally {
       setAddingToCart(null);
     }
@@ -54,6 +66,7 @@ function Product() {
   return (
     <div className="py-16 px-4 sm:px-6 lg:px-8 bg-white font-sans">
       {popinMsg && <Popin message={popinMsg} onClose={() => setPopinMsg(null)} />}
+
       <div className="max-w-7xl mx-auto text-center">
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Nos Produits</h2>
         <p className="text-gray-500 mt-2 mb-10 text-sm sm:text-base">
@@ -74,7 +87,9 @@ function Product() {
               <Link to={`/product/${product.id}`} className="w-full">
                 <div>
                   <h3 className="font-semibold text-gray-800 mb-2">{product.name}</h3>
-                  <p className="text-sm text-slate-600 mt-1 line-clamp-3">{product.description.slice(0, 120)}…</p>
+                  <p className="text-sm text-slate-600 mt-1 line-clamp-3">
+                    {product.description.slice(0, 120)}…
+                  </p>
                   <p className="text-green-600 font-bold mt-3">{product.price} €</p>
                 </div>
               </Link>
@@ -82,7 +97,9 @@ function Product() {
                 onClick={() => handleAddToCart(product.id)}
                 disabled={addingToCart === product.id}
                 className={`mt-4 px-4 py-2 text-white rounded ${
-                  addingToCart === product.id ? 'bg-gray-400 cursor-not-allowed' : 'bg-gray-800 hover:bg-blue-700'
+                  addingToCart === product.id
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-gray-800 hover:bg-blue-700'
                 }`}
               >
                 {addingToCart === product.id ? 'Ajout...' : 'Ajouter au panier'}

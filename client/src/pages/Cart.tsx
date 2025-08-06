@@ -99,7 +99,7 @@ function Cart() {
     if (!selectedCartId) return;
     try {
       setAddingProductId(productId);
-      await api.post(`/cart/${selectedCartId}`, {
+      await api.put(`/cart/${selectedCartId}`, {
         items: [{ productId, quantity: 1 }],
       });
       await fetchCart();
@@ -127,7 +127,7 @@ function Cart() {
   if (authError)
     return (
       <div className="p-6 text-center">
-        <p className="text-red-500">
+        <p className="text-red-500 mt-[180px]">
           Veuillez vous connecter pour accéder à votre panier.
         </p>
         <button
@@ -141,7 +141,9 @@ function Cart() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto mt-[80px]">
-      <h1 className="text-2xl font-bold mb-6">🛒 Vos Paniers</h1>
+      <h1 className={`text-2xl font-bold ${
+    carts.length === 0 ? 'mb-[280px]' : 'mb-8'
+  }`}>🛒 Vos Paniers</h1>
 
       <div className="space-y-6">
         {carts.map((cart, idx) => (

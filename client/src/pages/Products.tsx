@@ -9,21 +9,21 @@ import { useAuth } from "../contexts/AuthContext";
 const categories = ["Tous", "hair", "body"];
 
 const Products = () => {
-  const [selectedCategory, setSelectedCategory] = useState("Tous");
   const [products, setProducts] = useState<IProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [addingId, setAddingId] = useState<number | null>(null);
   const [popinMsg, setPopinMsg] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState("Tous");
 
   const { fetchCart, firstCart } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
     api.get("/products")
       .then(res => setProducts(res.data))
       .catch(err => {
-        console.error("Erreur chargement produits :", err);
-        setPopinMsg("Échec de chargement des produits");
+        console.error(err);
+        setPopinMsg("Échec du chargement des produits");
       })
       .finally(() => setLoading(false));
   }, []);
@@ -31,24 +31,34 @@ const Products = () => {
   const truncated = (text: string, max = 120) =>
     text?.length > max ? text.slice(0, max).trim() + "…" : text;
 
-  const handleAdd = async (id: number) => {
-    if (!isAuthenticated) {
+  // 👇 Pour boutons classiques
+  const handleAdd = async (productId: number) => {
+    if (!isAuthenticated || !user) {
       setPopinMsg("Veuillez vous connecter pour ajouter un produit");
       return;
     }
-    if (!firstCart) {
-      setPopinMsg("Aucun panier actif trouvé");
-      return;
-    }
+
+    setAddingId(productId);
     try {
-      setAddingId(id);
-      await api.put(`/cart/${firstCart.id}`, {
-        items: [{ productId: id, quantity: 1 }],
-      });
+      let cartId: number;
+
+      if (!firstCart) {
+        const res = await api.post("/cart", {
+          userId: user.id,
+          items: [{ productId, quantity: 1 }],
+        });
+        cartId = res.data.id;
+      } else {
+        cartId = firstCart.id;
+        await api.put(`/cart/${cartId}`, {
+          items: [{ productId, quantity: 1 }],
+        });
+      }
+
       await fetchCart();
-      setPopinMsg("Produit ajouté au panier !");
+      setPopinMsg("Produit ajouté au panier!");
     } catch (err) {
-      console.error(err);
+      console.error("Erreur ajout article :", err);
       setPopinMsg("Impossible d’ajouter l’article");
     } finally {
       setAddingId(null);
@@ -61,20 +71,18 @@ const Products = () => {
       : products.filter(p => p.category === selectedCategory);
 
   if (loading) {
-    return <div className="py-16 text-center">Chargement...</div>;
+    return <div className="py-16 text-center">Chargement des produits...</div>;
   }
 
   return (
-    <div className="py-16 px-4 sm:px-6 lg:px-8 bg-white font-sans mt-[80px]">
-      {popinMsg && (
-        <Popin message={popinMsg} onClose={() => setPopinMsg(null)} />
-      )}
+    <div className="py-16 px-4 sm:px-6 lg:px-8 bg-white mt-[80px] font-sans">
+      {popinMsg && <Popin message={popinMsg} onClose={() => setPopinMsg(null)} />}
 
       <div className="mb-8 flex justify-center">
         <select
           className="border border-gray-300 px-4 py-2 rounded-md shadow-sm text-sm"
           value={selectedCategory}
-          onChange={e => setSelectedCategory(e.target.value)}
+          onChange={(e) => setSelectedCategory(e.target.value)}
         >
           {categories.map(cat => (
             <option key={cat} value={cat}>
@@ -92,7 +100,7 @@ const Products = () => {
         {filtered.map(p => (
           <div
             key={p.id}
-            className="bg-white p-4 rounded-xl shadow hover:shadow-md flex flex-col items-center text-center max-w-xs mx-auto"
+            className="bg-white p-4 rounded-xl shadow hover:shadow-md transition flex flex-col items-center text-center max-w-xs mx-auto"
           >
             <img
               src={p.imageUrl}
@@ -101,13 +109,11 @@ const Products = () => {
             />
             <Link to={`/product/${p.id}`} className="w-full">
               <h3 className="font-semibold text-gray-800 mb-2">{p.name}</h3>
-              <p className="text-sm text-slate-600 line-clamp-3">
-                {truncated(p.description)}
-              </p>
+              <p className="text-sm text-slate-600 line-clamp-3">{truncated(p.description)}</p>
               <p className="text-green-600 font-bold mt-3">{p.price} €</p>
             </Link>
             <button
-              onClick={() => handleAdd(p.id)}
+              onClick={() => handleAdd(p.id)} // tu peux changer ici pour handleAddFromModal(p.id) si modal
               disabled={addingId === p.id}
               className={`mt-4 px-4 py-2 text-white rounded ${
                 addingId === p.id
