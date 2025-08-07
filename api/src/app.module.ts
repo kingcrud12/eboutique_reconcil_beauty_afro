@@ -11,6 +11,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { join } from 'path';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { CartModule } from './modules/cart/cart.module';
+import { PointRelaisModule } from './modules/PointRelaisModule/point-relais.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { CartModule } from './modules/cart/cart.module';
     AdminModule,
     ProductModule,
     CartModule,
+    PointRelaisModule,
   ],
   controllers: [AppController],
   providers: [AppService],
