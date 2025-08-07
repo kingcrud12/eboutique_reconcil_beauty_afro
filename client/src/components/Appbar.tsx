@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, ShoppingCart, Menu } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext'; 
-import { useCart } from '../contexts/CartContext'; // 👈 Contexte panier
+import { useCart } from '../contexts/CartContext';
 
 function Appbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -11,7 +11,7 @@ function Appbar() {
   const navigate = useNavigate();
 
   const { isAuthenticated, logout } = useAuth();
-  const { totalCarts, fetchCart } = useCart(); // ✅ utiliser totalCarts ici
+  const { totalCarts, fetchCart, setCarts } = useCart();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -31,6 +31,7 @@ function Appbar() {
 
   const handleLogout = () => {
     logout();
+    setCarts([]);
     setUserModalOpen(false);
   };
 
@@ -42,27 +43,23 @@ function Appbar() {
   return (
     <div className="fixed top-0 left-0 w-full z-50 bg-white text-black px-4 py-2 sm:py-4 shadow">
       <div className="flex items-center justify-between">
-        {/* Burger menu */}
         <div className="md:hidden">
           <button onClick={() => setMenuOpen(!menuOpen)}>
             <Menu className="w-6 h-6" />
           </button>
         </div>
 
-        {/* Logo */}
         <Link to="/" className="flex flex-col items-center">
           <img src="/AM_LOGO.png" alt="Logo" className="h-10 sm:h-12 w-auto" />
           <p className="text-[10px] sm:text-xs leading-none">Réconcil' Afro Beauty</p>
         </Link>
 
-        {/* Icônes */}
         <div className="flex items-center gap-4 relative" ref={userRef}>
           <User
             className="w-6 h-6 cursor-pointer hover:text-gray-400"
             onClick={() => setUserModalOpen(!userModalOpen)}
           />
 
-          {/* Icône Panier avec badge */}
           <div className="relative cursor-pointer hover:text-gray-400" onClick={() => navigate('/cart')}>
             <ShoppingCart className="w-6 h-6" />
             {totalCarts > 0 && (
@@ -72,7 +69,6 @@ function Appbar() {
             )}
           </div>
 
-          {/* Modal utilisateur */}
           {userModalOpen && (
             <div className="absolute right-0 top-full mt-2 w-40 bg-white border rounded shadow-lg z-50 py-2">
               {isAuthenticated ? (
@@ -104,14 +100,12 @@ function Appbar() {
         </div>
       </div>
 
-      {/* Navigation desktop */}
       <div className="hidden md:flex justify-center space-x-10 mt-[-20px] text-sm font-medium">
         <Link to="/products" className="hover:text-gray-300">Nos produits</Link>
         <Link to="/about" className="hover:text-gray-300">A propos de nous</Link>
         <Link to="/appointment" className="hover:text-gray-300">Prenez rendez-vous</Link>
       </div>
 
-      {/* Menu mobile */}
       {menuOpen && (
         <div className="md:hidden mt-2 flex flex-col space-y-2 text-sm font-medium">
           <Link to="/products" className="hover:text-gray-300">Nos produits</Link>
