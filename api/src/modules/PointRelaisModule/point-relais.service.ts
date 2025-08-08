@@ -67,4 +67,34 @@ export class PointRelaisService {
     if (city) params.append('City', city);
     return `${this.apiBaseUrl}?${params.toString()}`;
   }
+
+  async findRelaisByAddress(address: string): Promise<ParcelShop[]> {
+    const [, postalCode, city] = this.parseAddress(address);
+    const url = this.buildUrl({ postalCode, city });
+
+    try {
+      const response = await axios.get<SearchPRResponse>(url);
+      const list = response.data?.PRList ?? [];
+
+      if (list.length === 0) {
+        const fallbackUrl = this.buildUrl({ postalCode });
+        const fallbackResponse = await axios.get<SearchPRResponse>(fallbackUrl);
+        return fallbackResponse.data?.PRList ?? [];
+      }
+
+      return list;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error(
+          'Mondial Relay API error (address):',
+          error.response?.data,
+        );
+      } else {
+        console.error('Unexpected error (address):', (error as Error).message);
+      }
+      throw new Error(
+        'Erreur lors de la récupération des points relais avec adresse saisie',
+      );
+    }
+  }
 }
