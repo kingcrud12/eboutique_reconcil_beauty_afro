@@ -1,69 +1,70 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { Client } from 'soap';
+import { Injectable } from '@nestjs/common';
 import { UserService } from '../user/Services/user.service';
-import { IMondialRelayPoint } from './IMondialRelayPoint';
-import * as crypto from 'crypto';
-
-interface RechercheResult {
-  WSI2_RecherchePointRelaisResult?: {
-    PR01?: Record<string, IMondialRelayPoint>;
-  };
-}
+import axios from 'axios';
+import { ParcelShop, SearchPRResponse } from './types/types';
 
 @Injectable()
 export class PointRelaisService {
-  private readonly enseigne = 'BDTEST';
-  private readonly privateKey = ''; // Remplace par ta clé privée reçue de Mondial Relay
+  private readonly apiBaseUrl = process.env.apiBaseUrl;
+  private readonly brand = process.env.brand;
+  private readonly deliveryMode = '24R';
 
-  constructor(
-    @Inject('MR_SOAP_CLIENT') private readonly soapClient: Client,
-    private readonly usersService: UserService,
-  ) {}
+  constructor(private readonly usersService: UserService) {}
 
-  async findRelaisByUserId(userId: number): Promise<IMondialRelayPoint[]> {
+  async findRelaisByUserId(userId: number): Promise<ParcelShop[]> {
     const user = await this.usersService.get(userId);
     if (!user?.adress) throw new Error('Adresse manquante');
 
-    const [street, postalCode, city] = this.parseAddress(user.adress);
+    const [, postalCode, city] = this.parseAddress(user.adress);
+    const url = this.buildUrl({ postalCode, city });
 
-    const params = {
-      Enseigne: this.enseigne,
-      Pays: 'FR',
-      Ville: city,
-      CP: postalCode,
-      Taille: 'M',
-      Poids: '1000',
-      Action: '24R',
-    };
+    try {
+      const response = await axios.get<SearchPRResponse>(url);
+      const list = response.data?.PRList ?? [];
 
-    const securityString = `${this.enseigne}${street}${postalCode}${city}24R${this.privateKey}`;
-    const security = crypto
-      .createHash('md5')
-      .update(securityString)
-      .digest('hex')
-      .toUpperCase();
+      if (list.length === 0) {
+        const fallbackUrl = this.buildUrl({ postalCode });
+        const fallbackResponse = await axios.get<SearchPRResponse>(fallbackUrl);
+        return fallbackResponse.data?.PRList ?? [];
+      }
 
-    const fullParams = { ...params, Security: security };
-
-    const soapClientTyped = this.soapClient as unknown as {
-      WSI2_RecherchePointRelaisAsync: (
-        args: typeof fullParams,
-      ) => Promise<[RechercheResult]>;
-    };
-
-    const [raw] =
-      await soapClientTyped.WSI2_RecherchePointRelaisAsync(fullParams);
-    const result = raw.WSI2_RecherchePointRelaisResult;
-
-    return result?.PR01 ? Object.values(result.PR01) : [];
+      return list;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error('Mondial Relay API error:', error.response?.data);
+      } else {
+        console.error('Unexpected error:', (error as Error).message);
+      }
+      throw new Error('Erreur lors de la récupération des points relais');
+    }
   }
 
   private parseAddress(address: string): [string, string, string] {
     const parts = address.split(',').map((p) => p.trim());
-    if (parts.length < 3)
+    if (parts.length < 3) {
       throw new Error(
         'Adresse invalide. Format attendu : "rue, code postal, ville"',
       );
+    }
     return [parts[0], parts[1], parts[2]];
+  }
+
+  private buildUrl({
+    postalCode,
+    city,
+  }: {
+    postalCode: string;
+    city?: string;
+  }): string {
+    const params = new URLSearchParams({
+      Brand: this.brand,
+      Country: 'FR',
+      PostCode: postalCode,
+      ColLivMod: this.deliveryMode,
+      NbResults: '12',
+      SearchFar: '75',
+    });
+    if (city) params.append('City', city);
+    return `${this.apiBaseUrl}?${params.toString()}`;
   }
 }
