@@ -110,7 +110,7 @@ const Products = () => {
             <Link to={`/product/${p.id}`} className="w-full">
               <h3 className="font-semibold text-gray-800 mb-2">{p.name}</h3>
               <p className="text-sm text-slate-600 line-clamp-3">{truncated(p.description)}</p>
-              <p className="text-green-600 font-bold mt-3">{p.price} €</p>
+              <p className="text-green-600 font-bold mt-3">{Number(p.price).toFixed(2)} €</p>
             </Link>
             <button
               onClick={() => handleAdd(p.id)} // tu peux changer ici pour handleAddFromModal(p.id) si modal
