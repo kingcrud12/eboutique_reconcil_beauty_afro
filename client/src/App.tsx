@@ -13,6 +13,7 @@ import ConfirmAccount from "./pages/ConfirmAccount";
 import CheckEmail from "./pages/CheckEmail";
 import ResetPassword from "./pages/ResetPassword";
 import Cart from "./pages/Cart"
+import Checkout from "./pages/Checkout";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
           <Route path="check" element={<CheckEmail />} />
           <Route path="reset-password" element={<ResetPassword />} />
           <Route path="cart" element={<Cart />} />
+          <Route path="checkout" element={<Checkout />} />
 
           <Route
             path="account"
