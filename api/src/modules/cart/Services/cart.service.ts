@@ -207,7 +207,7 @@ export class CartService {
       id: cart.id,
       userId: cart.userId ?? undefined,
       guestId: cart.guestId ?? undefined,
-      createdAt: cart.createdAt as Date,
+      createdAt: cart.createdAt,
       items: cart.items.map((item) => ({
         id: item.id,
         productId: item.productId,

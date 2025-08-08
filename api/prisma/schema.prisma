@@ -96,7 +96,7 @@ model Order {
   total            Decimal     @db.Decimal(10, 2)
   status           OrderStatus @default(pending)
   createdAt        DateTime    @default(now())
-  deliveryAddress  String
+  deliveryAddress  String      @db.Text
   paymentIntentId  String?
 
   userId           Int?
