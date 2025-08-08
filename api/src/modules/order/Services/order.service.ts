@@ -56,7 +56,7 @@ export class OrderService {
     return this.exportToOrderInterface(order);
   }
 
-  async getOrders(userId: number): Promise<IOrder | null> {
+  async getOrders(userId: number): Promise<IOrder[]> {
     const orders = await this.prisma.order.findMany({
       where: { userId },
       include: {
@@ -67,8 +67,7 @@ export class OrderService {
         },
       },
     });
-
-    if (!orders) return null;
+    if (!orders) return [];
 
     return orders.map((order) => this.exportToOrderInterface(order));
   }
