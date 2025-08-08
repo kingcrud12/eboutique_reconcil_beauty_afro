@@ -41,10 +41,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     init();
   }, []);
 
-  const login = (token: string) => {
+  const login = async (token: string) => {
     localStorage.setItem('token', token);
     setIsAuthenticated(true);
-    // on peut appeler /user/me ici pour définir user.id
+  
+    try {
+      const res = await api.get<{ id: number }>('/user/me');
+      setUser(res.data);
+    } catch (error) {
+      console.error('Erreur récupération user après login :', error);
+      logout();
+    }
   };
 
   const logout = () => {

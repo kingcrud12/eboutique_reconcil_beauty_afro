@@ -11,7 +11,7 @@ function Appbar() {
   const navigate = useNavigate();
 
   const { isAuthenticated, logout } = useAuth();
-  const { totalCarts, fetchCart, setCarts } = useCart();
+  const { totalItems, fetchCart, setCarts } = useCart(); // Remplace totalCarts par totalItems
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -62,9 +62,9 @@ function Appbar() {
 
           <div className="relative cursor-pointer hover:text-gray-400" onClick={() => navigate('/cart')}>
             <ShoppingCart className="w-6 h-6" />
-            {totalCarts > 0 && (
+            {totalItems > 0 && (
               <span className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full px-1 text-xs">
-                {totalCarts}
+                {totalItems}
               </span>
             )}
           </div>

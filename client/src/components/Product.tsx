@@ -90,7 +90,7 @@ function Product() {
                   <p className="text-sm text-slate-600 mt-1 line-clamp-3">
                     {product.description.slice(0, 120)}…
                   </p>
-                  <p className="text-green-600 font-bold mt-3">{product.price} €</p>
+                  <p className="text-green-600 font-bold mt-3">{Number(product.price).toFixed(2)} €</p>
                 </div>
               </Link>
               <button

@@ -1,13 +1,22 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useCallback,
+  useMemo,
+} from 'react';
 import api from '../api/api';
 import { ICart } from '../api/cart.interface';
 import { useAuth } from './AuthContext';
 
 interface CartContextType {
   carts: ICart[];
-  setCarts: React.Dispatch<React.SetStateAction<ICart[]>>;  // exposer le setter
+  setCarts: React.Dispatch<React.SetStateAction<ICart[]>>;
   fetchCart: () => Promise<void>;
-  totalCarts: number;
+  totalItems: number;      // 🆕 Nombre de produits (≠ quantité)
+  totalQuantity: number;   // 🆕 Quantité totale (optionnel)
   firstCart: ICart | null;
 }
 
@@ -44,15 +53,23 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [isAuthenticated, fetchCart]);
 
-  const totalCarts = carts.length;
+  const totalItems = firstCart?.items?.length || 0;
 
-  const value = useMemo(() => ({
-    carts,
-    setCarts,
-    fetchCart,
-    totalCarts,
-    firstCart,
-  }), [carts, firstCart, fetchCart, totalCarts]);
+  const totalQuantity = useMemo(() => {
+    return firstCart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+  }, [firstCart]);
+
+  const value = useMemo(
+    () => ({
+      carts,
+      setCarts,
+      fetchCart,
+      totalItems,
+      totalQuantity,
+      firstCart,
+    }),
+    [carts, firstCart, fetchCart, totalItems, totalQuantity]
+  );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };

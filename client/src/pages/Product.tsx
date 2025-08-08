@@ -64,7 +64,7 @@ function Product() {
 
             <p>
               <strong>Prix :</strong>{" "}
-              <span className="text-green-600 font-semibold">{product.price} €</span>
+              <span className="text-green-600 font-semibold">{Number(product.price).toFixed(2)} €</span>
             </p>
             <p>
               <strong>Stock :</strong> {product.stock}
