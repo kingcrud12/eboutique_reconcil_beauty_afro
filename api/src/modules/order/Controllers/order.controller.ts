@@ -17,7 +17,6 @@ import {
 import { OrderService } from '../Services/order.service';
 import { OrderDto } from '../Models/order.dto';
 import { CreateOrderDto } from '../Models/order.dto';
-import { IOrder, IOrderItem } from '../Interfaces/order.interface';
 
 @ApiTags('Orders')
 @Controller('order')
@@ -43,25 +42,6 @@ export class OrderController {
   async getOrders(
     @Param('userId', ParseIntPipe) userId: number,
   ): Promise<OrderDto[]> {
-    const orders = await this.orderService.getOrders(userId);
-    return orders.map(this.toOrderDto);
+    return await this.orderService.getOrders(userId);
   }
-
-  private toOrderDto = (order: IOrder): OrderDto => {
-    return {
-      id: order.id,
-      total: order.total,
-      status: order.status,
-      deliveryAddress: order.deliveryAddress,
-      userId: order.userId,
-      items:
-        order.items?.map<IOrderItem>((it) => ({
-          id: it.id,
-          orderId: it.orderId,
-          productId: it.productId,
-          quantity: it.quantity,
-          unitPrice: it.unitPrice,
-        })) ?? [],
-    };
-  };
 }
