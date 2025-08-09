@@ -45,6 +45,7 @@ export class OrderService {
       data: {
         userId: data.userId,
         deliveryAddress: data.deliveryAddress,
+        deliveryMode: data.deliveryMode,
         total,
         items: {
           create: cart.items.map((item) => ({
@@ -144,7 +145,7 @@ export class OrderService {
           id: item.id,
           productId: item.productId,
           quantity: item.quantity,
-          unitPrice: Decimal(item.unitPrice),
+          unitPrice: Number(item.unitPrice),
           product: {
             id: item.product.id,
             name: item.product.name,

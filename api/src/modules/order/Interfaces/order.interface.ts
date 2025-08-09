@@ -1,5 +1,4 @@
 import { DeliveryMode, OrderStatus } from '@prisma/client';
-import { Decimal } from '@prisma/client/runtime/library';
 import { IProduct } from 'src/modules/product/Interfaces/product.interface';
 
 export interface IOrder {
@@ -27,7 +26,7 @@ export interface IOrderUpdate {
 export interface IOrderItem {
   id: number;
   quantity: number;
-  unitPrice: Decimal;
+  unitPrice: number;
   orderId: number;
   productId: number;
   product?: IProduct;
