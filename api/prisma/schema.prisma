@@ -97,6 +97,7 @@ model Order {
   status           OrderStatus @default(pending)
   createdAt        DateTime    @default(now())
   deliveryAddress  String      @db.Text
+  deliveryMode     DeliveryMode 
   paymentIntentId  String?
 
   userId           Int?
@@ -135,4 +136,10 @@ enum OrderStatus {
   pending
   paid
   canceled
+}
+
+enum DeliveryMode {
+  RELAY
+  HOME
+  EXPRESS
 }

@@ -1,4 +1,4 @@
-import { OrderStatus } from '@prisma/client';
+import { DeliveryMode, OrderStatus } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { IProduct } from 'src/modules/product/Interfaces/product.interface';
 
@@ -6,6 +6,7 @@ export interface IOrder {
   id: number;
   total: number;
   status: OrderStatus;
+  deliveryMode: DeliveryMode;
   deliveryAddress: string;
   userId?: number;
   items: IOrderItem[];
@@ -14,6 +15,7 @@ export interface IOrder {
 export interface IOrderCreate {
   deliveryAddress: string;
   userId?: number;
+  deliveryMode: DeliveryMode;
 }
 
 export interface IOrderUpdate {

@@ -14,7 +14,7 @@ import {
   IOrderUpdate,
 } from '../Interfaces/order.interface';
 import { ApiProperty } from '@nestjs/swagger';
-import { OrderStatus } from '@prisma/client';
+import { DeliveryMode, OrderStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { ProductDto } from 'src/modules/product/Models/product.dto';
 import { IProduct } from 'src/modules/product/Interfaces/product.interface';
@@ -29,6 +29,10 @@ export class CreateOrderDto implements IOrderCreate {
   @IsOptional()
   @IsNumber()
   userId?: number;
+
+  @ApiProperty({ enum: DeliveryMode, example: 'RELAY' })
+  @IsEnum(DeliveryMode)
+  deliveryMode: DeliveryMode;
 }
 
 export class UpdateOrderDto implements IOrderUpdate {
@@ -92,6 +96,10 @@ export class OrderDto implements IOrder {
   @ApiProperty({ enum: OrderStatus, example: 'pending' })
   @IsEnum(OrderStatus)
   status: OrderStatus;
+
+  @ApiProperty({ enum: DeliveryMode, example: 'RELAY' })
+  @IsEnum(DeliveryMode)
+  deliveryMode!: DeliveryMode;
 
   @ApiProperty({
     description: 'Adresse de livraison',
