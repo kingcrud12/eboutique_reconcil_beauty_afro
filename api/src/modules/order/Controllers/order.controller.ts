@@ -1,8 +1,23 @@
-import { Body, Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Post,
+  HttpCode,
+  HttpStatus,
+  Get,
+  Param,
+  ParseIntPipe,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiOkResponse,
+} from '@nestjs/swagger';
 import { OrderService } from '../Services/order.service';
 import { OrderDto } from '../Models/order.dto';
 import { CreateOrderDto } from '../Models/order.dto';
+import { IOrder, IOrderItem } from '../Interfaces/order.interface';
 
 @ApiTags('Orders')
 @Controller('order')
@@ -20,4 +35,33 @@ export class OrderController {
     const order = await this.orderService.create(body);
     return order;
   }
+
+  @Get(':userId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Récupérer les commandes du client' })
+  @ApiOkResponse({ description: 'Liste des commandes', type: [OrderDto] })
+  async getOrders(
+    @Param('userId', ParseIntPipe) userId: number,
+  ): Promise<OrderDto[]> {
+    const orders = await this.orderService.getOrders(userId);
+    return orders.map(this.toOrderDto);
+  }
+
+  private toOrderDto = (order: IOrder): OrderDto => {
+    return {
+      id: order.id,
+      total: order.total,
+      status: order.status,
+      deliveryAddress: order.deliveryAddress,
+      userId: order.userId,
+      items:
+        order.items?.map<IOrderItem>((it) => ({
+          id: it.id,
+          orderId: it.orderId,
+          productId: it.productId,
+          quantity: it.quantity,
+          unitPrice: it.unitPrice,
+        })) ?? [],
+    };
+  };
 }

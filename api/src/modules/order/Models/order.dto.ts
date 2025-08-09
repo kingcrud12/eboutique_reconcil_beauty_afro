@@ -124,5 +124,5 @@ export class OrderDto implements IOrder {
   })
   @ValidateNested({ each: true })
   @Type(() => OrderItemDto)
-  items: IOrderItem[];
+  items: OrderItemDto[];
 }
