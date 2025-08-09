@@ -113,7 +113,7 @@ const Products = () => {
               <p className="text-green-600 font-bold mt-3">{Number(p.price).toFixed(2)} €</p>
             </Link>
             <button
-              onClick={() => handleAdd(p.id)} // tu peux changer ici pour handleAddFromModal(p.id) si modal
+              onClick={() => handleAdd(p.id)}
               disabled={addingId === p.id}
               className={`mt-4 px-4 py-2 text-white rounded ${
                 addingId === p.id

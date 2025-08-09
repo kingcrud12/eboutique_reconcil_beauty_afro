@@ -14,6 +14,7 @@ import CheckEmail from "./pages/CheckEmail";
 import ResetPassword from "./pages/ResetPassword";
 import Cart from "./pages/Cart"
 import Checkout from "./pages/Checkout";
+import Orders from "./pages/Orders";
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           <Route path="reset-password" element={<ResetPassword />} />
           <Route path="cart" element={<Cart />} />
           <Route path="checkout" element={<Checkout />} />
+          <Route path="orders" element={<Orders />} />
 
           <Route
             path="account"
