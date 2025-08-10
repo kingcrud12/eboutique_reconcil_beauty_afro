@@ -14,7 +14,7 @@ import {
   IOrderUpdate,
 } from '../Interfaces/order.interface';
 import { ApiProperty } from '@nestjs/swagger';
-import { OrderStatus } from '@prisma/client';
+import { DeliveryMode, OrderStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { ProductDto } from 'src/modules/product/Models/product.dto';
 import { IProduct } from 'src/modules/product/Interfaces/product.interface';
@@ -119,9 +119,9 @@ export class OrderDto implements IOrder {
   @IsEnum(OrderStatus)
   status: OrderStatus;
 
-  @ApiProperty({ enum: DeliveryModeValues })
-  @IsEnum(DeliveryModeValues)
-  deliveryMode: DeliveryModeLiteral;
+  @ApiProperty({ enum: DeliveryMode, example: DeliveryMode.RELAY })
+  @IsEnum(DeliveryMode)
+  deliveryMode: DeliveryMode;
 
   @ApiProperty({
     description: 'Adresse de livraison',

@@ -7,6 +7,7 @@
 	  "lib": ["es2017"],
 	  "declaration": false,
 	  "removeComments": true,
+	  "noEmitOnError": false,
 	  "emitDecoratorMetadata": true,
 	  "experimentalDecorators": true,
 	  "allowSyntheticDefaultImports": true,
@@ -19,7 +20,7 @@
 		"src/*": ["src/*"]
 	  },
 	  "incremental": true,
-	  "skipLibCheck": true,
+	  "skipLibCheck": false,
 	  "resolveJsonModule": true,
 	  "strict": true
 	},

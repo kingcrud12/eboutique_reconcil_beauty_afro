@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   ForbiddenException,
   Injectable,
@@ -12,7 +11,6 @@ import {
 } from '../Interfaces/order.interface';
 import { IOrderItem } from '../Interfaces/order.interface';
 import {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   DeliveryMode,
   Order,
   OrderItem,
@@ -53,7 +51,6 @@ export class OrderService {
       data: {
         userId: data.userId,
         deliveryAddress: data.deliveryAddress,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         deliveryMode: data.deliveryMode,
         total,
         items: {
