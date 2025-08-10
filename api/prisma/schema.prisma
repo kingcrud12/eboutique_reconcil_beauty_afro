@@ -105,9 +105,9 @@ model Order {
   paymentIntentId String?
   userId          Int?
   guestId         Int?
+  items           OrderItem[]
   guest           Guest?       @relation("GuestOrders", fields: [guestId], references: [id])
   user            User?        @relation("UserOrders", fields: [userId], references: [id])
-  items           OrderItem[]
 
   @@index([guestId], map: "orders_guestId_fkey")
   @@index([userId], map: "orders_userId_fkey")
@@ -120,10 +120,11 @@ model OrderItem {
   unitPrice Decimal @db.Decimal(10, 2)
   orderId   Int
   productId Int
+  order     Order   @relation(fields: [orderId], references: [id])
   product   Product @relation(fields: [productId], references: [id])
 
   @@index([productId], map: "OrderItem_productId_fkey")
-  order   Order    @relation(fields: [orderId], references: [id])
+  @@index([orderId], map: "OrderItem_orderId_fkey")
 }
 
 enum Role {
