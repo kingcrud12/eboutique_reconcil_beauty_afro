@@ -9,6 +9,8 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
+    "postinstall": "prisma generate",
+    "migrate:deploy": "prisma migrate deploy",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
@@ -30,10 +32,11 @@
     "@nestjs/swagger": "^11.2.0",
     "@prisma/client": "^6.13.0",
     "@types/multer": "^2.0.0",
+    "@types/validator": "^13.7.10",
     "bcrypt": "^6.0.0",
     "buffer-to-stream": "^1.0.0",
     "class-transformer": "^0.5.1",
-    "class-validator": "^0.13.2",
+    "class-validator": "^0.14.0",
     "cloudinary": "^1.41.3",
     "multer": "^2.0.2",
     "multer-storage-cloudinary": "^4.0.0",
@@ -43,7 +46,8 @@
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "validator": "^13.7.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

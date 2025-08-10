@@ -13,12 +13,12 @@ model User {
   lastName     String
   email        String        @unique
   password     String
-  isConfirmed  Boolean       @default(false)
   role         Role          @default(user)
   adress       String?       @db.Text
-  orders       Order[]       @relation("UserOrders")
+  isConfirmed  Boolean       @default(false)
   appointments Appointment[]
   carts        Cart[]
+  orders       Order[]       @relation("UserOrders")
 }
 
 model Guest {
@@ -27,17 +27,17 @@ model Guest {
   lastName     String?
   email        String?
   adress       String?       @db.Text
-  orders       Order[]       @relation("GuestOrders")
   appointments Appointment[]
   carts        Cart[]
+  orders       Order[]       @relation("GuestOrders")
 }
 
 model Product {
-  id          Int        @id @default(autoincrement())
-  name        String     @unique
-  description String?    @db.Text
-  price       Decimal    @db.Decimal(10, 2)
-  stock       Int        @default(0)
+  id          Int         @id @default(autoincrement())
+  name        String      @unique
+  description String?     @db.Text
+  price       Decimal     @db.Decimal(10, 2)
+  stock       Int         @default(0)
   imageUrl    String?
   category    String?
   cartItems   CartItem[]
@@ -47,77 +47,84 @@ model Product {
 model Service {
   id           Int           @id @default(autoincrement())
   name         String
-  duration     Int           // in minutes
+  duration     Int
   price        Decimal       @db.Decimal(10, 2)
   appointments Appointment[]
 }
 
 model Appointment {
-  id             Int                @id @default(autoincrement())
-  date           DateTime
-  hour           DateTime
-  status         AppointmentStatus  @default(pending)
-  depositPaid    Boolean            @default(false)
+  id          Int               @id @default(autoincrement())
+  date        DateTime
+  hour        DateTime
+  status      AppointmentStatus @default(pending)
+  depositPaid Boolean           @default(false)
+  userId      Int?
+  guestId     Int?
+  serviceId   Int
+  guest       Guest?            @relation(fields: [guestId], references: [id])
+  service     Service           @relation(fields: [serviceId], references: [id])
+  user        User?             @relation(fields: [userId], references: [id])
 
-  userId         Int?
-  guestId        Int?
-  serviceId      Int
-
-  user           User?      @relation(fields: [userId], references: [id])
-  guest          Guest?     @relation(fields: [guestId], references: [id])
-  service        Service    @relation(fields: [serviceId], references: [id])
+  @@index([guestId], map: "Appointment_guestId_fkey")
+  @@index([serviceId], map: "Appointment_serviceId_fkey")
+  @@index([userId], map: "Appointment_userId_fkey")
 }
 
 model Cart {
-  id          Int       @id @default(autoincrement())
-  createdAt   DateTime  @default(now())
+  id        Int        @id @default(autoincrement())
+  createdAt DateTime   @default(now())
+  userId    Int?
+  guestId   Int?
+  guest     Guest?     @relation(fields: [guestId], references: [id])
+  user      User?      @relation(fields: [userId], references: [id])
+  items     CartItem[]
 
-  userId      Int?
-  guestId     Int?
-
-  user        User?     @relation(fields: [userId], references: [id])
-  guest       Guest?    @relation(fields: [guestId], references: [id])
-  items       CartItem[]
+  @@index([guestId], map: "Cart_guestId_fkey")
+  @@index([userId], map: "Cart_userId_fkey")
 }
 
 model CartItem {
-  id         Int      @id @default(autoincrement())
-  quantity   Int 
+  id        Int     @id @default(autoincrement())
+  quantity  Int
+  cartId    Int
+  productId Int
+  cart      Cart    @relation(fields: [cartId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
 
-  cartId     Int
-  productId  Int
-
-  cart       Cart     @relation(fields: [cartId], references: [id])
-  product    Product  @relation(fields: [productId], references: [id])
+  @@index([cartId], map: "CartItem_cartId_fkey")
+  @@index([productId], map: "CartItem_productId_fkey")
 }
 
 model Order {
-  id               Int         @id @default(autoincrement())
-  total            Decimal     @db.Decimal(10, 2)
-  status           OrderStatus @default(pending)
-  createdAt        DateTime    @default(now())
-  deliveryAddress  String      @db.Text
-  paymentIntentId  String?
+  id              Int          @id @default(autoincrement())
+  total           Decimal      @db.Decimal(10, 2)
+  status          OrderStatus  @default(pending)
+  createdAt       DateTime     @default(now())
+  deliveryAddress String       @db.Text
+  paymentIntentId String?
+  userId          Int?
+  guestId         Int?
+  deliveryMode    DeliveryMode
+  items           OrderItem[]
+  guest           Guest?       @relation("GuestOrders", fields: [guestId], references: [id])
+  user            User?        @relation("UserOrders", fields: [userId], references: [id])
 
-  userId           Int?
-  guestId          Int?
-
-  user             User?       @relation("UserOrders", fields: [userId], references: [id])
-  guest            Guest?      @relation("GuestOrders", fields: [guestId], references: [id])
-
-  items            OrderItem[]
+  @@index([guestId], map: "orders_guestId_fkey")
+  @@index([userId], map: "orders_userId_fkey")
+  @@map("orders")
 }
 
 model OrderItem {
-  id           Int      @id @default(autoincrement())
-  quantity     Int
-  unitPrice    Decimal  @db.Decimal(10, 2)
+  id        Int     @id @default(autoincrement())
+  quantity  Int
+  unitPrice Decimal @db.Decimal(10, 2)
+  orderId   Int
+  productId Int
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
 
-  orderId      Int
-  productId    Int
-
-  order        Order    @relation(fields: [orderId], references: [id])
-  product      Product  @relation(fields: [productId], references: [id])
+  @@index([productId], map: "OrderItem_productId_fkey")
+  @@index([orderId], map: "OrderItem_orderId_fkey")
 }
 
 enum Role {
@@ -135,4 +142,10 @@ enum OrderStatus {
   pending
   paid
   canceled
+}
+
+enum DeliveryMode {
+  RELAY
+  HOME
+  EXPRESS
 }

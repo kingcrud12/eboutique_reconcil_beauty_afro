@@ -1,8 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { IOrder, IOrderCreate } from '../Interfaces/order.interface';
+import {
+  DeliveryModeEnum,
+  IOrder,
+  IOrderCreate,
+  IOrderUpdate,
+} from '../Interfaces/order.interface';
 import { IOrderItem } from '../Interfaces/order.interface';
-import { Order, OrderItem, Product } from '@prisma/client';
+import { Order, OrderItem, OrderStatus, Product } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 
 type PrismaOrderWithItems = Order & {
@@ -37,6 +46,7 @@ export class OrderService {
       data: {
         userId: data.userId,
         deliveryAddress: data.deliveryAddress,
+        deliveryMode: data.deliveryMode,
         total,
         items: {
           create: cart.items.map((item) => ({
@@ -72,6 +82,57 @@ export class OrderService {
     return orders.map((order) => this.exportToOrderInterface(order));
   }
 
+  async deleteOrder(orderId: number, userId: number): Promise<IOrder | null> {
+    const existing = await this.prisma.order.findFirst({
+      where: { id: orderId, userId },
+      include: { items: { include: { product: true } } },
+    });
+
+    if (!existing) return null;
+    const snapshot = this.exportToOrderInterface(existing);
+
+    await this.prisma.orderItem.deleteMany({ where: { orderId } });
+    await this.prisma.order.delete({ where: { id: orderId } });
+
+    return snapshot;
+  }
+
+  async update(
+    orderId: number,
+    userId: number,
+    data: IOrderUpdate,
+  ): Promise<IOrder> {
+    const existing = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        items: { include: { product: true } },
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Commande introuvable');
+    }
+    if (existing.userId !== userId) {
+      throw new ForbiddenException(
+        'Vous ne pouvez pas modifier cette commande',
+      );
+    }
+
+    const updated = await this.prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status: (data.status as OrderStatus) ?? undefined,
+        deliveryAddress: data.deliveryAddress ?? undefined,
+        paymentIntentId: data.paymentIntentId ?? undefined,
+      },
+      include: {
+        items: { include: { product: true } },
+      },
+    });
+
+    return this.exportToOrderInterface(updated);
+  }
+
   private exportToOrderInterface(order: PrismaOrderWithItems): IOrder {
     return {
       id: order.id,
@@ -79,12 +140,13 @@ export class OrderService {
       userId: order.userId ?? undefined,
       total: Number(order.total),
       status: order.status,
+      deliveryMode: order.deliveryMode as unknown as DeliveryModeEnum,
       items: order.items.map(
         (item): IOrderItem => ({
           id: item.id,
           productId: item.productId,
           quantity: item.quantity,
-          unitPrice: Decimal(item.unitPrice),
+          unitPrice: Number(item.unitPrice),
           product: {
             id: item.product.id,
             name: item.product.name,

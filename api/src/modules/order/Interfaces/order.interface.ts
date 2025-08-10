@@ -1,19 +1,27 @@
 import { OrderStatus } from '@prisma/client';
-import { Decimal } from '@prisma/client/runtime/library';
-import { IProduct } from 'src/modules/product/Interfaces/product.interface';
+import { IProduct } from '../../product/Interfaces/product.interface';
+
+export enum DeliveryModeEnum {
+  RELAY = 'RELAY',
+  HOME = 'HOME',
+  EXPRESS = 'EXPRESS',
+}
 
 export interface IOrder {
   id: number;
   total: number;
   status: OrderStatus;
+  deliveryMode: DeliveryModeEnum;
   deliveryAddress: string;
   userId?: number;
   items: IOrderItem[];
 }
 
 export interface IOrderCreate {
+  [x: string]: any;
   deliveryAddress: string;
   userId?: number;
+  deliveryMode: DeliveryModeEnum;
 }
 
 export interface IOrderUpdate {
@@ -25,7 +33,7 @@ export interface IOrderUpdate {
 export interface IOrderItem {
   id: number;
   quantity: number;
-  unitPrice: Decimal;
+  unitPrice: number;
   orderId: number;
   productId: number;
   product?: IProduct;

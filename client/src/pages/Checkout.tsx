@@ -8,7 +8,7 @@ import { IProduct } from '../api/product.interface';
 
 const relayIcon = new L.Icon({
   iconUrl: '/mondial-relay-logo.png',
-  iconSize: [32, 2],
+  iconSize: [32, 32],
 });
 
 interface User {
@@ -119,6 +119,7 @@ function Checkout() {
       await api.post('/order', {
         deliveryAddress: cleanAddress,
         userId: user.id,
+        deliveryMode: mode === 'home' ? 'HOME' : 'EXPRESS', // <<< ICI
       });
       navigate('/orders');
     } catch (e) {
@@ -138,6 +139,7 @@ function Checkout() {
       await api.post('/order', {
         deliveryAddress,
         userId: user.id,
+        deliveryMode: 'RELAY', // <<< ICI
       });
       navigate('/orders');
     } catch (error) {
@@ -196,7 +198,7 @@ function Checkout() {
       {/* Boutons d’action */}
       <div className="flex flex-wrap items-center gap-3">
         <button
-          className="bg-gray-800 text-white px-4 py-2 rounded disabled:opacity-60"
+          className="bg-black text-white px-4 py-2 rounded disabled:opacity-60"
           onClick={handleFindRelais}
           disabled={loading || !user}
         >

@@ -8,6 +8,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import {
+  DeliveryModeEnum,
   IOrder,
   IOrderCreate,
   IOrderItem,
@@ -18,28 +19,51 @@ import { OrderStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { ProductDto } from 'src/modules/product/Models/product.dto';
 import { IProduct } from 'src/modules/product/Interfaces/product.interface';
-import { Decimal } from '@prisma/client/runtime/library';
 
 export class CreateOrderDto implements IOrderCreate {
-  @ApiProperty({ description: 'Adresse de livraison', example: 1 })
+  @ApiProperty({
+    description: 'Adresse de livraison',
+    example: '244 rue de Bercy, 75012 Paris',
+  })
   @IsString()
   deliveryAddress: string;
 
-  @ApiProperty({ description: 'Adresse de livraison', example: 1 })
+  @ApiProperty({
+    description: 'ID utilisateur (optionnel si invité)',
+    example: 1,
+    required: false,
+  })
   @IsOptional()
   @IsNumber()
   userId?: number;
+
+  @ApiProperty({ enum: DeliveryModeEnum, example: 'relay' })
+  @IsEnum(DeliveryModeEnum)
+  deliveryMode: DeliveryModeEnum;
 }
 
 export class UpdateOrderDto implements IOrderUpdate {
+  @ApiProperty({
+    enum: OrderStatus,
+    example: OrderStatus.paid,
+    required: false,
+  })
   @IsOptional()
-  @IsString()
-  status?: string;
+  @IsEnum(OrderStatus)
+  status?: OrderStatus;
 
+  @ApiProperty({
+    description: 'Nouvelle adresse de livraison',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   deliveryAddress?: string;
 
+  @ApiProperty({
+    description: 'Identifiant de paiement Stripe',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   paymentIntentId?: string;
@@ -58,8 +82,8 @@ export class OrderItemDto implements IOrderItem {
 
   @ApiProperty({ description: 'Prix unitaire', example: 8.5 })
   @IsNotEmpty()
-  @IsInt()
-  unitPrice: Decimal;
+  @IsNumber({ maxDecimalPlaces: 2 })
+  unitPrice: number; // ✅ number au lieu de Decimal
 
   @ApiProperty({ description: 'ID du produit', example: 3 })
   @IsNotEmpty()
@@ -86,12 +110,16 @@ export class OrderDto implements IOrder {
 
   @ApiProperty({ description: 'Montant total de la commande', example: 17.7 })
   @IsNotEmpty()
-  @IsInt()
-  total: number;
+  @IsNumber({ maxDecimalPlaces: 2 })
+  total: number; // ✅ number au lieu de Decimal
 
-  @ApiProperty({ enum: OrderStatus, example: 'pending' })
+  @ApiProperty({ enum: OrderStatus, example: OrderStatus.pending })
   @IsEnum(OrderStatus)
   status: OrderStatus;
+
+  @ApiProperty({ enum: DeliveryModeEnum, example: 'relay' })
+  @IsEnum(DeliveryModeEnum)
+  deliveryMode: DeliveryModeEnum;
 
   @ApiProperty({
     description: 'Adresse de livraison',
@@ -102,7 +130,7 @@ export class OrderDto implements IOrder {
   deliveryAddress: string;
 
   @ApiProperty({
-    description: 'ID de paiement Stripe (le cas échéant)',
+    description: 'ID de paiement Stripe (optionnel)',
     required: false,
   })
   @IsOptional()

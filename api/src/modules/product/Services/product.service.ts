@@ -6,7 +6,6 @@ import {
   IProductUpdate,
 } from '../Interfaces/product.interface';
 import { Product as PrismaProduct } from '@prisma/client';
-import { Decimal } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class ProductService {
@@ -55,12 +54,12 @@ export class ProductService {
   private exportToProductInterface(product: PrismaProduct): IProduct {
     return {
       id: product.id,
-      name: product.name as string,
+      name: product.name,
       description: product.description,
-      price: product.price as Decimal,
+      price: product.price,
       stock: product.stock,
       imageUrl: product.imageUrl,
-      category: product.category as string | undefined,
+      category: product.category,
     };
   }
 
