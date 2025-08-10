@@ -145,7 +145,7 @@ enum OrderStatus {
 }
 
 enum DeliveryMode {
-  relay
-  home
-  express
+  RELAY
+  HOME
+  EXPRESS
 }

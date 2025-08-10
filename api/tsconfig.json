@@ -20,7 +20,7 @@
 		"src/*": ["src/*"]
 	  },
 	  "incremental": true,
-	  "skipLibCheck": false,
+	  "skipLibCheck": true,
 	  "resolveJsonModule": true,
 	  "strict": true
 	},

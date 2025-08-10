@@ -5,18 +5,13 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import {
+  DeliveryModeEnum,
   IOrder,
   IOrderCreate,
   IOrderUpdate,
 } from '../Interfaces/order.interface';
 import { IOrderItem } from '../Interfaces/order.interface';
-import {
-  DeliveryMode,
-  Order,
-  OrderItem,
-  OrderStatus,
-  Product,
-} from '@prisma/client';
+import { Order, OrderItem, OrderStatus, Product } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 
 type PrismaOrderWithItems = Order & {
@@ -145,7 +140,7 @@ export class OrderService {
       userId: order.userId ?? undefined,
       total: Number(order.total),
       status: order.status,
-      deliveryMode: order.deliveryMode,
+      deliveryMode: order.deliveryMode as unknown as DeliveryModeEnum,
       items: order.items.map(
         (item): IOrderItem => ({
           id: item.id,

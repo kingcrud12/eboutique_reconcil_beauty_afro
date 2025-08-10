@@ -8,13 +8,14 @@ import {
   ValidateNested,
 } from 'class-validator';
 import {
+  DeliveryModeEnum,
   IOrder,
   IOrderCreate,
   IOrderItem,
   IOrderUpdate,
 } from '../Interfaces/order.interface';
 import { ApiProperty } from '@nestjs/swagger';
-import { DeliveryMode, OrderStatus } from '@prisma/client';
+import { OrderStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { ProductDto } from 'src/modules/product/Models/product.dto';
 import { IProduct } from 'src/modules/product/Interfaces/product.interface';
@@ -36,9 +37,9 @@ export class CreateOrderDto implements IOrderCreate {
   @IsNumber()
   userId?: number;
 
-  @ApiProperty({ enum: DeliveryMode, example: 'relay' })
-  @IsEnum(DeliveryMode)
-  deliveryMode: DeliveryMode;
+  @ApiProperty({ enum: DeliveryModeEnum, example: 'relay' })
+  @IsEnum(DeliveryModeEnum)
+  deliveryMode: DeliveryModeEnum;
 }
 
 export class UpdateOrderDto implements IOrderUpdate {
@@ -116,9 +117,9 @@ export class OrderDto implements IOrder {
   @IsEnum(OrderStatus)
   status: OrderStatus;
 
-  @ApiProperty({ enum: DeliveryMode, example: 'relay' })
-  @IsEnum(DeliveryMode)
-  deliveryMode: DeliveryMode;
+  @ApiProperty({ enum: DeliveryModeEnum, example: 'relay' })
+  @IsEnum(DeliveryModeEnum)
+  deliveryMode: DeliveryModeEnum;
 
   @ApiProperty({
     description: 'Adresse de livraison',

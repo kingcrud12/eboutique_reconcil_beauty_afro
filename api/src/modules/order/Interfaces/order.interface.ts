@@ -1,11 +1,17 @@
-import { DeliveryMode, OrderStatus } from '@prisma/client';
+import { OrderStatus } from '@prisma/client';
 import { IProduct } from '../../product/Interfaces/product.interface';
+
+export enum DeliveryModeEnum {
+  RELAY = 'RELAY',
+  HOME = 'HOME',
+  EXPRESS = 'EXPRESS',
+}
 
 export interface IOrder {
   id: number;
   total: number;
   status: OrderStatus;
-  deliveryMode: DeliveryMode;
+  deliveryMode: DeliveryModeEnum;
   deliveryAddress: string;
   userId?: number;
   items: IOrderItem[];
@@ -15,7 +21,7 @@ export interface IOrderCreate {
   [x: string]: any;
   deliveryAddress: string;
   userId?: number;
-  deliveryMode: DeliveryMode;
+  deliveryMode: DeliveryModeEnum;
 }
 
 export interface IOrderUpdate {
