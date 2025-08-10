@@ -99,31 +99,38 @@ const Products = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
         {filtered.map(p => (
           <div
-            key={p.id}
-            className="bg-white p-4 rounded-xl shadow hover:shadow-md transition flex flex-col items-center text-center max-w-xs mx-auto"
-          >
+          key={p.id}
+          className="bg-white p-4 rounded-xl shadow hover:shadow-md transition flex flex-col justify-between text-center max-w-xs mx-auto h-full"
+        >
+          <div className="flex flex-col items-center">
             <img
               src={p.imageUrl}
               alt={p.name}
               className="h-32 sm:h-40 object-contain mb-4"
             />
             <Link to={`/product/${p.id}`} className="w-full">
-              <h3 className="font-semibold text-gray-800 mb-2">{p.name}</h3>
-              <p className="text-sm text-slate-600 line-clamp-3">{truncated(p.description)}</p>
-              <p className="text-green-600 font-bold mt-3">{Number(p.price).toFixed(2)} €</p>
+              <h3 className="font-semibold text-gray-800 mb-2">{p.name.slice(0, 60)}</h3>
+              <p className="text-sm text-slate-600 line-clamp-3 min-h-[60px]">
+                {truncated(p.description)}
+              </p>
+              <p className="text-green-600 font-bold mt-3">
+                {Number(p.price).toFixed(2)} €
+              </p>
             </Link>
-            <button
-              onClick={() => handleAdd(p.id)}
-              disabled={addingId === p.id}
-              className={`mt-4 px-4 py-2 text-white rounded ${
-                addingId === p.id
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-gray-800 hover:bg-blue-700"
-              }`}
-            >
-              {addingId === p.id ? "Ajout..." : "Ajouter au panier"}
-            </button>
           </div>
+        
+          <button
+            onClick={() => handleAdd(p.id)}
+            disabled={addingId === p.id}
+            className={`mt-4 px-4 py-2 text-white rounded ${
+              addingId === p.id
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-gray-800 hover:bg-blue-700"
+            }`}
+          >
+            {addingId === p.id ? "Ajout..." : "Ajouter au panier"}
+          </button>
+        </div>
         ))}
       </div>
     </div>
