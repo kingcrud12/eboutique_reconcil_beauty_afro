@@ -22,6 +22,7 @@ interface Order {
   total: number | string;
   status: string;
   deliveryAddress: string;
+  deliveryMode: string
   items: OrderItem[];
 }
 
@@ -104,6 +105,17 @@ function Orders() {
                   }`}
                 >
                   {order.status}
+                </span>
+                <span
+                  className={`text-xs px-2 py-1 rounded ${
+                    isPending
+                      ? "bg-yellow-100 text-yellow-700"
+                      : order.status === "paid"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-gray-100 text-gray-600"
+                  }`}
+                >
+                  {order.deliveryMode}
                 </span>
               </div>
 
