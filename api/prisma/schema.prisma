@@ -101,10 +101,10 @@ model Order {
   status          OrderStatus  @default(pending)
   createdAt       DateTime     @default(now())
   deliveryAddress String       @db.Text
-  deliveryMode    DeliveryMode
   paymentIntentId String?
   userId          Int?
   guestId         Int?
+  deliveryMode    DeliveryMode
   items           OrderItem[]
   guest           Guest?       @relation("GuestOrders", fields: [guestId], references: [id])
   user            User?        @relation("UserOrders", fields: [userId], references: [id])
@@ -145,7 +145,7 @@ enum OrderStatus {
 }
 
 enum DeliveryMode {
-  RELAY
-  HOME
-  EXPRESS
+  relay
+  home
+  express
 }

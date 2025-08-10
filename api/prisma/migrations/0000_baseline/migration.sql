@@ -96,10 +96,10 @@ CREATE TABLE `orders` (
     `status` ENUM('pending', 'paid', 'canceled') NOT NULL DEFAULT 'pending',
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `deliveryAddress` TEXT NOT NULL,
-    `deliveryMode` ENUM('RELAY', 'HOME', 'EXPRESS') NOT NULL,
     `paymentIntentId` VARCHAR(191) NULL,
     `userId` INTEGER NULL,
     `guestId` INTEGER NULL,
+    `deliveryMode` ENUM('relay', 'home', 'express') NOT NULL,
 
     INDEX `orders_guestId_fkey`(`guestId`),
     INDEX `orders_userId_fkey`(`userId`),

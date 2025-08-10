@@ -19,9 +19,6 @@ import { Type } from 'class-transformer';
 import { ProductDto } from 'src/modules/product/Models/product.dto';
 import { IProduct } from 'src/modules/product/Interfaces/product.interface';
 
-export const DeliveryModeValues = ['RELAY', 'HOME', 'EXPRESS'] as const;
-export type DeliveryModeLiteral = (typeof DeliveryModeValues)[number];
-
 export class CreateOrderDto implements IOrderCreate {
   @ApiProperty({
     description: 'Adresse de livraison',
@@ -39,9 +36,9 @@ export class CreateOrderDto implements IOrderCreate {
   @IsNumber()
   userId?: number;
 
-  @ApiProperty({ enum: DeliveryModeValues })
-  @IsEnum(DeliveryModeValues)
-  deliveryMode: DeliveryModeLiteral;
+  @ApiProperty({ enum: DeliveryMode, example: 'relay' })
+  @IsEnum(DeliveryMode)
+  deliveryMode: DeliveryMode;
 }
 
 export class UpdateOrderDto implements IOrderUpdate {
@@ -119,7 +116,7 @@ export class OrderDto implements IOrder {
   @IsEnum(OrderStatus)
   status: OrderStatus;
 
-  @ApiProperty({ enum: DeliveryMode, example: DeliveryMode.RELAY })
+  @ApiProperty({ enum: DeliveryMode, example: 'relay' })
   @IsEnum(DeliveryMode)
   deliveryMode: DeliveryMode;
 
