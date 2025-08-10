@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   ForbiddenException,
   Injectable,
@@ -10,7 +11,14 @@ import {
   IOrderUpdate,
 } from '../Interfaces/order.interface';
 import { IOrderItem } from '../Interfaces/order.interface';
-import { Order, OrderItem, OrderStatus, Product } from '@prisma/client';
+import {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  DeliveryMode,
+  Order,
+  OrderItem,
+  OrderStatus,
+  Product,
+} from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 
 type PrismaOrderWithItems = Order & {
@@ -45,6 +53,7 @@ export class OrderService {
       data: {
         userId: data.userId,
         deliveryAddress: data.deliveryAddress,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         deliveryMode: data.deliveryMode,
         total,
         items: {
