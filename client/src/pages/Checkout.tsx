@@ -8,7 +8,7 @@ import { IProduct } from '../api/product.interface';
 
 const relayIcon = new L.Icon({
   iconUrl: '/mondial-relay-logo.png',
-  iconSize: [32, 32],
+  iconSize: [50, 50],
 });
 
 interface User {
