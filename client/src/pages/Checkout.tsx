@@ -8,7 +8,7 @@ import { IProduct } from '../api/product.interface';
 
 const relayIcon = new L.Icon({
   iconUrl: '/mondial-relay-logo.png',
-  iconSize: [50, 50],
+  iconSize: [32, 32],
 });
 
 interface User {
@@ -240,7 +240,7 @@ function Checkout() {
               ]}
               zoom={13}
               scrollWheelZoom={false}
-              className="h-96 w-full rounded-xl overflow-hidden"
+              className="h-96 w-full rounded-xl overflow-hidden sticky"
               style={{ maxWidth: '100%' }}
             >
               <TileLayer

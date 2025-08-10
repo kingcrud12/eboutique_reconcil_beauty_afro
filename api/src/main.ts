@@ -15,7 +15,7 @@ const bootstrap = async () => {
   });
 
   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
-  app.setGlobalPrefix('shop');
+  app.setGlobalPrefix('/reconcil/api/shop');
 
   const config = new DocumentBuilder()
     .setTitle('Eshop API')
@@ -26,7 +26,7 @@ const bootstrap = async () => {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('/shop', app, document);
+  SwaggerModule.setup('/reconcil/api/shop', app, document);
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -42,7 +42,9 @@ const bootstrap = async () => {
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
-  console.log(`,✅ Server is running: http://localhost:${port}/shop`);
+  console.log(
+    `✅ Server is running: http://localhost:${port}/reconcil/api/shop`,
+  );
   console.log('Template path resolved:', join(__dirname, 'templates'));
 };
 
