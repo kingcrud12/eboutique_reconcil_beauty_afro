@@ -6,6 +6,8 @@ import * as express from 'express';
 import { join } from 'path';
 import './config/cloudinary.config';
 
+type RequestWithRawBody = express.Request & { rawBody?: Buffer };
+
 const bootstrap = async () => {
   const app = await NestFactory.create(AppModule, {
     cors: {
@@ -14,12 +16,16 @@ const bootstrap = async () => {
     },
   });
 
-  const prefix = '/reconcil/api/shop';
-  const stripeWebhookPath = `${prefix}/webhooks/stripe`;
-  app.use(stripeWebhookPath, express.raw({ type: 'application/json' }));
-
   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
   app.setGlobalPrefix('/reconcil/api/shop');
+  app.use(
+    express.json({
+      verify: (req: RequestWithRawBody, _res, buf) => {
+        req.rawBody = buf;
+      },
+    }),
+  );
+  app.use(express.urlencoded({ extended: true }));
 
   const config = new DocumentBuilder()
     .setTitle('Eshop API')
@@ -46,7 +52,9 @@ const bootstrap = async () => {
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
-  console.log(`✅ Server is running: http://localhost:${port}${prefix}`);
+  console.log(
+    `✅ Server is running: http://localhost:${port}/reconcil/api/shop`,
+  );
   console.log('Template path resolved:', join(__dirname, 'templates'));
 };
 
