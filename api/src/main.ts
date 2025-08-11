@@ -6,6 +6,8 @@ import * as express from 'express';
 import { join } from 'path';
 import './config/cloudinary.config';
 
+type RequestWithRawBody = express.Request & { rawBody?: Buffer };
+
 const bootstrap = async () => {
   const app = await NestFactory.create(AppModule, {
     cors: {
@@ -13,6 +15,15 @@ const bootstrap = async () => {
       credentials: true,
     },
   });
+
+  app.use(
+    express.json({
+      verify: (req: RequestWithRawBody, _res, buf) => {
+        req.rawBody = buf;
+      },
+    }),
+  );
+  app.use(express.urlencoded({ extended: true }));
 
   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
   app.setGlobalPrefix('/reconcil/api/shop');

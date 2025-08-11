@@ -97,6 +97,36 @@ export class OrderService {
     return snapshot;
   }
 
+  async deleteAllForUser(
+    userId: number,
+  ): Promise<{ itemsDeleted: number; ordersDeleted: number }> {
+    return this.prisma.$transaction(async (tx) => {
+      // 1) Récupérer les IDs des commandes de l'utilisateur
+      const orders = await tx.order.findMany({
+        where: { userId },
+        select: { id: true },
+      });
+
+      if (orders.length === 0) {
+        return { itemsDeleted: 0, ordersDeleted: 0 };
+      }
+
+      const orderIds = orders.map((o) => o.id);
+
+      // 2) Supprimer tous les items de ces commandes
+      const itemsRes = await tx.orderItem.deleteMany({
+        where: { orderId: { in: orderIds } },
+      });
+
+      // 3) Supprimer les commandes
+      const ordersRes = await tx.order.deleteMany({
+        where: { id: { in: orderIds }, userId },
+      });
+
+      return { itemsDeleted: itemsRes.count, ordersDeleted: ordersRes.count };
+    });
+  }
+
   async update(
     orderId: number,
     userId: number,

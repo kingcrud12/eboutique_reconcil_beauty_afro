@@ -13,6 +13,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 import { CartModule } from './modules/cart/cart.module';
 import { PointRelaisModule } from './modules/PointRelaisModule/point-relais.module';
 import { OrderModule } from './modules/order/order.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { OrderModule } from './modules/order/order.module';
     CartModule,
     PointRelaisModule,
     OrderModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

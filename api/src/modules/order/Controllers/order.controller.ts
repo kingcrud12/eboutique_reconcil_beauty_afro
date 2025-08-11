@@ -98,4 +98,30 @@ export class OrderController {
       })),
     };
   }
+  @Delete('user/:userId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'Supprimer toutes les commandes et leurs items pour un utilisateur',
+  })
+  @ApiParam({
+    name: 'userId',
+    type: Number,
+    description: "ID de l'utilisateur",
+  })
+  @ApiOkResponse({
+    description: 'Compte des commandes et items supprimés',
+    schema: {
+      type: 'object',
+      properties: {
+        itemsDeleted: { type: 'number' },
+        ordersDeleted: { type: 'number' },
+      },
+    },
+  })
+  async deleteAllOrdersForUser(
+    @Param('userId', ParseIntPipe) userId: number,
+  ): Promise<{ itemsDeleted: number; ordersDeleted: number }> {
+    return await this.orderService.deleteAllForUser(userId);
+  }
 }
