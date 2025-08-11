@@ -31,7 +31,7 @@ const bootstrap = async () => {
   SwaggerModule.setup('/reconcil/api/shop', app, document);
 
   app.use(
-    " '/reconcil/api/shop/webhooks/stripe'",
+    '/reconcil/api/shop/webhooks/stripe',
     express.json({
       verify: (req: RequestWithRawBody, _res, buf) => {
         req.rawBody = buf;
