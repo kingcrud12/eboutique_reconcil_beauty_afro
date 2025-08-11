@@ -54,7 +54,7 @@ export class StripeWebhookController {
     }
 
     switch (event.type) {
-      case 'payment_intent.succeeded': {
+      case 'checkout.session.completed': {
         const pi = event.data.object;
 
         const orderId = Number(pi.metadata?.orderId);

@@ -64,7 +64,6 @@ export class PaymentController {
   async createPaymentIntent(
     @Body() dto: CreatePaymentIntentDto,
   ): Promise<{ clientSecret: string | null; paymentIntentId: string }> {
-    // délègue toute la logique au service (montant, idempotency, etc.)
     return this.payments.createPaymentIntent(dto.orderId, dto.userId);
   }
 
@@ -116,6 +115,8 @@ export class PaymentController {
       );
     }
 
+    console.log('email de client', req.user.email);
+
     const session = await this.stripe.checkout.sessions.create({
       payment_method_types: ['card', 'paypal'],
       line_items: lineItems,
@@ -127,9 +128,10 @@ export class PaymentController {
         orderId: String(order.id),
         userId: String(userId),
       },
+      payment_intent_data: {
+        metadata: { orderId: String(order.id), userId: String(userId) },
+      },
     });
-
-    console.log('email de client', req.user.email);
 
     if (!session.url) {
       throw new Error('Impossible de créer la session de paiement Stripe');
