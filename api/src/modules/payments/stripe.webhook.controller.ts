@@ -22,7 +22,6 @@ export class StripeWebhookController {
     @Inject(STRIPE_CLIENT) private readonly stripe: Stripe,
     private readonly prisma: PrismaService,
   ) {}
-
   @Post()
   @HttpCode(HttpStatus.OK)
   async handleStripeWebhook(

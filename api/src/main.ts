@@ -18,14 +18,6 @@ const bootstrap = async () => {
 
   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
   app.setGlobalPrefix('/reconcil/api/shop');
-  app.use(
-    express.json({
-      verify: (req: RequestWithRawBody, _res, buf) => {
-        req.rawBody = buf;
-      },
-    }),
-  );
-  app.use(express.urlencoded({ extended: true }));
 
   const config = new DocumentBuilder()
     .setTitle('Eshop API')
@@ -37,6 +29,15 @@ const bootstrap = async () => {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/reconcil/api/shop', app, document);
+
+  app.use(
+    express.json({
+      verify: (req: RequestWithRawBody, _res, buf) => {
+        req.rawBody = buf;
+      },
+    }),
+  );
+  app.use(express.urlencoded({ extended: true }));
 
   app.useGlobalPipes(
     new ValidationPipe({
