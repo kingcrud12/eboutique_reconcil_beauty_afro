@@ -6,8 +6,6 @@ import * as express from 'express';
 import { join } from 'path';
 import './config/cloudinary.config';
 
-type RequestWithRawBody = express.Request & { rawBody?: Buffer };
-
 const bootstrap = async () => {
   const app = await NestFactory.create(AppModule, {
     cors: {
@@ -15,6 +13,10 @@ const bootstrap = async () => {
       credentials: true,
     },
   });
+
+  const prefix = '/reconcil/api/shop';
+  const stripeWebhookPath = `${prefix}/webhooks/stripe`;
+  app.use(stripeWebhookPath, express.raw({ type: 'application/json' }));
 
   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
   app.setGlobalPrefix('/reconcil/api/shop');
@@ -30,15 +32,6 @@ const bootstrap = async () => {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/reconcil/api/shop', app, document);
 
-  app.use(
-    express.json({
-      verify: (req: RequestWithRawBody, _res, buf) => {
-        req.rawBody = buf;
-      },
-    }),
-  );
-  app.use(express.urlencoded({ extended: true }));
-
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
@@ -53,9 +46,7 @@ const bootstrap = async () => {
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
-  console.log(
-    `✅ Server is running: http://localhost:${port}/reconcil/api/shop`,
-  );
+  console.log(`✅ Server is running: http://localhost:${port}${prefix}`);
   console.log('Template path resolved:', join(__dirname, 'templates'));
 };
 
