@@ -28,6 +28,7 @@ export class ProductService {
 
   async getAll(): Promise<IProduct[]> {
     const products = await this.prisma.product.findMany();
+    console.log('produits non récupérés:', products);
     return products.map((product) => this.exportToProductInterface(product));
   }
 
