@@ -32,7 +32,9 @@ function Appbar() {
   const handleLogout = () => {
     logout();
     setCarts([]);
+    window.dispatchEvent(new Event('cart:clear')); 
     setUserModalOpen(false);
+
   };
 
   const handleLoginRedirect = () => {

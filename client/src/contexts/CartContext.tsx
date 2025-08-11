@@ -50,6 +50,10 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     if (isAuthenticated) {
       fetchCart();
+    }else {
+      // 🔑 IMPORTANT : on purge tout à la déconnexion
+      setCarts([]);
+      setFirstCart(null);
     }
   }, [isAuthenticated, fetchCart]);
 
