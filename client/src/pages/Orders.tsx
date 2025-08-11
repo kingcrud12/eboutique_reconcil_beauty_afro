@@ -8,7 +8,6 @@ interface Product {
   imageUrl?: string;
   price?: number | string;
 }
-
 interface OrderItem {
   id: number;
   productId: number;
@@ -16,29 +15,28 @@ interface OrderItem {
   unitPrice: number | string;
   product?: Product;
 }
-
 interface Order {
   id: number;
   total: number | string;
-  status: string;
+  status: "pending" | "paid" | string;
   deliveryAddress: string;
-  deliveryMode: string
+  deliveryMode: string;
   items: OrderItem[];
 }
-
-interface User {
-  id: number;
-}
+interface User { id: number; }
 
 function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [meId, setMeId] = useState<number | null>(null);
+  const [payingOrderId, setPayingOrderId] = useState<number | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     (async () => {
       try {
         const me = await api.get<User>("/user/me");
+        setMeId(me.data.id);
         const res = await api.get<Order[]>(`/order/${me.data.id}`);
         setOrders(res.data ?? []);
       } catch (e) {
@@ -50,16 +48,43 @@ function Orders() {
     })();
   }, [navigate]);
 
-  const handlePay = (orderId: number, status: string) => {
-    if (status !== "pending") return;
-    // À brancher plus tard (ex: /payment/:id ou ouverture de checkout)
-    // navigate(`/payment/${orderId}`);
-    alert(`Paiement de la commande #${orderId} (à implémenter)`);
+  const handlePay = async (orderId: number, status: string) => {
+    if (status !== "pending" || payingOrderId) return;
+
+    try {
+      setPayingOrderId(orderId);
+
+      // 1) Créer/assurer le PaymentIntent
+      await api.post("/payments/intent", {
+        orderId,
+        userId: meId ?? 1, // fallback si besoin
+      });
+
+      // 2) Obtenir l'URL de Stripe Checkout
+      const checkoutRes = await api.post(`/payments/checkout/${orderId}`);
+
+      // Backend peut renvoyer soit une string brute, soit { url: "..." }
+      const checkoutUrl =
+        typeof checkoutRes.data === "string"
+          ? checkoutRes.data
+          : checkoutRes.data?.url;
+
+      if (!checkoutUrl || typeof checkoutUrl !== "string") {
+        throw new Error("URL de paiement introuvable.");
+      }
+
+      // 3) Rediriger vers Stripe
+      window.location.href = checkoutUrl;
+    } catch (err) {
+      console.error("Erreur paiement :", err);
+      alert(
+        "Impossible d'initier le paiement pour le moment. Merci de réessayer."
+      );
+      setPayingOrderId(null);
+    }
   };
 
   const handleEdit = (orderId: number) => {
-    // À brancher plus tard (ex: page d’édition d’adresse)
-    // navigate(`/orders/${orderId}/edit`);
     alert(`Modification de la commande #${orderId} (à implémenter)`);
   };
 
@@ -86,6 +111,7 @@ function Orders() {
       {orders.map((order) => {
         const orderTotal = Number(order.total);
         const isPending = order.status === "pending";
+        const isPaying = payingOrderId === order.id;
 
         return (
           <div
@@ -122,10 +148,10 @@ function Orders() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => handlePay(order.id, order.status)}
-                  disabled={!isPending}
+                  disabled={!isPending || isPaying}
                   className={`px-3 py-2 rounded text-white text-sm transition
                     ${
-                      isPending
+                      isPending && !isPaying
                         ? "bg-black hover:bg-gray-800"
                         : "bg-gray-400 cursor-not-allowed"
                     }`}
@@ -135,7 +161,7 @@ function Orders() {
                       : "Le paiement n’est possible que pour les commandes en attente"
                   }
                 >
-                  Payer
+                  {isPaying ? "Redirection..." : "Payer"}
                 </button>
                 <button
                   onClick={() => handleEdit(order.id)}
