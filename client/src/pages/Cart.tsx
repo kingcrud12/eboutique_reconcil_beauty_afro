@@ -208,7 +208,7 @@ function Cart() {
               Ajouter des articles
             </button>
             <button
-              onClick={() => navigate('/checkout')}
+              onClick={() => navigate('/delivery')}
               className="mt-4 px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
             >
               valider le panier
