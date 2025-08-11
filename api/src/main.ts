@@ -6,6 +6,8 @@ import * as express from 'express';
 import { join } from 'path';
 import './config/cloudinary.config';
 
+type RequestWithRawBody = express.Request & { rawBody?: Buffer };
+
 const bootstrap = async () => {
   const app = await NestFactory.create(AppModule, {
     cors: {
@@ -27,6 +29,15 @@ const bootstrap = async () => {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/reconcil/api/shop', app, document);
+
+  app.use(
+    express.json({
+      verify: (req: RequestWithRawBody, _res, buf) => {
+        req.rawBody = buf;
+      },
+    }),
+  );
+  app.use(express.urlencoded({ extended: true }));
 
   app.useGlobalPipes(
     new ValidationPipe({
