@@ -16,6 +16,8 @@ const bootstrap = async () => {
     },
   });
 
+  app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
+  app.setGlobalPrefix('/reconcil/api/shop');
   app.use(
     express.json({
       verify: (req: RequestWithRawBody, _res, buf) => {
@@ -24,9 +26,6 @@ const bootstrap = async () => {
     }),
   );
   app.use(express.urlencoded({ extended: true }));
-
-  app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
-  app.setGlobalPrefix('/reconcil/api/shop');
 
   const config = new DocumentBuilder()
     .setTitle('Eshop API')
