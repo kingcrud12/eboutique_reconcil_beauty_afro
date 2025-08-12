@@ -121,10 +121,10 @@ export class OrderDto implements IOrder {
   @ApiProperty({
     description: 'Date de création de la commande',
     example: '2025-08-12',
-    required: false, // 👈 important pour Swagger
+    required: false,
   })
   @IsDate()
-  @IsOptional() // 👈 important pour la validation
+  @IsOptional()
   createdAt?: Date;
 
   @ApiProperty({ enum: DeliveryModeEnum, example: 'relay' })
