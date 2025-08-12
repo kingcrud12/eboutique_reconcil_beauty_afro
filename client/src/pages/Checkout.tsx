@@ -9,7 +9,9 @@ import { IProduct } from '../api/product.interface';
 
 const relayIcon = new L.Icon({
   iconUrl: '/mondial-relay-logo.png',
-  iconSize: [32, 32],
+  iconSize: [84, 84],
+  iconAnchor: [32, 64],
+  popupAnchor: [0, -64],
 });
 
 interface User {
