@@ -12,6 +12,7 @@ import Register from "./pages/Register";
 import PrivateRoute from "./components/PrivateRoute";
 import CreateProduct from "./pages/CreateProduct";
 import ProductDetails from "./pages/ProductDetails";
+import OrderDetails from "./pages/OderDetails";
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
           <Route path="Prestations" element={<Prestations />} />
           <Route path="Product" element={<CreateProduct />} />
           <Route path="/products/:productId" element={<ProductDetails />} />
+          <Route path="/orders/:orderId" element={<OrderDetails />} />
 
         </Route>
       </Routes>
