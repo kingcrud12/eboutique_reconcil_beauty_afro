@@ -5,8 +5,10 @@ import { StripeProvider } from './stripe.provider';
 import { PaymentService } from './payment.service';
 import { PaymentController } from './payment.controller';
 import { StripeWebhookController } from './stripe.webhook.controller';
+import { MailModule } from '../mailer/mail.module';
 
 @Module({
+  imports: [MailModule],
   providers: [PrismaService, StripeProvider, PaymentService],
   exports: [PaymentService],
   controllers: [PaymentController, StripeWebhookController],
