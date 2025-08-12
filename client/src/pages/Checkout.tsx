@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+/* eslint-disable jsx-a11y/role-supports-aria-props */
+import React, { useEffect, useState, useRef } from 'react';
 import api from '../api/api';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -8,7 +9,9 @@ import { IProduct } from '../api/product.interface';
 
 const relayIcon = new L.Icon({
   iconUrl: '/mondial-relay-logo.png',
-  iconSize: [32, 32],
+  iconSize: [84, 84],
+  iconAnchor: [32, 64],
+  popupAnchor: [0, -64],
 });
 
 interface User {
@@ -47,6 +50,18 @@ interface Cart {
   items: CartItem[];
 }
 
+/** —— BAN API types (simplifiés) —— */
+type BanFeatureProps = {
+  housenumber?: string;
+  street?: string;
+  name?: string;          // parfois BAN met la voie dans "name"
+  postcode?: string;
+  city?: string;
+  label?: string;
+};
+type BanFeature = { properties: BanFeatureProps };
+type BanResponse = { features: BanFeature[] };
+
 function Checkout() {
   const [user, setUser] = useState<User | null>(null);
   const [address, setAddress] = useState('');
@@ -61,6 +76,14 @@ function Checkout() {
   const [modalOpen, setModalOpen] = useState(false);
   const [products, setProducts] = useState<IProduct[]>([]);
   const [addingProductId, setAddingProductId] = useState<number | null>(null);
+
+  // --- Autocomplétion BAN
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [openSug, setOpenSug] = useState(false);
+  const [highlight, setHighlight] = useState<number>(-1);
+  const [searching, setSearching] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+  const debounceRef = useRef<number | undefined>(undefined);
 
   const navigate = useNavigate();
 
@@ -89,6 +112,82 @@ function Checkout() {
     }
   };
 
+  /** Formatte une suggestion BAN -> "numéro rue, code postale, ville" */
+  const formatBan = (p: BanFeatureProps) => {
+    const num = (p.housenumber ?? '').toString().trim();
+    const voie = (p.street || p.name || '').toString().trim();
+    const cp = (p.postcode ?? '').toString().trim();
+    const ville = (p.city ?? '').toString().trim();
+    const left = [num, voie].filter(Boolean).join(' ').trim();
+    const right = [cp, ville].filter(Boolean).join(', ').trim(); // "75015, Paris"
+    return left && right ? `${left}, ${right}` : (p.label ?? '').trim();
+  };
+
+  /** Lance la recherche BAN (débouncée + abortable) */
+  const searchBan = (q: string) => {
+    if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    if (!q || q.trim().length < 3) {
+      setSuggestions([]);
+      setOpenSug(false);
+      setSearching(false);
+      return;
+    }
+    debounceRef.current = window.setTimeout(async () => {
+      try {
+        abortRef.current?.abort();
+        const ctrl = new AbortController();
+        abortRef.current = ctrl;
+        setSearching(true);
+        const url = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(q)}&limit=6&autocomplete=1`;
+        const r = await fetch(url, { signal: ctrl.signal });
+        const json: BanResponse = await r.json();
+        const list = (json.features || [])
+          .map(f => formatBan(f.properties))
+          .filter(Boolean);
+        setSuggestions(list);
+        setOpenSug(list.length > 0);
+        setHighlight(-1);
+      } catch (e) {
+        if ((e as any)?.name !== 'AbortError') {
+          console.error('BAN erreur:', e);
+        }
+      } finally {
+        setSearching(false);
+      }
+    }, 220); // léger debounce
+  };
+
+  const onAddressInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const v = e.target.value;
+    setAddress(v);
+    searchBan(v);
+  };
+
+  const applySuggestion = (value: string) => {
+    setAddress(value);
+    setOpenSug(false);
+    setHighlight(-1);
+  };
+
+  const onAddressKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (!openSug || suggestions.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlight(h => (h + 1) % suggestions.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlight(h => (h - 1 + suggestions.length) % suggestions.length);
+    } else if (e.key === 'Enter') {
+      if (highlight >= 0) {
+        e.preventDefault();
+        applySuggestion(suggestions[highlight]);
+      }
+    } else if (e.key === 'Escape') {
+      setOpenSug(false);
+      setHighlight(-1);
+    }
+  };
+
   const handleFindRelais = async () => {
     if (!user) return;
     setLoading(true);
@@ -97,7 +196,6 @@ function Checkout() {
       const response = isCustomAddress
         ? await api.post<ParcelShop[]>('/point-relais', { address })
         : await api.post<ParcelShop[]>(`/point-relais/${user.id}`);
-
       setParcelShops(response.data);
     } catch (error) {
       console.error('Erreur récupération points relais :', error);
@@ -119,7 +217,7 @@ function Checkout() {
       await api.post('/order', {
         deliveryAddress: cleanAddress,
         userId: user.id,
-        deliveryMode: mode === 'home' ? 'HOME' : 'EXPRESS', // <<< ICI
+        deliveryMode: mode === 'home' ? 'HOME' : 'EXPRESS',
       });
       navigate('/orders');
     } catch (e) {
@@ -139,7 +237,7 @@ function Checkout() {
       await api.post('/order', {
         deliveryAddress,
         userId: user.id,
-        deliveryMode: 'RELAY', // <<< ICI
+        deliveryMode: 'RELAY',
       });
       navigate('/orders');
     } catch (error) {
@@ -186,13 +284,53 @@ function Checkout() {
   return (
     <div className="checkout p-6 max-w-5xl mx-auto mt-[180px] space-y-10">
       <h1 className="text-xl font-bold mb-4">Adresse de livraison</h1>
+
+      {/* Champ adresse + suggestions BAN */}
       <form className="mb-4">
-        <textarea
-          className="w-full p-2 border border-gray-300 rounded"
-          rows={3}
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-        />
+        <div className="relative">
+          <textarea
+            className="w-full p-2 border border-gray-300 rounded"
+            rows={3}
+            value={address}
+            onChange={onAddressInput}
+            onKeyDown={onAddressKeyDown}
+            onBlur={() => setTimeout(() => setOpenSug(false), 120)} // laisse le temps de cliquer
+            placeholder="Ex. 12 rue de l'ingénieur robert keller, 75015, Paris"
+            aria-autocomplete="list"
+            aria-expanded={openSug}
+            aria-controls="address-suggestions"
+          />
+          {/* Dropdown suggestions */}
+          {openSug && (
+            <ul
+              id="address-suggestions"
+              role="listbox"
+              className="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto"
+            >
+              {searching && (
+                <li className="px-3 py-2 text-sm text-gray-500">Recherche…</li>
+              )}
+              {suggestions.map((s, idx) => (
+                <li
+                  key={`${s}-${idx}`}
+                  role="option"
+                  aria-selected={idx === highlight}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => applySuggestion(s)}
+                  className={`px-3 py-2 text-sm cursor-pointer hover:bg-gray-50 ${
+                    idx === highlight ? 'bg-gray-100' : ''
+                  }`}
+                  title={s}
+                >
+                  {s}
+                </li>
+              ))}
+              {!searching && suggestions.length === 0 && (
+                <li className="px-3 py-2 text-sm text-gray-400">Aucune suggestion</li>
+              )}
+            </ul>
+          )}
+        </div>
       </form>
 
       {/* Boutons d’action */}

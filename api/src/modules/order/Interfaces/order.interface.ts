@@ -11,6 +11,7 @@ export interface IOrder {
   id: number;
   total: number;
   status: OrderStatus;
+  createdAt?: Date;
   deliveryMode: DeliveryModeEnum;
   deliveryAddress: string;
   userId?: number;

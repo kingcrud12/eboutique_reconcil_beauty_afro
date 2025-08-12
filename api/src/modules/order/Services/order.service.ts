@@ -82,6 +82,30 @@ export class OrderService {
     return orders.map((order) => this.exportToOrderInterface(order));
   }
 
+  async getOrder(orderId: number): Promise<IOrder | null> {
+    const existing = await this.prisma.order.findFirst({
+      where: { id: orderId },
+      include: { items: { include: { product: true } } },
+    });
+
+    return this.exportToOrderInterface(existing);
+  }
+
+  async getAllOrders(): Promise<IOrder[]> {
+    const orders = await this.prisma.order.findMany({
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+    if (!orders) return [];
+
+    return orders.map((order) => this.exportToOrderInterface(order));
+  }
+
   async deleteOrder(orderId: number, userId: number): Promise<IOrder | null> {
     const existing = await this.prisma.order.findFirst({
       where: { id: orderId, userId },
@@ -170,6 +194,7 @@ export class OrderService {
       userId: order.userId ?? undefined,
       total: Number(order.total),
       status: order.status,
+      createdAt: order.createdAt ?? undefined,
       deliveryMode: order.deliveryMode as unknown as DeliveryModeEnum,
       items: order.items.map(
         (item): IOrderItem => ({

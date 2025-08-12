@@ -90,22 +90,34 @@ export class AdminProductController {
     return this.productService.get(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: memoryStorage(),
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
   async update(
-    @Req() req: JwtRequest,
     @Param('id', ParseIntPipe) id: number,
     @Body() data: UpdateProductDto,
+    @Req() req: JwtRequest,
+    @UploadedFile() image?: Express.Multer.File,
   ): Promise<IProduct> {
     const user = req.user;
     this.ensureIsAdmin(user);
+
     await this.verifyProduct(id);
-    if (user.role !== Role.admin) {
-      throw new HttpException(
-        'Access denied: Admin only',
-        HttpStatus.UNAUTHORIZED,
-      );
+
+    let imageUrl: string | undefined;
+    if (image) {
+      imageUrl = await this.cloudinaryService.uploadToCloudinary(image);
     }
-    return this.productService.update(id, data);
+
+    return this.productService.update(id, {
+      ...data,
+      ...(imageUrl ? { imageUrl } : {}),
+    });
   }
 
   @Delete(':id')

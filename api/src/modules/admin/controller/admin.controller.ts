@@ -7,6 +7,8 @@ import {
   UseGuards,
   Get,
   Req,
+  ParseIntPipe,
+  Param,
 } from '@nestjs/common';
 import { AdminService } from '../services/admin.service';
 import { JwtService } from '@nestjs/jwt';
@@ -16,6 +18,8 @@ import { Role } from '@prisma/client';
 import { LoginDto } from 'src/modules/auth/Models/login.dto';
 import { JwtRequest } from 'src/modules/auth/jwt/Jwt-request.interface';
 import { AuthService } from 'src/modules/auth/Services/auth.service';
+import { OrderService } from 'src/modules/order/Services/order.service';
+import { OrderDto } from 'src/modules/order/Models/order.dto';
 
 @Controller('admin')
 export class AdminController {
@@ -24,6 +28,7 @@ export class AdminController {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly authservice: AuthService,
+    private readonly orderService: OrderService,
   ) {}
 
   @Post('login')
@@ -51,6 +56,26 @@ export class AdminController {
     const user = req.user;
     await this.ensureIsAdmin(user);
     return this.adminService.getAllUsers();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('orders')
+  async getOrders(@Req() req: JwtRequest) {
+    const user = req.user;
+    await this.ensureIsAdmin(user);
+    return this.orderService.getAllOrders();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('orders/:orderId')
+  async getOrder(
+    @Req() req: JwtRequest,
+    @Param('orderId', ParseIntPipe) orderId: number,
+  ): Promise<OrderDto> {
+    const user = req.user;
+    await this.ensureIsAdmin(user);
+    const order = await this.orderService.getOrder(orderId);
+    return order;
   }
 
   private ensureIsAdmin(user: { role: string }) {

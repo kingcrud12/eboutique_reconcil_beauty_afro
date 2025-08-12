@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import api from "../api/api";
 
 interface IUser {
@@ -43,10 +43,24 @@ function Account() {
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [ordersError, setOrdersError] = useState<string | null>(null);
 
+  // --- Toast (notification) pour l’aide d’adresse ---
+  const [showAddressToast, setShowAddressToast] = useState(false);
+  const hideTimer = useRef<number | null>(null);
+  const openAddressInfo = () => {
+    setShowAddressToast(true);
+    if (hideTimer.current) window.clearTimeout(hideTimer.current);
+    hideTimer.current = window.setTimeout(() => setShowAddressToast(false), 5000);
+  };
+  const closeAddressInfo = () => {
+    setShowAddressToast(false);
+    if (hideTimer.current) window.clearTimeout(hideTimer.current);
+  };
+
   useEffect(() => {
     api.get<IUser>("/user/me")
       .then((res) => { setUser(res.data); setFormData(res.data); })
       .catch((err) => console.error("Erreur récupération user :", err));
+    return () => { if (hideTimer.current) window.clearTimeout(hideTimer.current); };
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -93,13 +107,13 @@ function Account() {
     : null;
 
   return (
-    <div className="p-6 max-w-6xl mx-auto mt-[160px] mb-[100px]">
+    <div className="relative p-6 max-w-6xl mx-auto mt-[160px] mb-[100px]">
       <h1 className="text-2xl font-bold text-center mb-[80px]">
         Bienvenue {user?.firstName} !
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-        {/* Card gauche (menu) — hauteur fixe, contenu non scrollant */}
+        {/* Card gauche (menu) */}
         <div className="bg-gray-100 p-6 rounded shadow h-[250px] flex flex-col">
           <div className="flex-shrink-0">
             <div className="text-lg font-semibold mb-2">
@@ -112,14 +126,27 @@ function Account() {
 
           <ul className="space-y-2 text-sm flex-1">
             <li>👤 <button className="hover:underline" onClick={openAccount}>Mon compte</button></li>
-            <li>📍 <button className="hover:underline" onClick={openAddress}>Mes adresses de livraison</button></li>
+            <li className="flex items-center gap-2">
+              📍
+              <button className="hover:underline" onClick={openAddress}>Mes adresses de livraison</button>
+              {/* ℹ️ icône info (gauche) */}
+              <button
+                type="button"
+                onClick={openAddressInfo}
+                className="ml-1 text-gray-500 hover:text-gray-800"
+                aria-label="Aide sur le format d'adresse"
+                title="Aide format d’adresse"
+              >
+                ℹ️
+              </button>
+            </li>
             <li>🛒 <button className="hover:underline" onClick={openOrders}>Mes commandes</button></li>
           </ul>
 
-          <div className="h-0 flex-shrink-0" /> {/* spacer bas (optionnel) */}
+          <div className="h-0 flex-shrink-0" />
         </div>
 
-        {/* Card droite : Compte — même hauteur, contenu scrollable */}
+        {/* Card droite : Compte */}
         {showAccountCard && (
           <div className="bg-gray-100 p-6 rounded shadow text-sm w-full h-[250px] overflow-hidden flex flex-col">
             <h2 className="text-lg font-medium mb-4 flex-shrink-0">Vos informations de compte :</h2>
@@ -130,7 +157,22 @@ function Account() {
                     <li><strong>Nom :</strong> {user?.lastName}</li>
                     <li><strong>Prénom :</strong> {user?.firstName}</li>
                     <li><strong>Email :</strong> {user?.email}</li>
-                    <li><strong>Adresse :</strong> {user?.adress || "Non renseignée"}</li>
+                    <li>
+                      <strong className="inline-flex items-center gap-2">
+                        Adresse :
+                        {/* ℹ️ icône info (dans le récap compte) */}
+                        <button
+                          type="button"
+                          className="text-gray-500 hover:text-gray-800"
+                          title="Exemple : 12 rue de l'ingénieur robert keller, 75015, Paris"
+                          onClick={openAddressInfo}
+                          aria-label="Aide sur le format d'adresse"
+                        >
+                          ℹ️
+                        </button>
+                      </strong>{" "}
+                      {user?.adress || "Non renseignée"}
+                    </li>
                   </ul>
                   <button className="bg-black text-white px-4 py-2 rounded" onClick={() => setIsEditingAccount(true)}>
                     Modifier mes informations
@@ -152,21 +194,47 @@ function Account() {
           </div>
         )}
 
-        {/* Card droite : Adresse — même hauteur, contenu scrollable */}
+        {/* Card droite : Adresse */}
         {showAddressCard && (
           <div className="bg-gray-100 p-6 rounded shadow text-sm w-full h-[250px] overflow-hidden flex flex-col">
-            <h2 className="text-lg font-medium mb-4 flex-shrink-0">Mon adresse de livraison :</h2>
+            <h2 className="text-lg font-medium mb-2 flex-shrink-0">Mon adresse de livraison :</h2>
+
+            {/* Bandeau d'aide (dans la "modal"/section adresse) */}
+            <div className="mb-2 bg-blue-50 text-blue-900 border border-blue-200 rounded px-3 py-2 text-xs flex items-start gap-2">
+              <span className="mt-[1px]">ℹ️</span>
+              <span>
+                Format recommandé : <strong>N° de rue + rue, code postale, ville</strong>
+              </span>
+            </div>
+
             <div className="flex-1 overflow-y-auto pr-1">
               {!isEditingAddress ? (
                 <>
-                  <p className="mt-[15px]"><strong>Adresse :</strong> {user?.adress || "Non renseignée"}</p>
-                  <button className=" bg-black text-white px-4 py-2 rounded mt-[80px]" onClick={() => setIsEditingAddress(true)}>
+                  <p className="mt-[6px]">
+                    <strong>Adresse :</strong> {user?.adress || "Non renseignée"}
+                  </p>
+                  <button
+                    className="bg-black text-white px-4 py-2 rounded mt-[60px]"
+                    onClick={() => setIsEditingAddress(true)}
+                  >
                     Modifier l’adresse
                   </button>
                 </>
               ) : (
-                <form onSubmit={handleSubmitAddress} className="space-y-4">
-                  <input type="text" name="adress" value={formData.adress} onChange={handleChange} placeholder="Nouvelle adresse" className="w-full p-2 border rounded" />
+                <form onSubmit={handleSubmitAddress} className="space-y-3">
+                  <div>
+                    <input
+                      type="text"
+                      name="adress"
+                      value={formData.adress}
+                      onChange={handleChange}
+                      placeholder="Nouvelle adresse"
+                      className="w-full p-2 border rounded"
+                    />
+                    <p className="mt-1 text-[11px] text-gray-500">
+                      Exemple : 12 rue de l'ingénieur robert keller, 75015, Paris
+                    </p>
+                  </div>
                   <div className="flex gap-2">
                     <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Enregistrer</button>
                     <button type="button" onClick={() => setIsEditingAddress(false)} className="bg-gray-300 px-4 py-2 rounded">Annuler</button>
@@ -177,7 +245,7 @@ function Account() {
           </div>
         )}
 
-        {/* Card droite : Commandes — même hauteur, liste scrollable */}
+        {/* Card droite : Commandes */}
         {showOrdersCard && (
           <div className="bg-white p-6 rounded shadow text-sm w-full h-[520px] overflow-hidden flex flex-col">
             <h2 className="text-lg font-medium mb-4 flex-shrink-0">Mes commandes</h2>
@@ -229,6 +297,33 @@ function Account() {
           </div>
         )}
       </div>
+
+      {/* Toast flottant (esthétique) */}
+      {showAddressToast && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-6 right-6 max-w-sm bg-white border border-gray-200 shadow-lg rounded-lg p-4 z-50"
+        >
+          <div className="flex items-start gap-3">
+            <div className="text-blue-500 mt-[2px]">ℹ️</div>
+            <div className="text-sm">
+              <div className="font-medium mb-1">Format d’adresse recommandé</div>
+              <div className="text-gray-600">
+                12 rue de l'ingénieur robert keller, 75015, Paris
+              </div>
+            </div>
+            <button
+              onClick={closeAddressInfo}
+              className="ml-auto text-gray-400 hover:text-gray-700"
+              aria-label="Fermer la notification"
+              title="Fermer"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

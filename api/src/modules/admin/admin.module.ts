@@ -4,6 +4,7 @@ import { AdminService } from './services/admin.service';
 import { UserModule } from '../user/user.module';
 import { AuthModule } from '../auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
+import { OrderModule } from '../order/order.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { JwtModule } from '@nestjs/jwt';
     }),
     UserModule,
     AuthModule,
+    OrderModule,
   ],
   controllers: [AdminController],
   providers: [AdminService],
