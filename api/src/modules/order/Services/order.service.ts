@@ -82,6 +82,15 @@ export class OrderService {
     return orders.map((order) => this.exportToOrderInterface(order));
   }
 
+  async getOrder(orderId: number): Promise<IOrder | null> {
+    const existing = await this.prisma.order.findFirst({
+      where: { id: orderId },
+      include: { items: { include: { product: true } } },
+    });
+
+    return this.exportToOrderInterface(existing);
+  }
+
   async getAllOrders(): Promise<IOrder[]> {
     const orders = await this.prisma.order.findMany({
       include: {
