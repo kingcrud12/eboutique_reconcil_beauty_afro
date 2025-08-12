@@ -1,4 +1,5 @@
 import {
+  IsDate,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -116,6 +117,15 @@ export class OrderDto implements IOrder {
   @ApiProperty({ enum: OrderStatus, example: OrderStatus.pending })
   @IsEnum(OrderStatus)
   status: OrderStatus;
+
+  @ApiProperty({
+    description: 'Date de création de la commande',
+    example: '2025-08-12',
+    required: false, // 👈 important pour Swagger
+  })
+  @IsDate()
+  @IsOptional() // 👈 important pour la validation
+  createdAt?: Date;
 
   @ApiProperty({ enum: DeliveryModeEnum, example: 'relay' })
   @IsEnum(DeliveryModeEnum)
