@@ -15,6 +15,7 @@ import { PointRelaisModule } from './modules/PointRelaisModule/point-relais.modu
 import { OrderModule } from './modules/order/order.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { PrestationsModule } from './modules/prestations/prestations.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { PrestationsModule } from './modules/prestations/prestations.module';
         },
       },
     }),
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     UserModule,

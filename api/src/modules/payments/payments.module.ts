@@ -6,10 +6,16 @@ import { PaymentService } from './payment.service';
 import { PaymentController } from './payment.controller';
 import { StripeWebhookController } from './stripe.webhook.controller';
 import { MailModule } from '../mailer/mail.module';
+import { StripeEventCleanupService } from './stripe-event.cleanup.service';
 
 @Module({
   imports: [MailModule],
-  providers: [PrismaService, StripeProvider, PaymentService],
+  providers: [
+    PrismaService,
+    StripeProvider,
+    PaymentService,
+    StripeEventCleanupService,
+  ],
   exports: [PaymentService],
   controllers: [PaymentController, StripeWebhookController],
 })
