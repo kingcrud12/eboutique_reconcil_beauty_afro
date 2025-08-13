@@ -96,6 +96,17 @@ model Service {
   @@index([category, subcategory])
 }
 
+model StripeEvent {
+  id          Int      @id @default(autoincrement())
+  eventId     String   @unique
+  type        String
+  status      String
+  error       String?
+  createdAt   DateTime @default(now())
+  processedAt DateTime?
+}
+
+
 model Slot {
   id        Int        @id @default(autoincrement())
   serviceId Int

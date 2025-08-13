@@ -24,8 +24,43 @@ export class StripeWebhookController {
   constructor(
     @Inject(STRIPE_CLIENT) private readonly stripe: Stripe,
     private readonly prisma: PrismaService,
-    private readonly mailService: MailService, // ✅ AJOUT
+    private readonly mailService: MailService,
   ) {}
+
+  // --- AJOUT: Helpers idempotence ---
+  private async isEventProcessed(eventId: string): Promise<boolean> {
+    const row = await this.prisma.stripeEvent.findUnique({
+      where: { eventId },
+    });
+    return !!row && row.status === 'processed';
+  }
+  private async markProcessing(eventId: string, type: string) {
+    try {
+      await this.prisma.stripeEvent.create({
+        data: { eventId, type, status: 'processing' },
+      });
+    } catch {
+      // si conflit unique (déjà en BDD), on laissera la suite décider
+    }
+  }
+  private async markProcessed(eventId: string) {
+    await this.prisma.stripeEvent.update({
+      where: { eventId },
+      data: { status: 'processed', processedAt: new Date() },
+    });
+  }
+  private async markError(eventId: string, err: unknown) {
+    const message =
+      err instanceof Error
+        ? err.message
+        : typeof err === 'string'
+          ? err
+          : JSON.stringify(err);
+    await this.prisma.stripeEvent.update({
+      where: { eventId },
+      data: { status: 'error', error: message, processedAt: new Date() },
+    });
+  }
 
   @Post()
   @HttpCode(HttpStatus.OK)
@@ -54,108 +89,119 @@ export class StripeWebhookController {
       throw new BadRequestException('Webhook signature verification failed');
     }
 
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object;
-        const orderId = Number(session.metadata?.orderId);
-        const userId = Number(session.metadata?.userId);
-        if (!orderId || !userId) break;
+    // --- AJOUT: idempotence + wrap ---
+    if (await this.isEventProcessed(event.id)) {
+      return { received: true };
+    }
+    await this.markProcessing(event.id, event.type);
 
-        // On récupérera la commande complète pour le mail après la transaction
-        let fullOrder:
-          | (Awaited<ReturnType<typeof this.prisma.order.findUnique>> & {
-              items: Array<{
-                product?: { name?: string } | null;
-                unitPrice: any;
-                quantity: number;
-                productId: number;
-              }>;
-              user?: {
-                email: string | null;
-                firstName?: string | null;
-                lastName?: string | null;
-              } | null;
-            })
-          | null = null;
+    try {
+      // ====== TON CODE EXISTANT NE BOUGE PAS (switch) ======
+      switch (event.type) {
+        case 'checkout.session.completed': {
+          const session = event.data.object;
+          const orderId = Number(session.metadata?.orderId);
+          const userId = Number(session.metadata?.userId);
+          if (!orderId || !userId) break;
 
-        await this.prisma.$transaction(async (tx) => {
-          const order = await tx.order.findUnique({
-            where: { id: orderId },
-            include: {
-              user: true, // ✅ pour l'email
-              items: { include: { product: true } }, // ✅ pour les libellés
-            },
-          });
-          if (!order) throw new BadRequestException('Order not found');
+          let fullOrder:
+            | (Awaited<ReturnType<typeof this.prisma.order.findUnique>> & {
+                items: Array<{
+                  product?: { name?: string } | null;
+                  unitPrice: any;
+                  quantity: number;
+                  productId: number;
+                }>;
+                user?: {
+                  email: string | null;
+                  firstName?: string | null;
+                  lastName?: string | null;
+                } | null;
+              })
+            | null = null;
 
-          // décrément stock
-          for (const it of order.items) {
-            const prod = await tx.product.findUnique({
-              where: { id: it.productId },
+          await this.prisma.$transaction(async (tx) => {
+            const order = await tx.order.findUnique({
+              where: { id: orderId },
+              include: {
+                user: true,
+                items: { include: { product: true } },
+              },
             });
-            if (!prod || prod.stock < it.quantity) {
-              throw new BadRequestException('Stock insuffisant');
+            if (!order) throw new BadRequestException('Order not found');
+
+            for (const it of order.items) {
+              const prod = await tx.product.findUnique({
+                where: { id: it.productId },
+              });
+              if (!prod || prod.stock < it.quantity) {
+                throw new BadRequestException('Stock insuffisant');
+              }
+              await tx.product.update({
+                where: { id: it.productId },
+                data: { stock: prod.stock - it.quantity },
+              });
             }
-            await tx.product.update({
-              where: { id: it.productId },
-              data: { stock: prod.stock - it.quantity },
+
+            await tx.order.update({
+              where: { id: orderId },
+              data: { status: 'paid' },
+            });
+
+            if (order.userId) {
+              const cart = await tx.cart.findFirst({
+                where: { userId: order.userId },
+              });
+              if (cart) {
+                await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
+                await tx.cart.delete({ where: { id: cart.id } });
+              }
+            }
+
+            fullOrder = order;
+          });
+
+          if (fullOrder?.user?.email) {
+            const items = fullOrder.items.map((it) => {
+              const unit = Number(it.unitPrice);
+              const qty = it.quantity;
+              return {
+                name: it.product?.name ?? `Produit #${it.productId}`,
+                quantity: qty,
+                unitPrice: Number.isFinite(unit) ? unit : 0,
+                lineTotal: Number.isFinite(unit) ? +(unit * qty).toFixed(2) : 0,
+              };
+            });
+
+            await this.mailService.sendOrderPaidEmail(fullOrder.user.email, {
+              orderId: fullOrder.id,
+              customerFirstName: fullOrder.user.firstName ?? undefined,
+              customerLastName: fullOrder.user.lastName ?? undefined,
+              deliveryMode: fullOrder.deliveryMode as DeliveryMode,
+              deliveryAddress: fullOrder.deliveryAddress ?? undefined,
+              items,
+              total:
+                typeof fullOrder.total === 'number'
+                  ? fullOrder.total
+                  : Number(fullOrder.total as any) ||
+                    items.reduce((s, i) => s + i.lineTotal, 0),
             });
           }
-
-          // statut paid
-          await tx.order.update({
-            where: { id: orderId },
-            data: { status: 'paid' },
-          });
-
-          // vider panier
-          if (order.userId) {
-            const cart = await tx.cart.findFirst({
-              where: { userId: order.userId },
-            });
-            if (cart) {
-              await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
-              await tx.cart.delete({ where: { id: cart.id } });
-            }
-          }
-
-          fullOrder = order; // ✅ conserver pour l'email
-        });
-
-        // ✅ ENVOI DU MAIL (après la transaction)
-        if (fullOrder?.user?.email) {
-          const items = fullOrder.items.map((it) => {
-            const unit = Number(it.unitPrice);
-            const qty = it.quantity;
-            return {
-              name: it.product?.name ?? `Produit #${it.productId}`,
-              quantity: qty,
-              unitPrice: Number.isFinite(unit) ? unit : 0,
-              lineTotal: Number.isFinite(unit) ? +(unit * qty).toFixed(2) : 0,
-            };
-          });
-
-          await this.mailService.sendOrderPaidEmail(fullOrder.user.email, {
-            orderId: fullOrder.id,
-            customerFirstName: fullOrder.user.firstName ?? undefined,
-            customerLastName: fullOrder.user.lastName ?? undefined,
-            deliveryMode: fullOrder.deliveryMode as DeliveryMode,
-            deliveryAddress: fullOrder.deliveryAddress ?? undefined, // ✅ ton modèle ne gère pas le point relais
-            items,
-            total:
-              typeof fullOrder.total === 'number'
-                ? fullOrder.total
-                : Number(fullOrder.total as any) ||
-                  items.reduce((s, i) => s + i.lineTotal, 0),
-          });
+          break;
         }
-        break;
+        case 'payment_intent.payment_failed': {
+          break;
+        }
+        default:
+          break;
       }
-      case 'payment_intent.payment_failed': {
-        break;
-      }
-      default:
-        break;
+      // ====== FIN de ton code ======
+
+      await this.markProcessed(event.id);
+    } catch (err) {
+      console.error('[orders webhook] processing error', err);
+      await this.markError(event.id, err);
+      // ⚠️ on nève PAS d'exception => on renvoie 200 pour stopper le retry
     }
 
     return { received: true };
@@ -188,28 +234,48 @@ export class StripeWebhookController {
       throw new BadRequestException('Webhook signature verification failed');
     }
 
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object;
+    // --- AJOUT: idempotence + wrap ---
+    if (await this.isEventProcessed(event.id)) {
+      return { received: true };
+    }
+    await this.markProcessing(event.id, event.type);
 
-        const slotId = session.metadata?.slotId
-          ? Number(session.metadata.slotId)
-          : null;
-        if (!slotId) break;
+    try {
+      // ====== TON CODE EXISTANT NE BOUGE PAS (switch) ======
+      switch (event.type) {
+        case 'checkout.session.completed': {
+          const session = event.data.object;
 
-        // Mise à jour du statut du slot
-        await this.prisma.slot.update({
-          where: { id: slotId },
-          data: { status: SlotStatus.booked },
-        });
+          const slotId = session.metadata?.slotId
+            ? Number(session.metadata.slotId)
+            : null;
+          if (!slotId) break;
 
-        break;
+          // Idempotence métier: si déjà booked, on ne refait pas
+          const slot = await this.prisma.slot.findUnique({
+            where: { id: slotId },
+          });
+          if (slot && slot.status !== SlotStatus.booked) {
+            await this.prisma.slot.update({
+              where: { id: slotId },
+              data: { status: SlotStatus.booked },
+            });
+          }
+          break;
+        }
+        case 'payment_intent.payment_failed': {
+          break;
+        }
+        default:
+          break;
       }
-      case 'payment_intent.payment_failed': {
-        break;
-      }
-      default:
-        break;
+      // ====== FIN de ton code ======
+
+      await this.markProcessed(event.id);
+    } catch (err) {
+      console.error('[slots webhook] processing error', err);
+      await this.markError(event.id, err);
+      // pas d’exception => 200 pour stopper le retry
     }
 
     return { received: true };
