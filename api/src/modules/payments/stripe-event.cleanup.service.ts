@@ -29,7 +29,7 @@ export class StripeEventCleanupService {
    * Nettoyage périodique des événements Stripe.
    * NB: ajuste l’expression CRON si tu préfères un autre rythme.
    */
-  @Cron(CronExpression.EVERY_HOUR) // ✅ plus d'erreur ESLint/TS
+  @Cron(CronExpression.EVERY_10_MINUTES) // ✅ plus d'erreur ESLint/TS
   async purgeOldEvents(): Promise<void> {
     // ⚠️ Adapte le champ temporel à TON schéma.
     // Si ta table a "createdAt" (cas le plus courant), on l’utilise.
