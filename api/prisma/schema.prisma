@@ -82,9 +82,11 @@ enum SlotStatus {
 // --- Modèles ---
 model Service {
   id          Int         @id @default(autoincrement())
-  name        String
+  name        String      @unique
   duration    Int
   price       Decimal     @db.Decimal(10, 2)
+
+  imageUrl    String?
 
   category    Category
   subcategory Subcategory   // 👈 NEW
@@ -99,8 +101,8 @@ model Slot {
   serviceId Int
   service   Service    @relation(fields: [serviceId], references: [id])
 
-  startAt   DateTime
-  endAt     DateTime
+  startAt   DateTime   @unique
+  endAt     DateTime   @unique
 
   status    SlotStatus @default(open)
   paymentIntentId String? 

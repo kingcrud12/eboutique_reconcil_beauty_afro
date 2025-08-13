@@ -17,11 +17,15 @@ import { ISlot, ISlotCreate, ISlotUpdate } from '../Interfaces/slot.interface';
 import { JwtRequest } from 'src/modules/auth/jwt/Jwt-request.interface';
 import { Role } from '@prisma/client';
 import { JwtAuthGuard } from 'src/modules/auth/jwt/jwt-auth.guard';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Controller('admin/slots')
 @UseGuards(JwtAuthGuard)
 export class SlotController {
-  constructor(private readonly slotService: SlotService) {}
+  constructor(
+    private readonly slotService: SlotService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   // --- CREATE ---
   @Post()
@@ -31,6 +35,15 @@ export class SlotController {
   ): Promise<ISlot> {
     const user = req.user;
     this.ensureIsAdmin(user);
+    const existing = await this.prisma.slot.findUnique({
+      where: { startAt: data.startAt, endAt: data.endAt },
+    });
+    if (existing) {
+      throw new HttpException(
+        `Un service avec "${data.startAt.toISOString()}, ${data.endAt.toISOString()}" existe déjà.`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     return this.slotService.create(data);
   }
 

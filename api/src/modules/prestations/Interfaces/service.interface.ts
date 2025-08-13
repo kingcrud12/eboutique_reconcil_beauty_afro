@@ -6,6 +6,7 @@ export interface IService {
   name: string;
   duration: number;
   price: Decimal;
+  imageUrl?: string;
   category: Category;
   subcategory: Subcategory;
   createdAt?: Date;
@@ -16,6 +17,7 @@ export interface IServiceCreate {
   name: string;
   duration: number;
   price: Decimal;
+  imageUrl?: string;
   category: Category;
   subcategory: Subcategory;
 }
@@ -24,6 +26,7 @@ export interface IServiceUpdate {
   name?: string;
   duration?: number;
   price?: Decimal;
+  imageUrl?: string;
   category?: Category;
   subcategory?: Subcategory;
 }

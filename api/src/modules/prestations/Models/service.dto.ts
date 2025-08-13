@@ -14,24 +14,38 @@ import {
   IServiceUpdate,
 } from '../Interfaces/service.interface';
 import { Decimal } from '@prisma/client/runtime/library';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateServiceDto implements IServiceCreate {
+  @ApiProperty({
+    description: 'Service name',
+    example: 'Nattes collees basiques',
+  })
   @IsString()
   @MinLength(2)
   name!: string;
 
+  @ApiProperty({
+    description: 'temps de réalisation du service',
+    example: '1h',
+  })
   @IsInt()
   @Type(() => Number)
   @Min(1)
   duration!: number;
 
+  @ApiProperty({ description: 'Prix du service', example: '45.00 euros' })
   @IsNumber(
     { allowNaN: false, allowInfinity: false },
-    { message: 'price doit être un nombre' },
+    { message: 'price doit être un décimal' },
   )
   @Type(() => Decimal)
   @Min(0)
   price!: Decimal;
+
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
 
   @IsEnum(Category)
   category!: Category;
@@ -60,6 +74,10 @@ export class UpdateServiceDto implements IServiceUpdate {
   @Min(0)
   @IsOptional()
   price: Decimal;
+
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
 
   @IsEnum(Category)
   @IsOptional()

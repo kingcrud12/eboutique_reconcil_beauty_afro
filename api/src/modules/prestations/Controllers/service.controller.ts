@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -10,7 +11,9 @@ import {
   Post,
   Put,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ServiceService } from '../Services/service.services';
 import {
@@ -21,21 +24,48 @@ import {
 import { JwtRequest } from 'src/modules/auth/jwt/Jwt-request.interface';
 import { Role } from '@prisma/client';
 import { JwtAuthGuard } from 'src/modules/auth/jwt/jwt-auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { CloudinaryService } from 'src/utils/cloudinary.service';
 
 @Controller('admin/services')
 @UseGuards(JwtAuthGuard)
 export class ServiceController {
-  constructor(private readonly serviceService: ServiceService) {}
+  constructor(
+    private readonly serviceService: ServiceService,
+    private readonly prisma: PrismaService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   // --- CREATE ---
   @Post()
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: memoryStorage(),
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
   async create(
     @Req() req: JwtRequest,
     @Body() data: IServiceCreate,
+    @UploadedFile() image?: Express.Multer.File,
   ): Promise<IService> {
     const user = req.user;
     this.ensureIsAdmin(user);
-    return this.serviceService.create(data);
+    const existing = await this.prisma.service.findUnique({
+      where: { name: data.name },
+    });
+    if (existing) {
+      throw new HttpException(
+        `Un service nommé "${data.name}" existe déjà.`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    if (!image) throw new BadRequestException('Aucune image fournie');
+    const imageUrl = await this.cloudinaryService.uploadToCloudinary(image);
+
+    return this.serviceService.create({ ...data, imageUrl });
   }
 
   // --- READ ALL ---

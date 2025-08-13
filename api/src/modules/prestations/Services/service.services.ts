@@ -17,6 +17,7 @@ export class ServiceService {
         name: data.name,
         duration: data.duration,
         price: data.price,
+        imageUrl: data.imageUrl,
         category: data.category,
         subcategory: data.subcategory,
       },
@@ -58,6 +59,7 @@ export class ServiceService {
       name: row.name,
       duration: row.duration,
       price: row.price,
+      imageUrl: row.imageUrl as string,
       category: row.category,
       subcategory: row.subcategory,
     };
