@@ -21,6 +21,7 @@ import { Inject } from '@nestjs/common';
 import { STRIPE_CLIENT } from './stripe.provider';
 import Stripe from 'stripe';
 import { JwtAuthGuard } from '../auth/jwt/jwt-auth.guard';
+import { Public } from '../auth/public.decorator';
 
 class CreatePaymentIntentDto {
   @ApiProperty({ example: 123, description: 'ID de la commande' })
@@ -138,6 +139,7 @@ export class PaymentController {
   }
 
   @Post('slots/checkout/:slotId')
+  @Public()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary:
@@ -151,7 +153,6 @@ export class PaymentController {
       properties: { url: { type: 'string' } },
     },
   })
-  @UseGuards(JwtAuthGuard)
   async createSlotCheckoutSession(
     @Param('slotId', ParseIntPipe) slotId: number,
   ): Promise<{ url: string }> {
