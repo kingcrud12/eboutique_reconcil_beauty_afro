@@ -14,6 +14,8 @@ import { CartModule } from './modules/cart/cart.module';
 import { PointRelaisModule } from './modules/PointRelaisModule/point-relais.module';
 import { OrderModule } from './modules/order/order.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { PrestationsModule } from './modules/prestations/prestations.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -36,6 +38,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
         },
       },
     }),
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     UserModule,
@@ -46,6 +49,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     PointRelaisModule,
     OrderModule,
     PaymentsModule,
+    PrestationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

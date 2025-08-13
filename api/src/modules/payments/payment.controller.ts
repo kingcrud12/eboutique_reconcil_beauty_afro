@@ -1,4 +1,3 @@
-// src/modules/payments/payment.controller.ts
 import {
   Body,
   Controller,
@@ -22,6 +21,7 @@ import { Inject } from '@nestjs/common';
 import { STRIPE_CLIENT } from './stripe.provider';
 import Stripe from 'stripe';
 import { JwtAuthGuard } from '../auth/jwt/jwt-auth.guard';
+import { Public } from '../auth/public.decorator';
 
 class CreatePaymentIntentDto {
   @ApiProperty({ example: 123, description: 'ID de la commande' })
@@ -115,8 +115,6 @@ export class PaymentController {
       );
     }
 
-    console.log('email de client', req.user.email);
-
     const session = await this.stripe.checkout.sessions.create({
       payment_method_types: ['card', 'paypal'],
       line_items: lineItems,
@@ -138,5 +136,26 @@ export class PaymentController {
     }
 
     return { url: session.url };
+  }
+
+  @Post('slots/checkout/:slotId')
+  @Public()
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary:
+      'Créer une session Stripe Checkout pour réserver un créneau (slot) avec acompte',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Session Checkout créée pour le slot',
+    schema: {
+      type: 'object',
+      properties: { url: { type: 'string' } },
+    },
+  })
+  async createSlotCheckoutSession(
+    @Param('slotId', ParseIntPipe) slotId: number,
+  ): Promise<{ url: string }> {
+    return this.payments.createSlotCheckout(slotId);
   }
 }

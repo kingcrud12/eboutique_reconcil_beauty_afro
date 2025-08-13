@@ -68,4 +68,21 @@ export class MailService {
       context: { ...ctx, etaDays },
     });
   }
+
+  async sendSlotBookedEmail(
+    to: string,
+    ctx: {
+      serviceName: string;
+      startAtLocal: string; // ex: "vendredi 15 août 2025 à 11:30"
+      endAtLocal: string; // ex: "vendredi 15 août 2025 à 12:30"
+      depositAmountEUR: number; // 13.5
+    },
+  ) {
+    await this.mailerService.sendMail({
+      to,
+      subject: `Réservation confirmée – ${ctx.serviceName}`,
+      template: 'slot-booked', // src/templates/slot-booked.hbs
+      context: ctx,
+    });
+  }
 }
