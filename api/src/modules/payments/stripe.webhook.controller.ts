@@ -14,6 +14,7 @@ import Stripe from 'stripe';
 import { STRIPE_CLIENT } from './stripe.provider';
 import { Request } from 'express';
 import { MailService } from '../../modules/mailer/mail.service'; // ✅ AJOUT
+import { SlotStatus } from '@prisma/client';
 
 type StripeRawRequest = Request & { rawBody: Buffer };
 type DeliveryMode = 'EXPRESS' | 'HOME' | 'RELAY';
@@ -148,6 +149,60 @@ export class StripeWebhookController {
                   items.reduce((s, i) => s + i.lineTotal, 0),
           });
         }
+        break;
+      }
+      case 'payment_intent.payment_failed': {
+        break;
+      }
+      default:
+        break;
+    }
+
+    return { received: true };
+  }
+
+  @Post('/slots')
+  @HttpCode(HttpStatus.OK)
+  async handleStripeSlotWebhook(
+    @Req() req: Request,
+    @Headers('stripe-signature') signature?: string,
+  ) {
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!webhookSecret)
+      throw new BadRequestException('Missing STRIPE_SLOT_WEBHOOK_SECRET');
+    if (!signature)
+      throw new BadRequestException('Missing Stripe signature header');
+
+    const typedReq = req as StripeRawRequest;
+    const rawBody: Buffer =
+      typedReq.rawBody ?? Buffer.from(JSON.stringify(req.body));
+
+    let event: Stripe.Event;
+    try {
+      event = this.stripe.webhooks.constructEvent(
+        rawBody,
+        signature,
+        webhookSecret,
+      );
+    } catch {
+      throw new BadRequestException('Webhook signature verification failed');
+    }
+
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object;
+
+        const slotId = session.metadata?.slotId
+          ? Number(session.metadata.slotId)
+          : null;
+        if (!slotId) break;
+
+        // Mise à jour du statut du slot
+        await this.prisma.slot.update({
+          where: { id: slotId },
+          data: { status: SlotStatus.booked },
+        });
+
         break;
       }
       case 'payment_intent.payment_failed': {

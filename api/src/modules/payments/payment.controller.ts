@@ -1,4 +1,3 @@
-// src/modules/payments/payment.controller.ts
 import {
   Body,
   Controller,
@@ -138,5 +137,28 @@ export class PaymentController {
     }
 
     return { url: session.url };
+  }
+
+  @Post('slots/checkout/:slotId')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary:
+      'Créer une session Stripe Checkout pour réserver un créneau (slot) avec acompte',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Session Checkout créée pour le slot',
+    schema: {
+      type: 'object',
+      properties: { url: { type: 'string' } },
+    },
+  })
+  @UseGuards(JwtAuthGuard)
+  async createSlotCheckoutSession(
+    @Param('slotId', ParseIntPipe) slotId: number,
+    @Req() req: JwtRequest,
+  ): Promise<{ url: string }> {
+    const userId = req.user?.userId;
+    return this.payments.createSlotCheckout(slotId, userId);
   }
 }

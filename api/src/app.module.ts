@@ -14,6 +14,7 @@ import { CartModule } from './modules/cart/cart.module';
 import { PointRelaisModule } from './modules/PointRelaisModule/point-relais.module';
 import { OrderModule } from './modules/order/order.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { PrestationsModule } from './modules/prestations/prestations.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     PointRelaisModule,
     OrderModule,
     PaymentsModule,
+    PrestationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

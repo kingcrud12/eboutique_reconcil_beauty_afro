@@ -44,13 +44,75 @@ model Product {
   orderItems  OrderItem[]
 }
 
-model Service {
-  id           Int           @id @default(autoincrement())
-  name         String
-  duration     Int
-  price        Decimal       @db.Decimal(10, 2)
-  appointments Appointment[]
+// --- Enums ---
+enum Category {
+  Nattes
+  Braids
+  Ecailles
+  Knotless
+  Cornrows
 }
+
+// Sous-catégories "namespacées"
+// (tu pourras en ajouter au fil du temps)
+enum Subcategory {
+  NATTES_COLLEES
+  NATTES_DEMELEES
+
+  KNOTLESS_SMALL
+  KNOTLESS_MEDIUM
+  KNOTLESS_LARGE
+
+  BRAIDS_CLASSIC
+  BRAIDS_FEEDIN
+
+  CORNROWS_SIMPLE
+  CORNROWS_DESIGN
+
+  ECAILLES_SIMPLE
+}
+
+// Statut des créneaux
+enum SlotStatus {
+  open
+  booked
+  cancelled
+}
+
+// --- Modèles ---
+model Service {
+  id          Int         @id @default(autoincrement())
+  name        String
+  duration    Int
+  price       Decimal     @db.Decimal(10, 2)
+
+  category    Category
+  subcategory Subcategory   // 👈 NEW
+
+  slots       Slot[]
+
+  @@index([category, subcategory])
+}
+
+model Slot {
+  id        Int        @id @default(autoincrement())
+  serviceId Int
+  service   Service    @relation(fields: [serviceId], references: [id])
+
+  startAt   DateTime
+  endAt     DateTime
+
+  status    SlotStatus @default(open)
+  paymentIntentId String? 
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([serviceId])
+  @@index([startAt, endAt])
+  @@index([status])
+}
+
 
 model Appointment {
   id          Int               @id @default(autoincrement())
@@ -62,7 +124,6 @@ model Appointment {
   guestId     Int?
   serviceId   Int
   guest       Guest?            @relation(fields: [guestId], references: [id])
-  service     Service           @relation(fields: [serviceId], references: [id])
   user        User?             @relation(fields: [userId], references: [id])
 
   @@index([guestId], map: "Appointment_guestId_fkey")
@@ -137,6 +198,11 @@ enum AppointmentStatus {
   confirmed
   canceled
 }
+
+enum Knotless {
+  Boho_knotless
+}
+
 
 enum OrderStatus {
   pending
