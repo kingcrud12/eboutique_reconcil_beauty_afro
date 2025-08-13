@@ -5,7 +5,7 @@ import {
   IServiceCreate,
   IServiceUpdate,
 } from '../Interfaces/service.interface';
-import { Service as PrismaServiceModel } from '@prisma/client';
+import { Prisma, Service as PrismaServiceModel } from '@prisma/client';
 
 @Injectable()
 export class ServiceService {
@@ -15,8 +15,8 @@ export class ServiceService {
     const created = await this.prisma.service.create({
       data: {
         name: data.name,
-        duration: data.duration,
-        price: data.price,
+        duration: Number(data.duration),
+        price: new Prisma.Decimal(data.price),
         imageUrl: data.imageUrl,
         category: data.category,
         subcategory: data.subcategory,

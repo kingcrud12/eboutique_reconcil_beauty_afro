@@ -35,16 +35,35 @@ export class SlotController {
   ): Promise<ISlot> {
     const user = req.user;
     this.ensureIsAdmin(user);
-    const existing = await this.prisma.slot.findUnique({
-      where: { startAt: data.startAt, endAt: data.endAt },
-    });
-    if (existing) {
+
+    // 1) Normaliser les dates
+    const startAt = new Date(data.startAt as unknown as string);
+    const endAt = new Date(data.endAt as unknown as string);
+
+    if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime())) {
       throw new HttpException(
-        `Un service avec "${data.startAt.toISOString()}, ${data.endAt.toISOString()}" existe déjà.`,
+        'startAt / endAt invalides (ISO 8601 attendu).',
         HttpStatus.BAD_REQUEST,
       );
     }
-    return this.slotService.create(data);
+    const existing = await this.prisma.slot.findFirst({
+      where: {
+        OR: [{ startAt }, { endAt }],
+      },
+      select: { id: true, startAt: true, endAt: true },
+    });
+
+    if (existing) {
+      const s = existing.startAt.toISOString();
+      const e = existing.endAt.toISOString();
+      throw new HttpException(
+        `Un slot existe déjà pour ce créneau (startAt=${s}, endAt=${e}).`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // 3) Passer les dates normalisées au service
+    return this.slotService.create({ ...data, startAt, endAt });
   }
 
   // --- READ ALL ---
