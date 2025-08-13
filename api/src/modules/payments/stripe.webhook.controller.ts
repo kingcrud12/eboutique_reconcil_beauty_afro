@@ -167,7 +167,7 @@ export class StripeWebhookController {
     @Req() req: Request,
     @Headers('stripe-signature') signature?: string,
   ) {
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    const webhookSecret = process.env.STRIPE_SLOT_WEBHOOK_SECRET;
     if (!webhookSecret)
       throw new BadRequestException('Missing STRIPE_SLOT_WEBHOOK_SECRET');
     if (!signature)

@@ -114,8 +114,6 @@ export class PaymentController {
       );
     }
 
-    console.log('email de client', req.user.email);
-
     const session = await this.stripe.checkout.sessions.create({
       payment_method_types: ['card', 'paypal'],
       line_items: lineItems,
