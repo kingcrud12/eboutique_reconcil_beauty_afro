@@ -93,10 +93,18 @@ export class ServiceController {
     @Req() req: JwtRequest,
     @Param('id', ParseIntPipe) id: number,
     @Body() data: IServiceUpdate,
+    @UploadedFile() image?: Express.Multer.File,
   ): Promise<IService> {
     const user = req.user;
     this.ensureIsAdmin(user);
-    return this.serviceService.update(id, data);
+    let imageUrl: string | undefined;
+    if (image) {
+      imageUrl = await this.cloudinaryService.uploadToCloudinary(image);
+    }
+    return this.serviceService.update(id, {
+      ...data,
+      ...(imageUrl ? { imageUrl } : {}),
+    });
   }
 
   // --- DELETE ---
