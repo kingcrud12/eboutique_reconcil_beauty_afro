@@ -72,6 +72,13 @@ export class PaymentService {
 
     const depositAmount = Math.round(Number(slot.service.price) * 0.3 * 100);
 
+    const frontendUrl = process.env.FRONTEND_URL;
+    if (!frontendUrl) {
+      throw new Error(
+        'FRONTEND_URL manquant dans les variables d’environnement',
+      );
+    }
+
     const session = await this.stripe.checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card'],
@@ -97,7 +104,7 @@ export class PaymentService {
       },
 
       // ✅ succès: comme avant (ou adapte si besoin)
-      success_url: `${process.env.FRONTEND_URL}/payment-success`,
+      success_url: `${frontendUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
 
       // ✅ abandon: redirige vers la page publique demandée
       cancel_url: `https://eboutique-reconcil-beauty-afro.vercel.app/appointment`,

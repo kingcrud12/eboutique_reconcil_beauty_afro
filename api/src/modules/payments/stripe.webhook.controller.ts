@@ -266,15 +266,24 @@ export class StripeWebhookController {
           }
 
           // ✅ envoi mail si email dispo
-          if (email && slot?.service) {
-            // Recalcule le montant d’acompte (même logique que côté checkout)
-            const depositAmountEUR =
-              Math.round(Number(slot.service.price) * 0.3 * 100) / 100;
+          if (email && slot.service) {
+            const tz = process.env.MAIL_TZ ?? 'Europe/Paris';
+            const df = new Intl.DateTimeFormat('fr-FR', {
+              dateStyle: 'full',
+              timeStyle: 'short',
+              timeZone: tz,
+            });
+
+            const startAtLocal = df.format(new Date(slot.startAt));
+            const endAtLocal = df.format(new Date(slot.endAt));
+            const depositAmountEUR = Number(
+              (Number(slot.service.price) * 0.3).toFixed(2),
+            );
 
             await this.mailService.sendSlotBookedEmail(email, {
               serviceName: slot.service.name,
-              startAtISO: slot.startAt.toISOString(),
-              endAtISO: slot.endAt.toISOString(),
+              startAtLocal,
+              endAtLocal,
               depositAmountEUR,
             });
           }
