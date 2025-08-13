@@ -234,14 +234,13 @@ export class StripeWebhookController {
       throw new BadRequestException('Webhook signature verification failed');
     }
 
-    // --- AJOUT: idempotence + wrap ---
+    // ✅ idempotence (tu as déjà ces helpers)
     if (await this.isEventProcessed(event.id)) {
       return { received: true };
     }
     await this.markProcessing(event.id, event.type);
 
     try {
-      // ====== TON CODE EXISTANT NE BOUGE PAS (switch) ======
       switch (event.type) {
         case 'checkout.session.completed': {
           const session = event.data.object;
@@ -251,9 +250,13 @@ export class StripeWebhookController {
             : null;
           if (!slotId) break;
 
-          // Idempotence métier: si déjà booked, on ne refait pas
+          // 📨 email collecté par Stripe pendant le Checkout
+          const email = session.customer_details?.email ?? undefined;
+
+          // Met à jour le slot si pas déjà booked
           const slot = await this.prisma.slot.findUnique({
             where: { id: slotId },
+            include: { service: true },
           });
           if (slot && slot.status !== SlotStatus.booked) {
             await this.prisma.slot.update({
@@ -261,21 +264,36 @@ export class StripeWebhookController {
               data: { status: SlotStatus.booked },
             });
           }
+
+          // ✅ envoi mail si email dispo
+          if (email && slot?.service) {
+            // Recalcule le montant d’acompte (même logique que côté checkout)
+            const depositAmountEUR =
+              Math.round(Number(slot.service.price) * 0.3 * 100) / 100;
+
+            await this.mailService.sendSlotBookedEmail(email, {
+              serviceName: slot.service.name,
+              startAtISO: slot.startAt.toISOString(),
+              endAtISO: slot.endAt.toISOString(),
+              depositAmountEUR,
+            });
+          }
+
           break;
         }
         case 'payment_intent.payment_failed': {
+          // tu peux notifier si besoin
           break;
         }
         default:
           break;
       }
-      // ====== FIN de ton code ======
 
       await this.markProcessed(event.id);
     } catch (err) {
       console.error('[slots webhook] processing error', err);
       await this.markError(event.id, err);
-      // pas d’exception => 200 pour stopper le retry
+      // on retourne 200 pour éviter les retries (ton mécanisme le fait déjà)
     }
 
     return { received: true };

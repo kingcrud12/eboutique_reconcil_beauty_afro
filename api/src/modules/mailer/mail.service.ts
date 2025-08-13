@@ -68,4 +68,23 @@ export class MailService {
       context: { ...ctx, etaDays },
     });
   }
+
+  async sendSlotBookedEmail(
+    to: string,
+    ctx: {
+      serviceName: string;
+      startAtISO: string; // UTC ISO (le template peut afficher en local)
+      endAtISO: string; // UTC ISO
+      depositAmountEUR: number; // montant payé (acompte)
+    },
+  ) {
+    await this.mailerService.sendMail({
+      to,
+      subject: `Votre acompte est confirmé – réservation ${ctx.serviceName}`,
+      template: 'slot-booked', // src/templates/slot-booked.hbs
+      context: {
+        ...ctx,
+      },
+    });
+  }
 }

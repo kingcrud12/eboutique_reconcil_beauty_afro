@@ -60,7 +60,7 @@ export class PaymentService {
   /**
    * Paiement de l'acompte pour un slot
    */
-  async createSlotCheckout(slotId: number, userId: number) {
+  async createSlotCheckout(slotId: number) {
     const slot = await this.prisma.slot.findUnique({
       where: { id: slotId },
       include: { service: true },
@@ -70,12 +70,14 @@ export class PaymentService {
     if (slot.status !== SlotStatus.open)
       throw new ForbiddenException('Ce créneau n’est pas disponible');
 
-    // Calcul acompte 30%
     const depositAmount = Math.round(Number(slot.service.price) * 0.3 * 100);
 
     const session = await this.stripe.checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card'],
+      // ✅ on laisse Stripe collecter l’email
+      // customer_email: undefined,
+
       line_items: [
         {
           price_data: {
@@ -88,15 +90,19 @@ export class PaymentService {
           quantity: 1,
         },
       ],
+
+      // ✅ on garde le slotId (plus de userId)
       metadata: {
         slotId: String(slot.id),
-        userId: String(userId),
       },
+
+      // ✅ succès: comme avant (ou adapte si besoin)
       success_url: `${process.env.FRONTEND_URL}/payment-success`,
-      cancel_url: `${process.env.FRONTEND_URL}/payment-cancel`,
+
+      // ✅ abandon: redirige vers la page publique demandée
+      cancel_url: `https://eboutique-reconcil-beauty-afro.vercel.app/appointment`,
     });
 
-    // Sauvegarde de l'identifiant Stripe dans le slot
     await this.prisma.slot.update({
       where: { id: slot.id },
       data: { paymentIntentId: session.payment_intent as string },

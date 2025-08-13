@@ -154,9 +154,7 @@ export class PaymentController {
   @UseGuards(JwtAuthGuard)
   async createSlotCheckoutSession(
     @Param('slotId', ParseIntPipe) slotId: number,
-    @Req() req: JwtRequest,
   ): Promise<{ url: string }> {
-    const userId = req.user?.userId;
-    return this.payments.createSlotCheckout(slotId, userId);
+    return this.payments.createSlotCheckout(slotId);
   }
 }
