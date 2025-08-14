@@ -89,7 +89,7 @@ export default function ServiceDetail() {
         if (form.subcategory) fd.append("subcategory", form.subcategory);
         fd.append("image", file);                     // 🔑 même clé que côté create (image)
 
-        await api.put(`/services/${id}`, fd, {
+        await api.patch(`/services/${id}`, fd, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       } else {
