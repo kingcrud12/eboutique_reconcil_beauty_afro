@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import api from "../api/api";
 import { useNavigate } from "react-router-dom";
 
@@ -32,13 +32,26 @@ function Orders() {
   const [payingOrderId, setPayingOrderId] = useState<number | null>(null);
   const navigate = useNavigate();
 
+  // 🔽 état modal Produits
+  const [productsModalOpen, setProductsModalOpen] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [addingProductId, setAddingProductId] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchOrders = useCallback(async (uid: number) => {
+    const res = await api.get<Order[]>(`/order/user/${uid}`);
+    setOrders(res.data ?? []);
+  }, []);
+
   useEffect(() => {
     (async () => {
       try {
+        setLoading(true);
+        setError(null);
         const me = await api.get<User>("/user/me");
         setMeId(me.data.id);
-        const res = await api.get<Order[]>(`/order/${me.data.id}`);
-        setOrders(res.data ?? []);
+        await fetchOrders(me.data.id);
       } catch (e) {
         console.error("Erreur récupération commandes :", e);
         navigate("/login");
@@ -46,7 +59,7 @@ function Orders() {
         setLoading(false);
       }
     })();
-  }, [navigate]);
+  }, [navigate, fetchOrders]);
 
   const handlePay = async (orderId: number, status: string) => {
     if (status !== "pending" || payingOrderId) return;
@@ -54,16 +67,12 @@ function Orders() {
     try {
       setPayingOrderId(orderId);
 
-      // 1) Créer/assurer le PaymentIntent
       await api.post("/payments/intent", {
         orderId,
-        userId: meId ?? 1, // fallback si besoin
+        userId: meId ?? 1,
       });
 
-      // 2) Obtenir l'URL de Stripe Checkout
       const checkoutRes = await api.post(`/payments/checkout/${orderId}`);
-
-      // Backend peut renvoyer soit une string brute, soit { url: "..." }
       const checkoutUrl =
         typeof checkoutRes.data === "string"
           ? checkoutRes.data
@@ -73,19 +82,53 @@ function Orders() {
         throw new Error("URL de paiement introuvable.");
       }
 
-      // 3) Rediriger vers Stripe
       window.location.href = checkoutUrl;
     } catch (err) {
       console.error("Erreur paiement :", err);
-      alert(
-        "Impossible d'initier le paiement pour le moment. Merci de réessayer."
-      );
+      alert("Impossible d'initier le paiement pour le moment. Merci de réessayer.");
       setPayingOrderId(null);
     }
   };
 
-  const handleEdit = (orderId: number) => {
-    alert(`Modification de la commande #${orderId} (à implémenter)`);
+  // 👉 ouvre la modal Produits pour une commande NON payée
+  const handleEdit = async (orderId: number, status: string) => {
+    if (String(status).toLowerCase() === "paid") return; // prot UI
+    try {
+      setError(null);
+      const res = await api.get<Product[]>("/products");
+      setProducts(res.data ?? []);
+      setSelectedOrderId(orderId);
+      setProductsModalOpen(true);
+    } catch (e) {
+      console.error("Erreur chargement produits", e);
+      setError("Impossible de charger les produits.");
+    }
+  };
+
+  // ✅ aligne sur PATCH /order/:id?userId=ME  body: { items: [{ productId, quantity: 1 }] }
+  const handleAddProductToOrder = async (productId: number) => {
+    if (!selectedOrderId || !meId) return;
+    try {
+      setAddingProductId(productId);
+
+      await api.patch(
+        `/order/${selectedOrderId}`,
+        { items: [{ productId, quantity: 1 }] },
+        { params: { userId: meId } } // ← query param requis par le back
+      );
+
+      // rafraîchit les commandes
+      await fetchOrders(meId);
+
+      // ferme la modal
+      setProductsModalOpen(false);
+      setSelectedOrderId(null);
+    } catch (e) {
+      console.error("Erreur ajout produit à la commande :", e);
+      alert("Impossible d’ajouter l’article à la commande.");
+    } finally {
+      setAddingProductId(null);
+    }
   };
 
   if (loading) return <p className="p-6 text-center">Chargement...</p>;
@@ -108,9 +151,12 @@ function Orders() {
     <div className="p-6 max-w-5xl mx-auto mt-[150px] space-y-8">
       <h1 className="text-2xl font-bold">Mes commandes</h1>
 
+      {error && <p className="text-sm text-red-600">{error}</p>}
+
       {orders.map((order) => {
         const orderTotal = Number(order.total);
-        const isPending = order.status === "pending";
+        const isPending = String(order.status).toLowerCase() === "pending";
+        const isPaid = String(order.status).toLowerCase() === "paid";
         const isPaying = payingOrderId === order.id;
 
         return (
@@ -125,22 +171,14 @@ function Orders() {
                   className={`text-xs px-2 py-1 rounded ${
                     isPending
                       ? "bg-yellow-100 text-yellow-700"
-                      : order.status === "paid"
+                      : isPaid
                       ? "bg-green-100 text-green-700"
                       : "bg-gray-100 text-gray-600"
                   }`}
                 >
                   {order.status}
                 </span>
-                <span
-                  className={`text-xs px-2 py-1 rounded ${
-                    isPending
-                      ? "bg-yellow-100 text-yellow-700"
-                      : order.status === "paid"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
-                >
+                <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">
                   {order.deliveryMode}
                 </span>
               </div>
@@ -163,10 +201,18 @@ function Orders() {
                 >
                   {isPaying ? "Redirection..." : "Payer"}
                 </button>
+
                 <button
-                  onClick={() => handleEdit(order.id)}
-                  className="px-3 py-2 rounded border text-sm hover:bg-gray-50"
-                  title="Modifier la commande"
+                  onClick={() => handleEdit(order.id, order.status)}
+                  disabled={isPaid}
+                  title={
+                    isPaid
+                      ? "Commande payée — modification désactivée"
+                      : "Modifier la commande"
+                  }
+                  className={`px-3 py-2 rounded border text-sm ${
+                    isPaid ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
+                  }`}
                 >
                   Modifier
                 </button>
@@ -218,6 +264,68 @@ function Orders() {
           </div>
         );
       })}
+
+      {/* Modal Produits */}
+      {productsModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg max-w-3xl w-full p-6 relative">
+            <button
+              className="absolute top-2 right-2 text-gray-600 hover:text-black"
+              onClick={() => {
+                setProductsModalOpen(false);
+                setSelectedOrderId(null);
+              }}
+            >
+              ✕
+            </button>
+            <h3 className="text-lg font-bold mb-4">
+              Ajouter un produit à la commande #{selectedOrderId}
+            </h3>
+
+            {products.length === 0 ? (
+              <p className="text-sm text-gray-600">Aucun produit disponible.</p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {products.map((p) => (
+                  <div
+                    key={p.id}
+                    onClick={() => handleAddProductToOrder(p.id)}
+                    className="border rounded p-2 cursor-pointer hover:shadow transition"
+                    title="Ajouter ce produit"
+                  >
+                    <img
+                      src={p.imageUrl}
+                      alt={p.name}
+                      className="h-24 mx-auto mb-2 object-contain"
+                    />
+                    <p className="text-center text-sm font-medium">{p.name}</p>
+                    <p className="text-center text-xs text-gray-500">
+                      {typeof p.price === "number" ? p.price.toFixed(2) : p.price} €
+                    </p>
+                    {addingProductId === p.id && (
+                      <p className="text-xs text-center text-blue-600 mt-1">
+                        Ajout…
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-6 text-right">
+              <button
+                onClick={() => {
+                  setProductsModalOpen(false);
+                  setSelectedOrderId(null);
+                }}
+                className="px-4 py-2 rounded border"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
