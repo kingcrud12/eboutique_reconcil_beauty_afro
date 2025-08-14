@@ -91,6 +91,118 @@ export class OrderService {
     return this.exportToOrderInterface(existing);
   }
 
+  async updateOrder(
+    orderId: number,
+    userId: number,
+    data: IOrderUpdate,
+  ): Promise<IOrder> {
+    if (!data?.items?.length) {
+      return this.update(orderId, userId, data);
+    }
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      // 1) Récupérer la commande + items
+      const existing = await tx.order.findUnique({
+        where: { id: orderId },
+        include: { items: { include: { product: true } } },
+      });
+
+      if (!existing) {
+        throw new NotFoundException('Commande introuvable');
+      }
+      if (existing.userId !== userId) {
+        throw new ForbiddenException(
+          'Vous ne pouvez pas modifier cette commande',
+        );
+      }
+      if (existing.status !== 'pending') {
+        throw new ForbiddenException('Commande déjà payée ou non modifiable');
+      }
+
+      // 2) Index des items existants
+      const itemByProduct = new Map<number, { id: number; quantity: number }>();
+      for (const it of existing.items) {
+        itemByProduct.set(it.productId, { id: it.id, quantity: it.quantity });
+      }
+
+      // 3) Application des modifications
+      for (const newItem of data.items) {
+        const productId = Number(newItem.productId);
+        const qtyToAdd = Number(newItem.quantity);
+        if (
+          !Number.isFinite(productId) ||
+          !Number.isFinite(qtyToAdd) ||
+          qtyToAdd === 0
+        ) {
+          continue;
+        }
+
+        // Vérifier que le produit existe
+        const product = await tx.product.findUnique({
+          where: { id: productId },
+          select: { id: true, price: true },
+        });
+        if (!product) {
+          throw new NotFoundException(`Produit #${productId} introuvable`);
+        }
+
+        const current = itemByProduct.get(productId);
+        if (!current) {
+          // Créer un nouvel item
+          if (qtyToAdd > 0) {
+            const created = await tx.orderItem.create({
+              data: {
+                orderId: existing.id,
+                productId,
+                quantity: qtyToAdd,
+                unitPrice: product.price,
+              },
+            });
+            itemByProduct.set(productId, {
+              id: created.id,
+              quantity: created.quantity,
+            });
+          }
+        } else {
+          // Ajuster la quantité
+          const newQty = current.quantity + qtyToAdd;
+          if (newQty <= 0) {
+            await tx.orderItem.delete({ where: { id: current.id } });
+            itemByProduct.delete(productId);
+          } else {
+            await tx.orderItem.update({
+              where: { id: current.id },
+              data: { quantity: newQty },
+            });
+            itemByProduct.set(productId, { id: current.id, quantity: newQty });
+          }
+        }
+      }
+
+      // 4) Recalcul du total
+      const refreshedItems = await tx.orderItem.findMany({
+        where: { orderId: existing.id },
+        include: { product: true },
+      });
+
+      const newTotal = refreshedItems.reduce((sum, it) => {
+        const unit = Number(it.unitPrice);
+        return sum + unit * it.quantity;
+      }, 0);
+
+      // 5) Mise à jour du total
+      const updatedOrder = await tx.order.update({
+        where: { id: existing.id },
+        data: { total: newTotal },
+        include: { items: { include: { product: true } } },
+      });
+
+      return updatedOrder;
+    });
+
+    return this.exportToOrderInterface(updated);
+  }
+
   async getAllOrders(): Promise<IOrder[]> {
     const orders = await this.prisma.order.findMany({
       include: {
@@ -104,6 +216,17 @@ export class OrderService {
     if (!orders) return [];
 
     return orders.map((order) => this.exportToOrderInterface(order));
+  }
+
+  async getUserOrder(orderId: number, userId: number): Promise<IOrder | null> {
+    const existing = await this.prisma.order.findFirst({
+      where: { id: orderId, userId },
+      include: { items: { include: { product: true } } },
+    });
+
+    if (!existing) return null;
+
+    return this.exportToOrderInterface(existing);
   }
 
   async deleteOrder(orderId: number, userId: number): Promise<IOrder | null> {
