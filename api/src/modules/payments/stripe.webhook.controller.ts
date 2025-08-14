@@ -120,46 +120,49 @@ export class StripeWebhookController {
               })
             | null = null;
 
-          await this.prisma.$transaction(async (tx) => {
-            const order = await tx.order.findUnique({
-              where: { id: orderId },
-              include: {
-                user: true,
-                items: { include: { product: true } },
-              },
-            });
-            if (!order) throw new BadRequestException('Order not found');
-
-            for (const it of order.items) {
-              const prod = await tx.product.findUnique({
-                where: { id: it.productId },
+          await this.prisma.$transaction(
+            async (tx) => {
+              const order = await tx.order.findUnique({
+                where: { id: orderId },
+                include: {
+                  user: true,
+                  items: { include: { product: true } },
+                },
               });
-              if (!prod || prod.stock < it.quantity) {
-                throw new BadRequestException('Stock insuffisant');
+              if (!order) throw new BadRequestException('Order not found');
+
+              for (const it of order.items) {
+                const prod = await tx.product.findUnique({
+                  where: { id: it.productId },
+                });
+                if (!prod || prod.stock < it.quantity) {
+                  throw new BadRequestException('Stock insuffisant');
+                }
+                await tx.product.update({
+                  where: { id: it.productId },
+                  data: { stock: prod.stock - it.quantity },
+                });
               }
-              await tx.product.update({
-                where: { id: it.productId },
-                data: { stock: prod.stock - it.quantity },
-              });
-            }
 
-            await tx.order.update({
-              where: { id: orderId },
-              data: { status: 'paid' },
-            });
-
-            if (order.userId) {
-              const cart = await tx.cart.findFirst({
-                where: { userId: order.userId },
+              await tx.order.update({
+                where: { id: orderId },
+                data: { status: 'paid' },
               });
-              if (cart) {
-                await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
-                await tx.cart.delete({ where: { id: cart.id } });
+
+              if (order.userId) {
+                const cart = await tx.cart.findFirst({
+                  where: { userId: order.userId },
+                });
+                if (cart) {
+                  await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
+                  await tx.cart.delete({ where: { id: cart.id } });
+                }
               }
-            }
 
-            fullOrder = order;
-          });
+              fullOrder = order;
+            },
+            { timeout: 15000 },
+          );
 
           if (fullOrder?.user?.email) {
             const items = fullOrder.items.map((it) => {

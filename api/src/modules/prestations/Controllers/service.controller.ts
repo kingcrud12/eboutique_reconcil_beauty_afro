@@ -8,8 +8,8 @@ import {
   HttpStatus,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
-  Put,
   Req,
   UploadedFile,
   UseGuards,
@@ -88,7 +88,13 @@ export class ServiceController {
   }
 
   // --- UPDATE ---
-  @Put(':id')
+  @Patch(':id')
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: memoryStorage(),
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
   async update(
     @Req() req: JwtRequest,
     @Param('id', ParseIntPipe) id: number,

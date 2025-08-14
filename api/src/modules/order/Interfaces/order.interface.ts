@@ -27,6 +27,7 @@ export interface IOrderCreate {
 
 export interface IOrderUpdate {
   status?: string;
+  items?: IOrderItem[];
   deliveryAddress?: string;
   paymentIntentId?: string;
 }

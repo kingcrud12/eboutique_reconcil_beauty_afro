@@ -59,14 +59,7 @@ function ProductDetails() {
     try {
       setUploading(true);
       const fd = new FormData();
-      fd.append("image", file); // <-- champ "image" attendu côté back
-
-      // Si ton back accepte d'autres champs en même temps, tu peux aussi faire :
-      // fd.append("name", form.name);
-      // fd.append("description", form.description);
-      // fd.append("price", form.price);
-      // fd.append("stock", form.stock);
-      // fd.append("category", form.category);
+      fd.append("image", file);
 
       const res = await api.patch<IProduct>(`/products/${productId}`, fd, {
         headers: { "Content-Type": "multipart/form-data" },

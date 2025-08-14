@@ -10,6 +10,7 @@ import {
   Delete,
   NotFoundException,
   Query,
+  Patch,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -18,10 +19,12 @@ import {
   ApiOkResponse,
   ApiParam,
   ApiQuery,
+  ApiBody,
 } from '@nestjs/swagger';
 import { OrderService } from '../Services/order.service';
 import { OrderDto } from '../Models/order.dto';
 import { CreateOrderDto } from '../Models/order.dto';
+import { IOrderUpdate } from '../Interfaces/order.interface';
 
 @ApiTags('Orders')
 @Controller('order')
@@ -40,14 +43,89 @@ export class OrderController {
     return order;
   }
 
-  @Get(':userId')
+  @Get(':orderId')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Récupérer les commandes du client' })
+  @ApiOperation({ summary: 'récuperer une commande' })
+  @ApiParam({ name: 'orderId', type: Number, description: 'ID de la commande' })
+  @ApiQuery({
+    name: 'userId',
+    type: Number,
+    description: "ID de l'utilisateur propriétaire",
+  })
+  @ApiOkResponse({
+    description: 'Commande supprimée (snapshot)',
+    type: OrderDto,
+  })
+  async getOrder(
+    @Param('orderId', ParseIntPipe) orderId: number,
+    @Query('userId', ParseIntPipe) userId: number,
+  ): Promise<OrderDto> {
+    return this.orderService.getUserOrder(orderId, userId);
+  }
+
+  @Get('user/:userId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Récupérer toutes les commandes du client' })
   @ApiOkResponse({ description: 'Liste des commandes', type: [OrderDto] })
   async getOrders(
     @Param('userId', ParseIntPipe) userId: number,
   ): Promise<OrderDto[]> {
     return await this.orderService.getOrders(userId);
+  }
+
+  @Patch(':orderId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'Mettre à jour une commande (ajout/suppression/maj d’articles, statut, adresse)',
+  })
+  @ApiParam({ name: 'orderId', type: Number, description: 'ID de la commande' })
+  @ApiQuery({
+    name: 'userId',
+    type: Number,
+    description: "ID de l'utilisateur propriétaire",
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        status: { type: 'string', example: 'pending' },
+        deliveryAddress: {
+          type: 'string',
+          example: '10 rue de Paris, 75000 Paris',
+        },
+        paymentIntentId: { type: 'string', example: 'pi_123' },
+        items: {
+          type: 'array',
+          description:
+            'Liste des modifications d’articles. quantity > 0 = ajout/augmentation, < 0 = diminution, = 0 ignoré. Si après calcul la quantité devient 0, la ligne est supprimée.',
+          items: {
+            type: 'object',
+            properties: {
+              productId: { type: 'number', example: 42 },
+              quantity: { type: 'integer', example: 1 },
+              unitPrice: {
+                type: 'number',
+                example: 12.5,
+                description:
+                  '(optionnel) ignoré par le service, le prix unitaire est repris du produit côté BDD',
+              },
+            },
+            required: ['productId', 'quantity'],
+          },
+        },
+      },
+    },
+  })
+  @ApiOkResponse({ description: 'Commande mise à jour', type: OrderDto })
+  async patchOrder(
+    @Param('orderId', ParseIntPipe) orderId: number,
+    @Query('userId', ParseIntPipe) userId: number,
+    @Body() body: IOrderUpdate,
+  ): Promise<OrderDto> {
+    // délègue toute la logique au service (vérifs, upsert items, recalcul total)
+    const updated = await this.orderService.updateOrder(orderId, userId, body);
+    return updated;
   }
 
   @Delete(':orderId')

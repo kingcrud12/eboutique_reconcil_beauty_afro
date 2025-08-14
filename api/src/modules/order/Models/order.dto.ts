@@ -68,6 +68,14 @@ export class UpdateOrderDto implements IOrderUpdate {
   @IsOptional()
   @IsString()
   paymentIntentId?: string;
+
+  @ApiProperty({
+    type: () => [OrderItemDto],
+    description: 'Liste des items commandés',
+  })
+  @ValidateNested({ each: true })
+  @Type(() => OrderItemDto)
+  items: OrderItemDto[];
 }
 
 export class OrderItemDto implements IOrderItem {

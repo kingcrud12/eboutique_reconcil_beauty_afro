@@ -13,6 +13,10 @@ import PrivateRoute from "./components/PrivateRoute";
 import CreateProduct from "./pages/CreateProduct";
 import ProductDetails from "./pages/ProductDetails";
 import OrderDetails from "./pages/OderDetails";
+import CreatePrestation from "./pages/CreatePrestation";
+import ServiceDetail from "./pages/ServiceDetail";
+import SlotDetail from "./pages/SlotDetail";
+import CreateAvailability from "./pages/CreateAvailability";
 
 function App() {
   return (
@@ -42,6 +46,10 @@ function App() {
           <Route path="Product" element={<CreateProduct />} />
           <Route path="/products/:productId" element={<ProductDetails />} />
           <Route path="/orders/:orderId" element={<OrderDetails />} />
+          <Route path="/create-prestation" element={<CreatePrestation />} />
+          <Route path="/services/:id" element={<ServiceDetail />} />
+          <Route path="/slots/:id" element={<SlotDetail />} />
+          <Route path="/create-availibility" element={<CreateAvailability />} />
 
         </Route>
       </Routes>
