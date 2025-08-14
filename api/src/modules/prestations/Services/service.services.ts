@@ -6,6 +6,7 @@ import {
   IServiceUpdate,
 } from '../Interfaces/service.interface';
 import { Prisma, Service as PrismaServiceModel } from '@prisma/client';
+import { normalizePatch } from './normalize.update.service';
 
 @Injectable()
 export class ServiceService {
@@ -37,10 +38,14 @@ export class ServiceService {
 
   async update(id: number, data: IServiceUpdate): Promise<IService> {
     await this.verify(id);
+
+    const patch = normalizePatch({ ...data });
+
     const updated = await this.prisma.service.update({
       where: { id },
-      data,
+      data: patch,
     });
+
     return this.exportToInterface(updated);
   }
 
@@ -59,7 +64,7 @@ export class ServiceService {
       name: row.name,
       duration: row.duration,
       price: row.price,
-      imageUrl: row.imageUrl as string,
+      imageUrl: row.imageUrl,
       category: row.category,
       subcategory: row.subcategory,
     };
