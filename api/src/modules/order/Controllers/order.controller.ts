@@ -63,9 +63,9 @@ export class OrderController {
     return this.orderService.getUserOrder(orderId, userId);
   }
 
-  @Get(':userId')
+  @Get('user/:userId')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Récupérer les commandes du client' })
+  @ApiOperation({ summary: 'Récupérer toutes les commandes du client' })
   @ApiOkResponse({ description: 'Liste des commandes', type: [OrderDto] })
   async getOrders(
     @Param('userId', ParseIntPipe) userId: number,
