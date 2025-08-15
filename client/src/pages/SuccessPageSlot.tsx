@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function SuccessPage() {
+export default function SuccessPageSlot() {
   const navigate = useNavigate();
 
   return (
