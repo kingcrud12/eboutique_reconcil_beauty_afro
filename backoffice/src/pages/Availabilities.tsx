@@ -76,7 +76,7 @@ export default function Availabilities() {
         for (const s of res.data ?? []) map[s.id] = s.name;
         setServicesById(map);
       } catch {
-        // silencieux: on affichera "Service #id" en fallback
+        // silencieux
       }
     })();
     return () => {
@@ -149,114 +149,119 @@ export default function Availabilities() {
       {err && <p className="text-red-600">{err}</p>}
 
       {!loading && !err && (
-        <table className="w-full table-auto border border-gray-200 shadow-sm rounded overflow-hidden">
-          <thead className="bg-gray-100 text-left">
-            <tr>
-              <th className="px-4 py-2 border-b">Date</th>
-              <th className="px-4 py-2 border-b">Créneaux disponibles</th>
-              <th className="px-4 py-2 border-b">Statut</th>
-              <th className="px-4 py-2 border-b">Plage horaire</th>
-              <th className="px-4 py-2 border-b">Service</th>
-              <th className="px-4 py-2 border-b">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {grouped.map(([dateLabel, daySlots]) => (
-              <tr key={dateLabel} className="border-t align-top">
-                <td className="px-4 py-3">{dateLabel}</td>
-                <td className="px-4 py-3">
-                  <ul className="list-disc list-inside">
-                    {daySlots.map((s) => (
-                      <li key={s.id}>{onlyTimeLocalFR(s.startAt)}</li>
-                    ))}
-                  </ul>
-                </td>
-                <td className="px-4 py-3">
-                  <ul className="list-disc list-inside">
-                    {daySlots.map((s) => (
-                      <li
-                        key={s.id}
-                        className={
-                          s.status === "open"
-                            ? "text-green-600"
-                            : s.status === "booked"
-                            ? "text-orange-600"
-                            : "text-red-600"
-                        }
-                      >
-                        {s.status === "open"
-                          ? "libre"
-                          : s.status === "booked"
-                          ? "réservé"
-                          : "annulé"}
-                      </li>
-                    ))}
-                  </ul>
-                </td>
-                <td className="px-4 py-3">
-                  <ul className="list-disc list-inside">
-                    {daySlots.map((s) => (
-                      <li key={s.id}>
-                        {onlyTimeLocalFR(s.startAt)} — {onlyTimeLocalFR(s.endAt)}
-                      </li>
-                    ))}
-                  </ul>
-                </td>
-                <td className="px-4 py-3">
-                  <ul className="list-disc list-inside">
-                    {daySlots.map((s) => (
-                      <li key={s.id}>
-                        {servicesById[s.serviceId] ?? `Service #${s.serviceId}`}
-                      </li>
-                    ))}
-                  </ul>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex flex-col gap-2">
-                    {daySlots.map((s) => {
-                      const isBooked = s.status === "booked";
-                      const isDeleting = deletingId === s.id;
-                      return (
-                        <div key={s.id} className="flex gap-2">
-                          <button
-                            className="bg-blue-600 text-white text-sm px-3 py-1 rounded hover:bg-blue-700"
-                            onClick={() => navigate(`/slots/${s.id}`)}
-                          >
-                            Détails
-                          </button>
-                          <button
-                            title={
-                              isBooked
-                                ? "Créneau réservé — suppression désactivée"
-                                : "Supprimer"
+        <div className="border border-gray-200 rounded shadow-sm">
+          {/* Conteneur scrollable vertical */}
+          <div className="max-h-[420px] overflow-y-auto overflow-x-auto rounded">
+            <table className="w-full table-auto">
+              <thead className="bg-gray-100 text-left sticky top-0 z-10">
+                <tr>
+                  <th className="px-4 py-2 border-b">Date</th>
+                  <th className="px-4 py-2 border-b">Créneaux disponibles</th>
+                  <th className="px-4 py-2 border-b">Statut</th>
+                  <th className="px-4 py-2 border-b">Plage horaire</th>
+                  <th className="px-4 py-2 border-b">Service</th>
+                  <th className="px-4 py-2 border-b">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {grouped.map(([dateLabel, daySlots]) => (
+                  <tr key={dateLabel} className="border-t align-top">
+                    <td className="px-4 py-3 whitespace-nowrap">{dateLabel}</td>
+                    <td className="px-4 py-3">
+                      <ul className="list-disc list-inside space-y-1">
+                        {daySlots.map((s) => (
+                          <li key={s.id}>{onlyTimeLocalFR(s.startAt)}</li>
+                        ))}
+                      </ul>
+                    </td>
+                    <td className="px-4 py-3">
+                      <ul className="list-disc list-inside space-y-1">
+                        {daySlots.map((s) => (
+                          <li
+                            key={s.id}
+                            className={
+                              s.status === "open"
+                                ? "text-green-600"
+                                : s.status === "booked"
+                                ? "text-orange-600"
+                                : "text-red-600"
                             }
-                            disabled={isBooked || isDeleting}
-                            onClick={() => deleteSlot(s)}
-                            className={`text-sm px-3 py-1 rounded border ${
-                              isBooked || isDeleting
-                                ? "opacity-50 cursor-not-allowed"
-                                : "hover:bg-gray-50"
-                            }`}
                           >
-                            {isDeleting ? "Suppression…" : "Supprimer"}
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </td>
-              </tr>
-            ))}
+                            {s.status === "open"
+                              ? "libre"
+                              : s.status === "booked"
+                              ? "réservé"
+                              : "annulé"}
+                          </li>
+                        ))}
+                      </ul>
+                    </td>
+                    <td className="px-4 py-3">
+                      <ul className="list-disc list-inside space-y-1">
+                        {daySlots.map((s) => (
+                          <li key={s.id}>
+                            {onlyTimeLocalFR(s.startAt)} — {onlyTimeLocalFR(s.endAt)}
+                          </li>
+                        ))}
+                      </ul>
+                    </td>
+                    <td className="px-4 py-3">
+                      <ul className="list-disc list-inside space-y-1">
+                        {daySlots.map((s) => (
+                          <li key={s.id}>
+                            {servicesById[s.serviceId] ?? `Service #${s.serviceId}`}
+                          </li>
+                        ))}
+                      </ul>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col gap-2">
+                        {daySlots.map((s) => {
+                          const isBooked = s.status === "booked";
+                          const isDeleting = deletingId === s.id;
+                          return (
+                            <div key={s.id} className="flex gap-2">
+                              <button
+                                className="bg-blue-600 text-white text-sm px-3 py-1 rounded hover:bg-blue-700"
+                                onClick={() => navigate(`/slots/${s.id}`)}
+                              >
+                                Détails
+                              </button>
+                              <button
+                                title={
+                                  isBooked
+                                    ? "Créneau réservé — suppression désactivée"
+                                    : "Supprimer"
+                                }
+                                disabled={isBooked || isDeleting}
+                                onClick={() => deleteSlot(s)}
+                                className={`text-sm px-3 py-1 rounded border ${
+                                  isBooked || isDeleting
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : "hover:bg-gray-50"
+                                }`}
+                              >
+                                {isDeleting ? "Suppression…" : "Supprimer"}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
 
-            {grouped.length === 0 && (
-              <tr>
-                <td className="px-4 py-6 text-gray-500" colSpan={6}>
-                  Aucun créneau pour le moment.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                {grouped.length === 0 && (
+                  <tr>
+                    <td className="px-4 py-6 text-gray-500" colSpan={6}>
+                      Aucun créneau pour le moment.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
 
       {/* ✅ Modale de confirmation */}
