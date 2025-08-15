@@ -15,8 +15,9 @@ import ResetPassword from "./pages/ResetPassword";
 import Cart from "./pages/Cart"
 import Checkout from "./pages/Checkout";
 import Orders from "./pages/Orders";
-import SuccessPage from "./pages/SuccessPage";
 import CancelPage from "./pages/CancelPage";
+import SuccessPageSlot from "./pages/SuccessPageSlot";
+import SuccessPageOrder from "./pages/SucessPageOrder";
 
 function App() {
   return (
@@ -36,7 +37,8 @@ function App() {
           <Route path="cart" element={<Cart />} />
           <Route path="delivery" element={<Checkout />} />
           <Route path="orders" element={<Orders />} />
-          <Route path="checkout/success" element={<SuccessPage />} />
+          <Route path="checkout/success/slot" element={<SuccessPageSlot />} />
+          <Route path="checkout/success" element={<SuccessPageOrder />} />
           <Route path="checkout/cancel" element={<CancelPage />} />
 
 
