@@ -87,7 +87,7 @@ function Account() {
     if (!user?.id) return;
     setShowAccountCard(false); setShowAddressCard(false); setShowOrdersCard(true);
     setOrdersError(null); setLoadingOrders(true);
-    try { const res = await api.get<IOrder[]>(`/order/${user.id}`); setOrders(res.data || []); }
+    try { const res = await api.get<IOrder[]>(`/order/user/${user.id}`); setOrders(res.data || []); }
     catch (e) { console.error("Erreur récupération commandes :", e); setOrdersError("Impossible de récupérer vos commandes."); }
     finally { setLoadingOrders(false); }
   };

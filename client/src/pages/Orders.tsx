@@ -25,6 +25,33 @@ interface Order {
 }
 interface User { id: number; }
 
+// Traduction statut
+  const translateStatus = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "paid":
+        return "Payé";
+      case "pending":
+        return "En cours";
+      default:
+        return status;
+    }
+  };
+
+  // Traduction mode de livraison
+  const translateDeliveryMode = (mode: string) => {
+    switch (mode.toLowerCase()) {
+      case "home":
+        return "Livraison à domicile standard";
+      case "express":
+        return "Livraison à domicile express";
+      case "relay":
+          return "Livraison en point relais";
+      default:
+        return mode;
+    }
+  };
+
+
 function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -176,10 +203,10 @@ function Orders() {
                       : "bg-gray-100 text-gray-600"
                   }`}
                 >
-                  {order.status}
+                  {translateStatus(order.status)}
                 </span>
                 <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">
-                  {order.deliveryMode}
+                {translateDeliveryMode(order.deliveryMode)}
                 </span>
               </div>
 

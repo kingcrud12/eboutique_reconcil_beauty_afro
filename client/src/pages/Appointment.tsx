@@ -19,7 +19,7 @@ type Slot = {
   status: "open" | "booked" | "cancelled";
 };
 
-// --- Helpers (LOCAL, pas UTC) ---
+// --- Helpers (LOCAL) ---
 function localDateKeyFromISO(iso: string) {
   const d = new Date(iso);
   const y = d.getFullYear();
@@ -42,10 +42,12 @@ function timeFR(iso: string) {
     minute: "2-digit",
   });
 }
+const euro = (n: number) =>
+  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(n);
 
 export default function Appointment() {
   const [services, setServices] = useState<Service[]>([]);
-  const [slots, setSlots] = useState<Slot[]>([]);
+  const [slots, setSlots] = useState<Slot[]>([]); // uniquement OPEN pour le service choisi
   const [selectedService, setSelectedService] = useState<number | null>(null);
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -59,6 +61,9 @@ export default function Appointment() {
   const [showSlotModal, setShowSlotModal] = useState(false);
   const [modalSlots, setModalSlots] = useState<Slot[]>([]);
 
+  // auth
+  const [isAuthed, setIsAuthed] = useState(false);
+
   // --- Services ---
   useEffect(() => {
     (async () => {
@@ -67,6 +72,26 @@ export default function Appointment() {
         setServices(res.data ?? []);
       } catch (e) {
         console.error("Erreur chargement services", e);
+      }
+    })();
+  }, []);
+
+  // --- Infos utilisateur si authentifié ---
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    (async () => {
+      try {
+        const me = await api.get<{ firstName?: string; lastName?: string; email?: string }>("/user/me");
+        if (me.data) {
+          setIsAuthed(true);
+          if (me.data.firstName) setFirstName(me.data.firstName);
+          if (me.data.lastName) setLastName(me.data.lastName);
+          if (me.data.email) setEmail(me.data.email);
+        }
+      } catch (e) {
+        // si le token est invalide on n’empêche pas la réservation anonyme
+        setIsAuthed(false);
       }
     })();
   }, []);
@@ -85,18 +110,20 @@ export default function Appointment() {
           return;
         }
 
-        // On demande idéalement /slots?serviceId=…
+        // Récup slots du service, puis garde uniquement OPEN
         try {
           const res = await api.get<Slot[]>("/slots", {
             params: { serviceId: selectedService },
           });
           const data = res.data ?? [];
-          // filtre côté front pour être sûr de ne garder QUE ce service
-          setSlots(data.filter((s) => s.serviceId === selectedService));
+          setSlots(data.filter((s) => s.serviceId === selectedService && s.status === "open"));
         } catch {
-          // Fallback: tout, puis filtre local par service
           const resAll = await api.get<Slot[]>("/slots");
-          setSlots((resAll.data ?? []).filter((s) => s.serviceId === selectedService));
+          setSlots(
+            (resAll.data ?? []).filter(
+              (s) => s.serviceId === selectedService && s.status === "open"
+            )
+          );
         }
       } catch (e) {
         console.error("Erreur chargement slots", e);
@@ -116,8 +143,8 @@ export default function Appointment() {
     return Array.from(map.entries());
   }, [services]);
 
-  // Indexe par jour LOCAL (tous les statuts)
-  const slotsByDay = useMemo(() => {
+  // Indexe par jour (OPEN only)
+  const openSlotsByDay = useMemo(() => {
     const acc: Record<string, Slot[]> = {};
     for (const sl of slots) {
       const key = localDateKeyFromISO(sl.startAt);
@@ -131,21 +158,10 @@ export default function Appointment() {
     return acc;
   }, [slots]);
 
-  // Compteurs pour pastilles dans le calendrier
+  // Compteur pour pastilles (OPEN only)
   const openCountByDay = useMemo(() => {
     const acc: Record<string, number> = {};
     for (const sl of slots) {
-      if (sl.status !== "open") continue;
-      const key = localDateKeyFromISO(sl.startAt);
-      acc[key] = (acc[key] ?? 0) + 1;
-    }
-    return acc;
-  }, [slots]);
-
-  const bookedCountByDay = useMemo(() => {
-    const acc: Record<string, number> = {};
-    for (const sl of slots) {
-      if (sl.status !== "booked") continue;
       const key = localDateKeyFromISO(sl.startAt);
       acc[key] = (acc[key] ?? 0) + 1;
     }
@@ -155,9 +171,9 @@ export default function Appointment() {
   const handleClickDay = (date: Date) => {
     setSelectedDate(date);
     const key = localDateKeyFromDate(date);
-    const dayAll = slotsByDay[key] ?? [];
-    if (dayAll.length > 0) {
-      setModalSlots(dayAll); // 🔸 montre OPEN + BOOKED
+    const dayOpen = openSlotsByDay[key] ?? [];
+    if (dayOpen.length > 0) {
+      setModalSlots(dayOpen);
       setShowSlotModal(true);
     } else {
       setModalSlots([]);
@@ -168,10 +184,14 @@ export default function Appointment() {
   const handleServiceChange = (val: string) => {
     const id = val ? Number(val) : null;
     setSelectedService(id);
-    setFirstName("");
-    setLastName("");
-    setEmail("");
     setSelectedSlot(null);
+    setSelectedDate(null);
+    // ne pas écraser l’identité si l’utilisateur est connecté
+    if (!isAuthed) {
+      setFirstName("");
+      setLastName("");
+      setEmail("");
+    }
   };
 
   const handleConfirm = async () => {
@@ -186,6 +206,16 @@ export default function Appointment() {
       setLoading(false);
     }
   };
+
+  const selectedServiceObj = useMemo(
+    () => (selectedService ? services.find(s => s.id === selectedService) : undefined),
+    [selectedService, services]
+  );
+
+  const depositAmount = useMemo(() => {
+    const price = selectedServiceObj?.price ?? 0;
+    return Math.round(price * 0.3 * 100) / 100; // 30% arrondi au centime
+  }, [selectedServiceObj]);
 
   const serviceName = (id: number) =>
     services.find((s) => s.id === id)?.name ?? `Service #${id}`;
@@ -243,7 +273,7 @@ export default function Appointment() {
           </select>
         </div>
 
-        {/* Calendrier */}
+        {/* Calendrier — jours sans slots OPEN = gris et désactivés */}
         {selectedService && (
           <div className="mb-4">
             <h2 className="text-lg font-semibold mb-3">Choisissez une date</h2>
@@ -253,28 +283,21 @@ export default function Appointment() {
               tileContent={({ date }) => {
                 const key = localDateKeyFromDate(date);
                 const open = openCountByDay[key] ?? 0;
-                const booked = bookedCountByDay[key] ?? 0;
-                if (!open && !booked) return null;
-                return (
-                  <div className="mt-1 flex gap-1 justify-center">
-                    {open > 0 && (
-                      <span className="text-[10px] bg-green-600 text-white px-1 rounded">
-                        {open}
-                      </span>
-                    )}
-                    {booked > 0 && (
-                      <span className="text-[10px] bg-gray-400 text-white px-1 rounded">
-                        {booked}
-                      </span>
-                    )}
-                  </div>
-                );
+                return open ? (
+                  <span className="ml-1 text-[10px] bg-green-600 text-white px-1 rounded">
+                    {open}
+                  </span>
+                ) : null;
+              }}
+              tileDisabled={({ date }) => {
+                const key = localDateKeyFromDate(date);
+                return (openCountByDay[key] ?? 0) === 0;
               }}
             />
           </div>
         )}
 
-        {/* Modal : créneaux du jour (OPEN + BOOKED, booked désactivés) */}
+        {/* Modal : créneaux du jour (OPEN seulement) */}
         {showSlotModal && selectedDate && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
@@ -291,61 +314,48 @@ export default function Appointment() {
 
               {modalSlots.length === 0 ? (
                 <p className="text-sm text-gray-600">
-                  Aucun créneau pour cette journée.
+                  Aucun créneau disponible pour cette journée.
                 </p>
               ) : (
                 <ul className="divide-y">
-                  {modalSlots.map((sl) => {
-                    const isBooked = sl.status === "booked";
-                    return (
-                      <li key={sl.id} className="py-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex flex-col">
-                            <span className={`font-medium ${isBooked ? "text-gray-400" : ""}`}>
-                              {timeFR(sl.startAt)} — {timeFR(sl.endAt)}
-                            </span>
-                            <span className={`text-xs ${isBooked ? "text-gray-400" : "text-gray-600"}`}>
-                              {serviceName(sl.serviceId)}
-                              {servicePrice(sl.serviceId) !== undefined
-                                ? ` · ${servicePrice(sl.serviceId)} €`
-                                : ""}
-                            </span>
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              className="px-3 py-1 rounded border hover:bg-gray-50"
-                              onClick={() => setShowSlotModal(false)}
-                            >
-                              Annuler
-                            </button>
-                            <button
-                              disabled={isBooked}
-                              title={isBooked ? "Déjà réservé" : ""}
-                              className={`px-3 py-1 rounded ${
-                                isBooked
-                                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                  : selectedSlot?.id === sl.id
-                                  ? "bg-green-600 text-white"
-                                  : "bg-black text-white"
-                              }`}
-                              onClick={() => {
-                                if (!isBooked) {
-                                  setSelectedSlot(sl);
-                                  setShowSlotModal(false);
-                                }
-                              }}
-                            >
-                              {isBooked
-                                ? "Réservé"
-                                : selectedSlot?.id === sl.id
-                                ? "Sélectionné"
-                                : "Choisir"}
-                            </button>
-                          </div>
+                  {modalSlots.map((sl) => (
+                    <li key={sl.id} className="py-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex flex-col">
+                          <span className="font-medium">
+                            {timeFR(sl.startAt)} — {timeFR(sl.endAt)}
+                          </span>
+                          <span className="text-xs text-gray-600">
+                            {serviceName(sl.serviceId)}
+                            {servicePrice(sl.serviceId) !== undefined
+                              ? ` · ${servicePrice(sl.serviceId)} €`
+                              : ""}
+                          </span>
                         </div>
-                      </li>
-                    );
-                  })}
+                        <div className="flex gap-2">
+                          <button
+                            className="px-3 py-1 rounded border hover:bg-gray-50"
+                            onClick={() => setShowSlotModal(false)}
+                          >
+                            Annuler
+                          </button>
+                          <button
+                            className={`px-3 py-1 rounded ${
+                              selectedSlot?.id === sl.id
+                                ? "bg-green-600 text-white"
+                                : "bg-black text-white"
+                            }`}
+                            onClick={() => {
+                              setSelectedSlot(sl);
+                              setShowSlotModal(false);
+                            }}
+                          >
+                            {selectedSlot?.id === sl.id ? "Sélectionné" : "Choisir"}
+                          </button>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
                 </ul>
               )}
             </div>
@@ -390,6 +400,16 @@ export default function Appointment() {
               </div>
             </form>
 
+            {/* ✅ Message d’acompte */}
+            {selectedServiceObj && (
+              <p className="mt-3 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+                Un acompte de <strong>{euro(depositAmount)}</strong> (30% de{" "}
+                <strong>{selectedServiceObj.name}</strong>) sera payé maintenant
+                pour bloquer votre créneau. Le solde sera dû en salon.
+              </p>
+            )}
+
+            {/* Bouton paiement */}
             {firstName && lastName && email && (
               <div className="mt-6">
                 <button
@@ -397,7 +417,7 @@ export default function Appointment() {
                   disabled={loading}
                   className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-semibold disabled:opacity-60"
                 >
-                  {loading ? "Chargement..." : "Payer un accompte et bloquer le créneau"}
+                  {loading ? "Chargement..." : "Payer un acompte et bloquer le créneau"}
                 </button>
               </div>
             )}
