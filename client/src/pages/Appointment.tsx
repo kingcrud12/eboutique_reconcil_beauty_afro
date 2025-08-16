@@ -239,7 +239,7 @@ export default function Appointment() {
                   <img
                     src={srv.imageUrl || "/placeholder.png"}
                     alt={srv.name}
-                    className="w-full h-36 object-cover rounded-lg shadow-md"
+                    className="w-full aspect-square object-cover rounded-lg shadow-md"
                   />
                   <p className="mt-2 font-semibold">{srv.name}</p>
                   <p className="text-gray-600">{srv.price} €</p>
