@@ -2,7 +2,6 @@
 import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { SlotService } from '../Services/slot.service';
 import { ISlot } from '../Interfaces/slot.interface';
-import { IBookingPublic } from '../Interfaces/booking.interface';
 
 @Controller('slots')
 export class PublicSlotController {
@@ -18,12 +17,5 @@ export class PublicSlotController {
   @Get(':id')
   async getOne(@Param('id', ParseIntPipe) id: number): Promise<ISlot> {
     return this.slotService.get(id);
-  }
-
-  @Get(':id/booking')
-  async getBooking(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<IBookingPublic> {
-    return this.slotService.getBookingForSlot(id);
   }
 }
