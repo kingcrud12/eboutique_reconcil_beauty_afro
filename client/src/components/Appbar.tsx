@@ -11,7 +11,7 @@ function Appbar() {
   const navigate = useNavigate();
 
   const { isAuthenticated, logout } = useAuth();
-  const { totalQuantity, fetchCart, setCarts } = useCart(); // Remplace totalCarts par totalItems
+  const { totalQuantity, fetchCart, setCarts } = useCart();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

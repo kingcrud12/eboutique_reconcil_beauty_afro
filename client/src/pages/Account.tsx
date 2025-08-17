@@ -56,11 +56,32 @@ function Account() {
     if (hideTimer.current) window.clearTimeout(hideTimer.current);
   };
 
+  // ✅ Toast d’erreur moderne (ajout)
+  const [errorToast, setErrorToast] = useState<string | null>(null);
+  const errorTimer = useRef<number | null>(null);
+  const showError = (msg: string) => {
+    setErrorToast(msg);
+    if (errorTimer.current) window.clearTimeout(errorTimer.current);
+    errorTimer.current = window.setTimeout(() => setErrorToast(null), 5000);
+  };
+
+  // ✅ Validation format d’adresse (ajout)
+  const isValidAddressFormat = (addr?: string) => {
+    if (!addr) return false;
+    const v = addr.trim();
+    // "12 rue Exemple, 75015, Paris" : numéro + libellé voie (pas de virgule), virgule, CP 5 chiffres, virgule, ville
+    const re = /^\d+\s+[^,]+,\s*\d{5},\s*[^,]{2,}$/i;
+    return re.test(v);
+  };
+
   useEffect(() => {
     api.get<IUser>("/user/me")
       .then((res) => { setUser(res.data); setFormData(res.data); })
       .catch((err) => console.error("Erreur récupération user :", err));
-    return () => { if (hideTimer.current) window.clearTimeout(hideTimer.current); };
+    return () => {
+      if (hideTimer.current) window.clearTimeout(hideTimer.current);
+      if (errorTimer.current) window.clearTimeout(errorTimer.current); // ✅ clean (ajout)
+    };
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -68,12 +89,27 @@ function Account() {
 
   const handleSubmitAccount = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // ✅ bloque si l'adresse du formulaire compte est au mauvais format
+    const addr = formData.adress?.trim();
+    if (addr && !isValidAddressFormat(addr)) {
+      showError("Adresse invalide. Utilisez le format : « 12 rue Exemple, 75001, Paris ».");
+      return;
+    }
+
     try { await api.patch("/user/me", formData); setUser(formData); setIsEditingAccount(false); }
     catch (err) { console.error("Erreur mise à jour du compte :", err); }
   };
 
   const handleSubmitAddress = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // ✅ bloque si l'adresse (section adresses) est au mauvais format
+    if (!isValidAddressFormat(formData.adress)) {
+      showError("Adresse invalide. Exemple attendu : « 12 rue de l'ingénieur robert keller, 75015, Paris ».");
+      return;
+    }
+
     try {
       await api.patch("/user/me", { adress: formData.adress });
       setUser((prev) => (prev ? { ...prev, adress: formData.adress } : null));
@@ -317,6 +353,31 @@ function Account() {
               onClick={closeAddressInfo}
               className="ml-auto text-gray-400 hover:text-gray-700"
               aria-label="Fermer la notification"
+              title="Fermer"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ Toast d’erreur moderne (ajout) */}
+      {errorToast && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="fixed bottom-6 right-6 max-w-sm bg-white border border-red-300 shadow-lg rounded-lg p-4 z-50"
+        >
+          <div className="flex items-start gap-3">
+            <div className="text-red-600 mt-[2px]">⚠️</div>
+            <div className="text-sm">
+              <div className="font-medium mb-1 text-red-700">Adresse non valide</div>
+              <div className="text-gray-700">{errorToast}</div>
+            </div>
+            <button
+              onClick={() => setErrorToast(null)}
+              className="ml-auto text-gray-400 hover:text-gray-700"
+              aria-label="Fermer l’alerte"
               title="Fermer"
             >
               ✕

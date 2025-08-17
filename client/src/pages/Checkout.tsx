@@ -6,6 +6,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useNavigate } from 'react-router-dom';
 import { IProduct } from '../api/product.interface';
+import { useCart } from '../contexts/CartContext'; // ✅ AJOUT
 
 const relayIcon = new L.Icon({
   iconUrl: '/mondial-relay-logo.png',
@@ -54,7 +55,7 @@ interface Cart {
 type BanFeatureProps = {
   housenumber?: string;
   street?: string;
-  name?: string;          // parfois BAN met la voie dans "name"
+  name?: string;
   postcode?: string;
   city?: string;
   label?: string;
@@ -87,15 +88,19 @@ function Checkout() {
 
   const navigate = useNavigate();
 
+  // ✅ récup des actions du contexte panier
+  const { fetchCart: fetchCartContext } = useCart();
+
   useEffect(() => {
     api.get<User>('/user/me')
       .then(res => {
         setUser(res.data);
         setAddress(res.data.adress);
         fetchCart();
+        fetchCartContext(); // ✅ synchro du contexte dès l’arrivée sur la page
       })
       .catch(err => console.error('Erreur récupération user :', err));
-  }, []);
+  }, [fetchCartContext]);
 
   const fetchCart = async () => {
     try {
@@ -266,7 +271,11 @@ function Checkout() {
       await api.put(`/cart/${selectedCartId}`, {
         items: [{ productId, quantity: 1 }],
       });
-      await fetchCart();
+
+      // ✅ MAJ immédiate de l’icône panier (contexte) + MAJ locale de la liste
+      await fetchCartContext(); // met à jour totalQuantity utilisé par l’Appbar
+      await fetchCart();        // met à jour la liste affichée sur cette page
+
       setModalOpen(false);
     } catch (error) {
       console.error('Erreur ajout produit', error);
@@ -294,13 +303,12 @@ function Checkout() {
             value={address}
             onChange={onAddressInput}
             onKeyDown={onAddressKeyDown}
-            onBlur={() => setTimeout(() => setOpenSug(false), 120)} // laisse le temps de cliquer
+            onBlur={() => setTimeout(() => setOpenSug(false), 120)}
             placeholder="Ex. 12 rue de l'ingénieur robert keller, 75015, Paris"
             aria-autocomplete="list"
             aria-expanded={openSug}
             aria-controls="address-suggestions"
           />
-          {/* Dropdown suggestions */}
           {openSug && (
             <ul
               id="address-suggestions"
