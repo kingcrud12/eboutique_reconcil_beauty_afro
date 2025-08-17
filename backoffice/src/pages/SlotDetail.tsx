@@ -11,6 +11,15 @@ type SlotDTO = {
   service?: { id: number; name: string } | null;
 };
 
+type BookingPublic = {
+  slotId: number;
+  userId?: number | null;
+  firstName: string | null;
+  lastName: string | null;
+  email: string | null;
+  paymentIntentId?: string | null;
+} | null;
+
 function fromIsoToLocalParts(iso: string) {
   const d = new Date(iso);
   const yyyy = d.getFullYear();
@@ -33,6 +42,7 @@ export default function SlotDetail() {
   const navigate = useNavigate();
 
   const [slot, setSlot] = useState<SlotDTO | null>(null);
+  const [booking, setBooking] = useState<BookingPublic>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -50,6 +60,8 @@ export default function SlotDetail() {
   const [startTime, setStartTime] = useState<string>("");
   const [endTime, setEndTime] = useState<string>("");
 
+  const isBooked = slot?.status === "booked";
+
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -58,6 +70,14 @@ export default function SlotDetail() {
         const res = await api.get<SlotDTO>(`/slots/${id}`);
         if (!mounted) return;
         setSlot(res.data);
+        // Tente de récupérer la réservation liée (user ou invité)
+        try {
+          const b = await api.get<BookingPublic>(`/slots/${id}/booking`);
+          if (mounted) setBooking(b.data ?? null);
+        } catch {
+          // pas de booking ou route renvoie 404 -> ignore
+          if (mounted) setBooking(null);
+        }
       } catch (e: any) {
         setErr(e?.response?.data?.message ?? "Impossible de charger le créneau.");
       } finally {
@@ -76,6 +96,10 @@ export default function SlotDetail() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isBooked) {
+      setErr("Ce créneau est réservé : modification interdite.");
+      return;
+    }
     if (!date || !startTime || !endTime) {
       setErr("Veuillez compléter la date et les heures.");
       return;
@@ -88,7 +112,7 @@ export default function SlotDetail() {
       const endAt = toUtcISOStringFromLocal(date, endTime);
 
       await api.put(`/slots/${id}`, { startAt, endAt });
-      navigate("/availibilities");
+      navigate("/Availabilities");
     } catch (e: any) {
       setErr(e?.response?.data?.message ?? "Échec de la mise à jour.");
     } finally {
@@ -125,15 +149,48 @@ export default function SlotDetail() {
         </div>
       </div>
 
-      <form onSubmit={onSubmit} className="space-y-4">
+      {/* Bloc infos réservation (user ou invité) */}
+      <div className="mb-6 border rounded p-4 bg-gray-50">
+        <h2 className="font-semibold mb-2">Réservation</h2>
+        {booking ? (
+          <div className="text-sm text-gray-800 space-y-1">
+            <div>
+              <span className="text-gray-600">Type : </span>
+              {booking.userId ? "Client enregistré" : "Invité"}
+            </div>
+            <div>
+              <span className="text-gray-600">Nom : </span>
+              {booking.lastName ?? "—"}
+            </div>
+            <div>
+              <span className="text-gray-600">Prénom : </span>
+              {booking.firstName ?? "—"}
+            </div>
+            <div>
+              <span className="text-gray-600">Email : </span>
+              {booking.email ?? "—"}
+            </div>
+            {booking.paymentIntentId && (
+              <div className="text-xs text-gray-500">
+                PaymentIntent : {booking.paymentIntentId}
+              </div>
+            )}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-600">Aucune réservation enregistrée.</p>
+        )}
+      </div>
+
+      <form onSubmit={onSubmit} className={`space-y-4 ${isBooked ? "opacity-60" : ""}`}>
         <div>
           <label className="block text-sm mb-1">Date (locale)</label>
           <input
             type="date"
-            className="w-full border rounded p-2"
+            className={`w-full border rounded p-2 ${isBooked ? "bg-gray-100 cursor-not-allowed" : ""}`}
             value={date}
             onChange={(e) => setDate(e.target.value)}
             required
+            disabled={isBooked}
           />
         </div>
 
@@ -142,20 +199,22 @@ export default function SlotDetail() {
             <label className="block text-sm mb-1">Début (heure locale)</label>
             <input
               type="time"
-              className="w-full border rounded p-2"
+              className={`w-full border rounded p-2 ${isBooked ? "bg-gray-100 cursor-not-allowed" : ""}`}
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
               required
+              disabled={isBooked}
             />
           </div>
           <div>
             <label className="block text-sm mb-1">Fin (heure locale)</label>
             <input
               type="time"
-              className="w-full border rounded p-2"
+              className={`w-full border rounded p-2 ${isBooked ? "bg-gray-100 cursor-not-allowed" : ""}`}
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
               required
+              disabled={isBooked}
             />
           </div>
         </div>
@@ -174,8 +233,9 @@ export default function SlotDetail() {
         <div className="flex gap-2">
           <button
             type="submit"
-            disabled={saving}
+            disabled={saving || isBooked}
             className="bg-black text-white px-4 py-2 rounded disabled:opacity-60"
+            title={isBooked ? "Créneau réservé — modification désactivée" : "Enregistrer"}
           >
             {saving ? "Enregistrement…" : "Enregistrer"}
           </button>

@@ -18,6 +18,7 @@ import { JwtRequest } from 'src/modules/auth/jwt/Jwt-request.interface';
 import { Role } from '@prisma/client';
 import { JwtAuthGuard } from 'src/modules/auth/jwt/jwt-auth.guard';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { IBookingPublic } from '../Interfaces/booking.interface';
 
 @Controller('admin/slots')
 @UseGuards(JwtAuthGuard)
@@ -106,6 +107,16 @@ export class SlotController {
     const user = req.user;
     this.ensureIsAdmin(user);
     return this.slotService.delete(id);
+  }
+
+  @Get(':id/booking')
+  async getBooking(
+    @Req() req: JwtRequest,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<IBookingPublic> {
+    const user = req.user;
+    this.ensureIsAdmin(user);
+    return this.slotService.getBookingForSlot(id);
   }
 
   // --- Security Helper ---
