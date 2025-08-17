@@ -9,6 +9,7 @@ const Login = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [showResetLink, setShowResetLink] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // 👁 toggle
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -52,7 +53,9 @@ const Login = () => {
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Adresse email</label>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Adresse email
+            </label>
             <input
               id="email"
               type="email"
@@ -64,15 +67,27 @@ const Login = () => {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Mot de passe</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="mt-1 w-full px-4 py-2 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-slate-500"
-            />
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Mot de passe
+            </label>
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="mt-1 w-full px-4 py-2 pr-10 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-slate-500"
+              />
+              {/* 👁 bouton œil */}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+              >
+                {showPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
           </div>
 
           <button

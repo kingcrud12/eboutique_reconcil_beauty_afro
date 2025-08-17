@@ -5,9 +5,11 @@ import axios from 'axios';
 import api from '../api/api';
 import { IProduct } from '../api/product.interface';
 
+
 function Cart() {
   const { carts, fetchCart, setCarts } = useCart();
   const navigate = useNavigate();
+
 
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(false);
@@ -211,7 +213,7 @@ function Cart() {
               onClick={() => navigate('/delivery')}
               className="mt-4 px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
             >
-              valider le panier
+              Valider le panier
             </button>
             </div>
           </div>

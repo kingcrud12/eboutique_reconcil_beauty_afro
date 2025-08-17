@@ -15,8 +15,8 @@ interface CartContextType {
   carts: ICart[];
   setCarts: React.Dispatch<React.SetStateAction<ICart[]>>;
   fetchCart: () => Promise<void>;
-  totalItems: number;      // 🆕 Nombre de produits (≠ quantité)
-  totalQuantity: number;   // 🆕 Quantité totale (optionnel)
+  totalItems: number;      // Nombre de produits distincts
+  totalQuantity: number;   // Quantité totale
   firstCart: ICart | null;
 }
 
@@ -32,36 +32,30 @@ export const useCart = (): CartContextType => {
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [carts, setCarts] = useState<ICart[]>([]);
-  const [firstCart, setFirstCart] = useState<ICart | null>(null);
   const { isAuthenticated } = useAuth();
 
   const fetchCart = useCallback(async () => {
     try {
       const res = await api.get<ICart[]>('/cart/user');
-      const userCarts = res.data || [];
-      setCarts(userCarts);
-      setFirstCart(userCarts.length > 0 ? userCarts[0] : null);
+      setCarts(res.data || []);
     } catch {
       setCarts([]);
-      setFirstCart(null);
     }
   }, []);
 
   useEffect(() => {
     if (isAuthenticated) {
-      fetchCart();
-    }else {
-      // 🔑 IMPORTANT : on purge tout à la déconnexion
+      void fetchCart();
+    } else {
+      // 🔑 purge à la déconnexion
       setCarts([]);
-      setFirstCart(null);
     }
   }, [isAuthenticated, fetchCart]);
 
-  const totalItems = firstCart?.items?.length || 0;
-
-  const totalQuantity = useMemo(() => {
-    return firstCart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
-  }, [firstCart]);
+  // 👉 dérivé de carts
+  const firstCart = carts.length > 0 ? carts[0] : null;
+  const totalItems = firstCart?.items?.length ?? 0;
+  const totalQuantity = firstCart?.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
 
   const value = useMemo(
     () => ({
@@ -72,7 +66,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       totalQuantity,
       firstCart,
     }),
-    [carts, firstCart, fetchCart, totalItems, totalQuantity]
+    [carts, fetchCart, totalItems, totalQuantity, firstCart]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

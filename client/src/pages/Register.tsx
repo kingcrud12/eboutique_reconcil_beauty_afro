@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { Link,useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../api/api";
-
 
 const Register = () => {
   const [firstName, setFirstName] = useState("");
@@ -9,6 +8,7 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // 👁 toggle
   const navigate = useNavigate();
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -38,7 +38,6 @@ const Register = () => {
       }
     }
   };
-  
 
   return (
     <div className="mt-[90px] flex items-center justify-center min-h-screen bg-gray-50 px-4">
@@ -90,14 +89,24 @@ const Register = () => {
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">Mot de passe</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="mt-1 w-full px-4 py-2 border rounded-md border-gray-300"
-            />
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="mt-1 w-full px-4 py-2 pr-10 border rounded-md border-gray-300"
+              />
+              {/* 👁 bouton toggle */}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+              >
+                {showPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
           </div>
 
           <button
