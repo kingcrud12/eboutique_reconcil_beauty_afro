@@ -14,7 +14,7 @@ import Stripe from 'stripe';
 import { STRIPE_CLIENT } from './stripe.provider';
 import { Request } from 'express';
 import { MailService } from '../../modules/mailer/mail.service'; // ✅ AJOUT
-import { SlotStatus } from '@prisma/client';
+import { Prisma, SlotStatus } from '@prisma/client';
 
 type StripeRawRequest = Request & { rawBody: Buffer };
 type DeliveryMode = 'EXPRESS' | 'HOME' | 'RELAY';
@@ -237,38 +237,88 @@ export class StripeWebhookController {
       throw new BadRequestException('Webhook signature verification failed');
     }
 
-    // ✅ idempotence (tu as déjà ces helpers)
     if (await this.isEventProcessed(event.id)) {
       return { received: true };
     }
     await this.markProcessing(event.id, event.type);
 
+    const splitName = (name?: string | null) => {
+      if (!name)
+        return { first: null as string | null, last: null as string | null };
+      const parts = name.trim().split(/\s+/);
+      if (parts.length === 1) return { first: parts[0], last: null };
+      return { first: parts[0], last: parts.slice(1).join(' ') };
+    };
+
     try {
       switch (event.type) {
         case 'checkout.session.completed': {
-          const session = event.data.object;
+          const session = event.data.object; // ✅ affine le type
 
           const slotId = session.metadata?.slotId
             ? Number(session.metadata.slotId)
             : null;
           if (!slotId) break;
 
-          // 📨 email collecté par Stripe pendant le Checkout
-          const email = session.customer_details?.email ?? undefined;
+          const email = session.customer_details?.email ?? null;
+          const fullName = session.customer_details?.name ?? null;
+          const { first: guestFirstName, last: guestLastName } =
+            splitName(fullName);
 
-          // Met à jour le slot si pas déjà booked
-          const slot = await this.prisma.slot.findUnique({
-            where: { id: slotId },
-            include: { service: true },
-          });
-          if (slot && slot.status !== SlotStatus.booked) {
-            await this.prisma.slot.update({
-              where: { id: slotId },
-              data: { status: SlotStatus.booked },
+          const paymentIntentId =
+            typeof session.payment_intent === 'string'
+              ? session.payment_intent
+              : (session.payment_intent?.id ?? null);
+
+          let userId: number | null = null;
+          if (email) {
+            const existingUser = await this.prisma.user.findUnique({
+              where: { email },
+              select: { id: true },
             });
+            userId = existingUser?.id ?? null;
           }
 
-          // ✅ envoi mail si email dispo
+          const slot = await this.prisma.slot.findUnique({
+            where: { id: slotId },
+            include: { service: true, booking: true },
+          });
+          if (!slot) break;
+
+          await this.prisma.$transaction(
+            async (tx: Prisma.TransactionClient) => {
+              // ✅ typage du tx
+              // 1) Passe le slot en booked + mémorise le PI si nouveau
+              if (
+                slot.status !== SlotStatus.booked ||
+                (paymentIntentId && slot.paymentIntentId !== paymentIntentId)
+              ) {
+                await tx.slot.update({
+                  where: { id: slotId },
+                  data: {
+                    status: SlotStatus.booked,
+                    ...(paymentIntentId ? { paymentIntentId } : {}),
+                  },
+                });
+              }
+
+              // 2) Crée la Booking si absente
+              if (!slot.booking) {
+                const data: Prisma.BookingCreateInput = {
+                  // ✅ objet data typé
+                  slot: { connect: { id: slotId } },
+                  ...(userId ? { user: { connect: { id: userId } } } : {}),
+                  ...(!userId && email ? { guestEmail: email } : {}),
+                  ...(!userId && guestFirstName ? { guestFirstName } : {}),
+                  ...(!userId && guestLastName ? { guestLastName } : {}),
+                  ...(paymentIntentId ? { paymentIntentId } : {}),
+                };
+                await tx.booking.create({ data }); // ✅ plus d'accès “unsafe”
+              }
+            },
+          );
+
+          // Mail de confirmation
           if (email && slot.service) {
             const tz = process.env.MAIL_TZ ?? 'Europe/Paris';
             const df = new Intl.DateTimeFormat('fr-FR', {
@@ -293,10 +343,11 @@ export class StripeWebhookController {
 
           break;
         }
+
         case 'payment_intent.payment_failed': {
-          // tu peux notifier si besoin
           break;
         }
+
         default:
           break;
       }
@@ -304,8 +355,7 @@ export class StripeWebhookController {
       await this.markProcessed(event.id);
     } catch (err) {
       console.error('[slots webhook] processing error', err);
-      await this.markError(event.id, err);
-      // on retourne 200 pour éviter les retries (ton mécanisme le fait déjà)
+      await this.markError(event.id, err as Error);
     }
 
     return { received: true };

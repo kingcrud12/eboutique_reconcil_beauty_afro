@@ -19,6 +19,8 @@ model User {
   appointments Appointment[]
   carts        Cart[]
   orders       Order[]       @relation("UserOrders")
+
+  Booking Booking[]
 }
 
 model Guest {
@@ -116,7 +118,8 @@ model Slot {
   endAt     DateTime   @unique
 
   status    SlotStatus @default(open)
-  paymentIntentId String? 
+  paymentIntentId String?
+  booking   Booking?
 
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -125,6 +128,32 @@ model Slot {
   @@index([startAt, endAt])
   @@index([status])
 }
+
+model Booking {
+  id        Int      @id @default(autoincrement())
+  slotId    Int      @unique
+  slot      Slot     @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  
+  // Cas utilisateur inscrit
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+
+  // Cas invité (pas de userId)
+  guestFirstName String?
+  guestLastName  String?
+  guestEmail     String?
+  guestPhone     String?
+
+  paymentIntentId String?
+
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+
 
 
 model Appointment {
