@@ -53,7 +53,7 @@ function Cart() {
       )
     );
 
-    api.put(`/cart/${cartId}`, { items: [{ productId, quantity: 1 }] })
+    api.patch(`/carts/users/me/${cartId}`, { items: [{ productId, quantity: 1 }] })
       .catch(err => {
         console.error('Erreur incrément :', err);
         fetchCart();
@@ -79,7 +79,7 @@ function Cart() {
       )
     );
 
-    api.put(`/cart/${cartId}`, { items: [{ productId, quantity: -1 }] })
+    api.patch(`/carts/users/me/${cartId}`, { items: [{ productId, quantity: -1 }] })
       .catch(err => {
         console.error('Erreur décrément :', err);
         fetchCart();
@@ -101,7 +101,7 @@ function Cart() {
     if (!selectedCartId) return;
     try {
       setAddingProductId(productId);
-      await api.put(`/cart/${selectedCartId}`, {
+      await api.patch(`/carts/users/me/${selectedCartId}`, {
         items: [{ productId, quantity: 1 }],
       });
       await fetchCart();
@@ -117,7 +117,7 @@ function Cart() {
   const confirmDeleteCart = async () => {
     if (!confirmDeleteCartId) return;
     try {
-      await api.delete(`/cart/${confirmDeleteCartId}`);
+      await api.delete(`/carts/users/me/${confirmDeleteCartId}`);
       await fetchCart();
       setConfirmDeleteCartId(null);
     } catch (error) {

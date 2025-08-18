@@ -75,7 +75,7 @@ function Account() {
   };
 
   useEffect(() => {
-    api.get<IUser>("/user/me")
+    api.get<IUser>("/users/me")
       .then((res) => { setUser(res.data); setFormData(res.data); })
       .catch((err) => console.error("Erreur récupération user :", err));
     return () => {
@@ -97,7 +97,7 @@ function Account() {
       return;
     }
 
-    try { await api.patch("/user/me", formData); setUser(formData); setIsEditingAccount(false); }
+    try { await api.patch("/users/me", formData); setUser(formData); setIsEditingAccount(false); }
     catch (err) { console.error("Erreur mise à jour du compte :", err); }
   };
 
@@ -111,7 +111,7 @@ function Account() {
     }
 
     try {
-      await api.patch("/user/me", { adress: formData.adress });
+      await api.patch("/users/me", { adress: formData.adress });
       setUser((prev) => (prev ? { ...prev, adress: formData.adress } : null));
       setIsEditingAddress(false);
     } catch (err) { console.error("Erreur mise à jour adresse :", err); }
@@ -123,7 +123,7 @@ function Account() {
     if (!user?.id) return;
     setShowAccountCard(false); setShowAddressCard(false); setShowOrdersCard(true);
     setOrdersError(null); setLoadingOrders(true);
-    try { const res = await api.get<IOrder[]>(`/order/user/${user.id}`); setOrders(res.data || []); }
+    try { const res = await api.get<IOrder[]>(`/orders/users/me`); setOrders(res.data || []); }
     catch (e) { console.error("Erreur récupération commandes :", e); setOrdersError("Impossible de récupérer vos commandes."); }
     finally { setLoadingOrders(false); }
   };

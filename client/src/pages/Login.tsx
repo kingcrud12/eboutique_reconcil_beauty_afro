@@ -37,7 +37,7 @@ const Login = () => {
 
   const handleSendResetLink = async () => {
     try {
-      await api.post("/user/send-password-reset-link", { email });
+      await api.post("/users/send-password-reset-link", { email });
       setResetSent(true);
       setShowResetLink(false);
     } catch (error: any) {

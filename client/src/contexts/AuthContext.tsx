@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setIsAuthenticated(true);
 
           // récupération de l'utilisateur connecté
-          const res = await api.get<{ id: number }>('/user/me');
+          const res = await api.get<{ id: number }>('/users/me');
           setUser(res.data);
         } catch {
           logout();
@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsAuthenticated(true);
   
     try {
-      const res = await api.get<{ id: number }>('/user/me');
+      const res = await api.get<{ id: number }>('/users/me');
       setUser(res.data);
     } catch (error) {
       console.error('Erreur récupération user après login :', error);

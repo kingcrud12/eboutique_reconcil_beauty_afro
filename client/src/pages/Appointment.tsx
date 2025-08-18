@@ -82,7 +82,7 @@ export default function Appointment() {
     if (!token) return;
     (async () => {
       try {
-        const me = await api.get<{ firstName?: string; lastName?: string; email?: string }>("/user/me");
+        const me = await api.get<{ firstName?: string; lastName?: string; email?: string }>("/users/me");
         if (me.data) {
           setIsAuthed(true);
           if (me.data.firstName) setFirstName(me.data.firstName);

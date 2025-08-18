@@ -36,7 +36,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const fetchCart = useCallback(async () => {
     try {
-      const res = await api.get<ICart[]>('/cart/user');
+      const res = await api.get<ICart[]>('/carts/users/me');
       setCarts(res.data || []);
     } catch {
       setCarts([]);

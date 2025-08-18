@@ -92,7 +92,7 @@ function Checkout() {
   const { fetchCart: fetchCartContext } = useCart();
 
   useEffect(() => {
-    api.get<User>('/user/me')
+    api.get<User>('/users/me')
       .then(res => {
         setUser(res.data);
         setAddress(res.data.adress);
@@ -104,7 +104,7 @@ function Checkout() {
 
   const fetchCart = async () => {
     try {
-      const res = await api.get<Cart[]>('/cart/user');
+      const res = await api.get<Cart[]>('/carts/users/me');
       if (res.data.length > 0) {
         setCartItems(res.data[0].items);
         setSelectedCartId(res.data[0].id);
@@ -219,7 +219,7 @@ function Checkout() {
     }
     setOrdering(mode);
     try {
-      await api.post('/order', {
+      await api.post('/orders', {
         deliveryAddress: cleanAddress,
         userId: user.id,
         deliveryMode: mode === 'home' ? 'HOME' : 'EXPRESS',
@@ -239,7 +239,7 @@ function Checkout() {
     const deliveryAddress = `${selectedShop.Adresse1}, ${selectedShop.CP}, ${selectedShop.Ville}`;
     setOrdering('relay');
     try {
-      await api.post('/order', {
+      await api.post('/orders', {
         deliveryAddress,
         userId: user.id,
         deliveryMode: 'RELAY',
@@ -268,7 +268,7 @@ function Checkout() {
     if (!selectedCartId) return;
     try {
       setAddingProductId(productId);
-      await api.put(`/cart/${selectedCartId}`, {
+      await api.patch(`/carts/users/me/${selectedCartId}`, {
         items: [{ productId, quantity: 1 }],
       });
 
