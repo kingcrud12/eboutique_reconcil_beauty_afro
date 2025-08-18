@@ -149,7 +149,7 @@ function Product() {
                 className={`mt-4 px-4 py-2 text-white rounded ${
                   addingToCart === product.id
                     ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gray-800 hover:bg-blue-700'
+                    : 'bg-gray-800'
                 }`}
               >
                 {addingToCart === product.id ? 'Ajout...' : 'Ajouter au panier'}

@@ -125,7 +125,7 @@ const Products = () => {
             className={`mt-4 px-4 py-2 text-white rounded ${
               addingId === p.id
                 ? "bg-gray-400 cursor-not-allowed"
-                : "bg-gray-800 hover:bg-blue-700"
+                : "bg-gray-800"
             }`}
           >
             {addingId === p.id ? "Ajout..." : "Ajouter au panier"}

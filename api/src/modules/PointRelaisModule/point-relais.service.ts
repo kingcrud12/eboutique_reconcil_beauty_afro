@@ -13,7 +13,6 @@ export class PointRelaisService {
 
   async findRelaisByUserId(userId: number): Promise<ParcelShop[]> {
     const user = await this.usersService.get(userId);
-    if (!user?.adress) throw new Error('Adresse manquante');
 
     const [, postalCode, city] = this.parseAddress(user.adress);
     const url = this.buildUrl({ postalCode, city });
