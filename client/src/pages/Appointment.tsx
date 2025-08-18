@@ -415,7 +415,7 @@ export default function Appointment() {
                 <button
                   onClick={handleConfirm}
                   disabled={loading}
-                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-semibold disabled:opacity-60"
+                  className="bg-gray-800 text-white px-6 py-3 rounded-md font-semibold disabled:opacity-60"
                 >
                   {loading ? "Chargement..." : "Payer un acompte et bloquer le créneau"}
                 </button>
