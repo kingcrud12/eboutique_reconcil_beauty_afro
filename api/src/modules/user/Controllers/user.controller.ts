@@ -18,8 +18,10 @@ import { CreateUserDto, UpdateUserDto } from '../Models/user.dto';
 import { JwtRequest } from '../../auth/jwt/Jwt-request.interface';
 import { MailService } from 'src/modules/mailer/mail.service';
 import { JwtService } from '@nestjs/jwt';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
-@Controller('user')
+@ApiTags('User')
+@Controller('users')
 export class UserController {
   constructor(
     private readonly userService: UserService,
@@ -28,6 +30,9 @@ export class UserController {
   ) {}
 
   @Post()
+  @ApiOperation({
+    summary: 'Créer un compte utilisateur',
+  })
   async create(@Body() userDto: CreateUserDto) {
     const user = await this.isUserExistOrNot(userDto.email);
     if (user) {
@@ -47,6 +52,9 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
+  @ApiOperation({
+    summary: 'Récupérer des informations de mon compte utilisateur',
+  })
   async getProfile(@Req() req: JwtRequest) {
     const userId = req.user.userId;
     return this.userService.get(userId);
@@ -54,6 +62,9 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('me')
+  @ApiOperation({
+    summary: 'Modifier mon compte utilisateur',
+  })
   async updateUser(
     @Body() updateUserDto: UpdateUserDto,
     @Req() req: JwtRequest,
@@ -72,6 +83,9 @@ export class UserController {
   }
 
   @Post('send-password-reset-link')
+  @ApiOperation({
+    summary: 'Envoyer un lien pour modifier mon mot de passe',
+  })
   async resetPasswordLink(@Body('email') email: string) {
     const user = await this.userService.getByEmail(email);
 
@@ -87,6 +101,9 @@ export class UserController {
   }
 
   @Patch('reset-password')
+  @ApiOperation({
+    summary: 'Modifier mon mot de passe',
+  })
   async resetPassword(
     @Query('token') token: string,
     @Body() body: { password: string },

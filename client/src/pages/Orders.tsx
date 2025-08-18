@@ -67,7 +67,7 @@ function Orders() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchOrders = useCallback(async (uid: number) => {
-    const res = await api.get<Order[]>(`/order/user/${uid}`);
+    const res = await api.get<Order[]>(`/orders/users/me`);
     setOrders(res.data ?? []);
   }, []);
 
@@ -76,7 +76,7 @@ function Orders() {
       try {
         setLoading(true);
         setError(null);
-        const me = await api.get<User>("/user/me");
+        const me = await api.get<User>("/users/me");
         setMeId(me.data.id);
         await fetchOrders(me.data.id);
       } catch (e) {
@@ -132,14 +132,14 @@ function Orders() {
     }
   };
 
-  // ✅ aligne sur PATCH /order/:id?userId=ME  body: { items: [{ productId, quantity: 1 }] }
+  // ✅ aligne sur PATCH /orders/:id?userId=ME  body: { items: [{ productId, quantity: 1 }] }
   const handleAddProductToOrder = async (productId: number) => {
     if (!selectedOrderId || !meId) return;
     try {
       setAddingProductId(productId);
 
       await api.patch(
-        `/order/${selectedOrderId}`,
+        `/orders/users/me/${selectedOrderId}`,
         { items: [{ productId, quantity: 1 }] },
         { params: { userId: meId } } // ← query param requis par le back
       );

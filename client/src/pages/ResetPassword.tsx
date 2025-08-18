@@ -33,7 +33,7 @@ function ResetPassword() {
     }
 
     try {
-      await api.patch(`/user/reset-password?token=${token}`, { password });
+      await api.patch(`/users/reset-password?token=${token}`, { password });
       setMessage("Mot de passe mis à jour avec succès !");
       setTimeout(() => navigate("/login"), 3000);
     } catch (err: any) {

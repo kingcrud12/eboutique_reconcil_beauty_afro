@@ -28,7 +28,9 @@ import { Product as PrismaProduct } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CloudinaryService } from 'src/utils/cloudinary.service';
 import { memoryStorage } from 'multer';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Admin')
 @Controller('admin/products')
 @UseGuards(JwtAuthGuard)
 export class AdminProductController {
