@@ -46,7 +46,6 @@ model Product {
   orderItems  OrderItem[]
 }
 
-// --- Enums ---
 enum Category {
   Nattes
   Braids
@@ -55,8 +54,6 @@ enum Category {
   Cornrows
 }
 
-// Sous-catégories "namespacées"
-// (tu pourras en ajouter au fil du temps)
 enum Subcategory {
   NATTES_COLLEES
   NATTES_DEMELEES
@@ -74,14 +71,12 @@ enum Subcategory {
   ECAILLES_SIMPLE
 }
 
-// Statut des créneaux
 enum SlotStatus {
   open
   booked
   cancelled
 }
 
-// --- Modèles ---
 model Service {
   id          Int         @id @default(autoincrement())
   name        String      @unique
@@ -91,7 +86,7 @@ model Service {
   imageUrl    String?
 
   category    Category
-  subcategory Subcategory   // 👈 NEW
+  subcategory Subcategory 
 
   slots       Slot[]
 

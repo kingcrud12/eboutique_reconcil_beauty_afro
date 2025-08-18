@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Post,
-  Put,
   Delete,
   Param,
   HttpStatus,
@@ -11,6 +10,7 @@ import {
   Get,
   Req,
   UseGuards,
+  Patch,
 } from '@nestjs/common';
 import { CartService } from '../Services/cart.service';
 import { CreateCartDto, UpdateCartDto } from '../Models/cart.dto';
@@ -19,15 +19,19 @@ import {
   ICartCreate,
   ICartCreateUpdate,
 } from '../Interfaces/cart.interface';
-import { ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/jwt/jwt-auth.guard';
 import { JwtRequest } from '../../auth/jwt/Jwt-request.interface';
 
-@Controller('cart')
+@ApiTags('Cart')
+@Controller('carts')
 export class CartController {
   constructor(private readonly cartService: CartService) {}
 
   @Post()
+  @ApiOperation({
+    summary: 'Créer un panier',
+  })
   async create(@Body() createCartDto: CreateCartDto): Promise<ICartCreate> {
     try {
       const cart: ICartCreate = this.mapToCartCreate(createCartDto);
@@ -41,7 +45,10 @@ export class CartController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('user')
+  @Get('users/me')
+  @ApiOperation({
+    summary: 'récupérer tous mes paniers',
+  })
   async getUserCarts(@Req() req: JwtRequest): Promise<ICart[]> {
     const userId = req.user.userId;
 
@@ -55,7 +62,10 @@ export class CartController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Put(':id')
+  @Patch('users/me/:id')
+  @ApiOperation({
+    summary: 'Modifier un panier',
+  })
   @ApiResponse({ status: 200, description: 'Panier mis à jour avec succès' })
   async update(
     @Req() req: JwtRequest,
@@ -88,7 +98,10 @@ export class CartController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete(':id')
+  @ApiOperation({
+    summary: 'Supprimer un panier',
+  })
+  @Delete('users/me/:id')
   @ApiResponse({ status: 200, description: 'Panier supprimé avec succès' })
   async delete(
     @Req() req: JwtRequest,
@@ -119,7 +132,10 @@ export class CartController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get(':id')
+  @Get('users/me/:id')
+  @ApiOperation({
+    summary: 'Récupérer un panier',
+  })
   async get(
     @Req() req: JwtRequest,
     @Param('id', ParseIntPipe) id: number,

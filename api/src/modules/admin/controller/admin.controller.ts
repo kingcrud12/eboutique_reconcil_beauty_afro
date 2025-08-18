@@ -20,7 +20,9 @@ import { JwtRequest } from 'src/modules/auth/jwt/Jwt-request.interface';
 import { AuthService } from 'src/modules/auth/Services/auth.service';
 import { OrderService } from 'src/modules/order/Services/order.service';
 import { OrderDto } from 'src/modules/order/Models/order.dto';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Admin')
 @Controller('admin')
 export class AdminController {
   constructor(
@@ -32,6 +34,9 @@ export class AdminController {
   ) {}
 
   @Post('login')
+  @ApiOperation({
+    summary: 'Connexion à mon compte administrateur',
+  })
   async login(@Body() loginDto: LoginDto) {
     const { email, password } = loginDto;
 
@@ -46,6 +51,9 @@ export class AdminController {
   }
 
   @Post('logout')
+  @ApiOperation({
+    summary: 'Déconnexion de mon compte administrateur',
+  })
   logout() {
     return this.adminService.logout();
   }

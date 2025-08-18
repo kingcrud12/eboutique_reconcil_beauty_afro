@@ -9,8 +9,9 @@ import {
   ParseIntPipe,
   Delete,
   NotFoundException,
-  Query,
   Patch,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -25,9 +26,11 @@ import { OrderService } from '../Services/order.service';
 import { OrderDto } from '../Models/order.dto';
 import { CreateOrderDto } from '../Models/order.dto';
 import { IOrderUpdate } from '../Interfaces/order.interface';
+import { JwtRequest } from 'src/modules/auth/jwt/Jwt-request.interface';
+import { JwtAuthGuard } from 'src/modules/auth/jwt/jwt-auth.guard';
 
-@ApiTags('Orders')
-@Controller('order')
+@ApiTags('Order')
+@Controller('orders')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
@@ -43,37 +46,35 @@ export class OrderController {
     return order;
   }
 
-  @Get(':orderId')
+  @UseGuards(JwtAuthGuard)
+  @Get('users/me/:orderId')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'récuperer une commande' })
+  @ApiOperation({ summary: 'récuperer une commande du client' })
   @ApiParam({ name: 'orderId', type: Number, description: 'ID de la commande' })
-  @ApiQuery({
-    name: 'userId',
-    type: Number,
-    description: "ID de l'utilisateur propriétaire",
-  })
   @ApiOkResponse({
     description: 'Commande supprimée (snapshot)',
     type: OrderDto,
   })
   async getOrder(
+    @Req() req: JwtRequest,
     @Param('orderId', ParseIntPipe) orderId: number,
-    @Query('userId', ParseIntPipe) userId: number,
   ): Promise<OrderDto> {
+    const userId = req.user.userId;
     return this.orderService.getUserOrder(orderId, userId);
   }
 
-  @Get('user/:userId')
+  @UseGuards(JwtAuthGuard)
+  @Get('users/me')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Récupérer toutes les commandes du client' })
   @ApiOkResponse({ description: 'Liste des commandes', type: [OrderDto] })
-  async getOrders(
-    @Param('userId', ParseIntPipe) userId: number,
-  ): Promise<OrderDto[]> {
+  async getOrders(@Req() req: JwtRequest): Promise<OrderDto[]> {
+    const userId = req.user.userId;
     return await this.orderService.getOrders(userId);
   }
 
-  @Patch(':orderId')
+  @UseGuards(JwtAuthGuard)
+  @Patch('users/me/:orderId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary:
@@ -119,16 +120,17 @@ export class OrderController {
   })
   @ApiOkResponse({ description: 'Commande mise à jour', type: OrderDto })
   async patchOrder(
+    @Req() req: JwtRequest,
     @Param('orderId', ParseIntPipe) orderId: number,
-    @Query('userId', ParseIntPipe) userId: number,
     @Body() body: IOrderUpdate,
   ): Promise<OrderDto> {
-    // délègue toute la logique au service (vérifs, upsert items, recalcul total)
+    const userId = req.user.userId;
     const updated = await this.orderService.updateOrder(orderId, userId, body);
     return updated;
   }
 
-  @Delete(':orderId')
+  @UseGuards(JwtAuthGuard)
+  @Delete('users/me/:orderId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Supprimer une commande' })
   @ApiParam({ name: 'orderId', type: Number, description: 'ID de la commande' })
@@ -142,9 +144,10 @@ export class OrderController {
     type: OrderDto,
   })
   async deleteOrder(
+    @Req() req: JwtRequest,
     @Param('orderId', ParseIntPipe) orderId: number,
-    @Query('userId', ParseIntPipe) userId: number,
   ): Promise<OrderDto> {
+    const userId = req.user.userId;
     const deleted = await this.orderService.deleteOrder(orderId, userId);
     if (!deleted) {
       throw new NotFoundException('Commande introuvable ou non autorisée');
@@ -176,7 +179,8 @@ export class OrderController {
       })),
     };
   }
-  @Delete('user/:userId')
+  @UseGuards(JwtAuthGuard)
+  @Delete('users/me')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary:
@@ -198,8 +202,9 @@ export class OrderController {
     },
   })
   async deleteAllOrdersForUser(
-    @Param('userId', ParseIntPipe) userId: number,
+    @Req() req: JwtRequest,
   ): Promise<{ itemsDeleted: number; ordersDeleted: number }> {
+    const userId = req.user.userId;
     return await this.orderService.deleteAllForUser(userId);
   }
 }
