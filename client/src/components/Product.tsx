@@ -53,7 +53,7 @@ function Product() {
         }
         setCarts([fakeCart]); // optimiste
 
-        const res = await api.post('/cart', {
+        const res = await api.post('/carts', {
           userId: user.id,
           items: [{ productId: product.id, quantity: 1 }],
         });
@@ -89,7 +89,7 @@ function Product() {
         );
         
 
-        await api.put(`/cart/${cartId}`, {
+        await api.patch(`/carts/${cartId}`, {
           items: [{ productId: product.id, quantity: 1 }],
         });
       }
