@@ -1,4 +1,3 @@
-
 {
 	"compilerOptions": {
 	  "module": "commonjs",
@@ -10,9 +9,9 @@
 	  "noEmitOnError": false,
 	  "emitDecoratorMetadata": true,
 	  "experimentalDecorators": true,
+	  "esModuleInterop": true,
 	  "allowSyntheticDefaultImports": true,
 	  "moduleResolution": "node",
-	  "esModuleInterop": true,
 	  "sourceMap": true,
 	  "outDir": "./dist",
 	  "baseUrl": "./",
@@ -24,7 +23,7 @@
 	  "resolveJsonModule": true,
 	  "strict": true
 	},
-	"include": ["src/**/*"],
+	"include": ["src/**/*", "test/**/*.ts", "tests/**/*.ts", "playwright.config.ts"],
 	"exclude": ["node_modules", "dist"]
   }
   
