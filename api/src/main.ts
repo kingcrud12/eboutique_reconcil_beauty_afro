@@ -22,9 +22,6 @@ async function bootstrap() {
     },
   });
 
-  // 👇 plus d'`any`: l'instance est bien typée Express
-  app.getHttpAdapter().getInstance().set('trust proxy', 1);
-
   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
 
   const API_PREFIX = 'reconcil/api/shop';
