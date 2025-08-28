@@ -8,7 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AdminModule } from './modules/admin/admin.module';
 import { ProductModule } from './modules/product/product.module';
 import { MailerModule } from '@nestjs-modules/mailer';
-import { join } from 'path';
+
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { CartModule } from './modules/cart/cart.module';
 import { PointRelaisModule } from './modules/PointRelaisModule/point-relais.module';
@@ -31,7 +31,7 @@ import { ScheduleModule } from '@nestjs/schedule';
         from: '"Reconcil Beauty Afro" <dipitay@gmail.com>',
       },
       template: {
-        dir: join(__dirname, '..', 'src', 'templates'),
+        dir: __dirname + '/../templates',
         adapter: new HandlebarsAdapter(),
         options: {
           strict: true,
