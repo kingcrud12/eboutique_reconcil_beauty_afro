@@ -9,20 +9,10 @@ import { join } from 'path';
 type RequestWithRawBody = express.Request & { rawBody?: Buffer };
 
 async function bootstrap() {
-  const ALLOW_ORIGINS = new Set(
-    (process.env.CORS_ORIGINS ?? '')
-      .split(',')
-      .map((o) => o.trim())
-      .filter(Boolean),
-  );
-
   // 👇 on type explicitement l'appli en NestExpressApplication
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     cors: {
-      origin: (origin, cb) => {
-        if (!origin || ALLOW_ORIGINS.has(origin)) return cb(null, true); // Postman ok
-        return cb(new Error(`Not allowed by CORS: ${origin}`), false);
-      },
+      origin: '*',
       credentials: true,
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
       allowedHeaders:
