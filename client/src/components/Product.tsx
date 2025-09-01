@@ -89,7 +89,7 @@ function Product() {
           )
         );
 
-        await api.put(`/carts/users/me/${cartId}`, {
+        await api.patch(`/carts/users/me/${cartId}`, {
           items: [{ productId: product.id, quantity: 1 }],
         });
       }
