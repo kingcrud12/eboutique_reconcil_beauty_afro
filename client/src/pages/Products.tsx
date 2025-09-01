@@ -43,14 +43,14 @@ const Products = () => {
       let cartId: number;
 
       if (!firstCart) {
-        const res = await api.post("/cart", {
+        const res = await api.post("/carts", {
           userId: user.id,
           items: [{ productId, quantity: 1 }],
         });
         cartId = res.data.id;
       } else {
         cartId = firstCart.id;
-        await api.put(`/cart/${cartId}`, {
+        await api.patch(`/carts/users/me/${cartId}`, {
           items: [{ productId, quantity: 1 }],
         });
       }

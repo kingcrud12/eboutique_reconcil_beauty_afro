@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import api from '../api/api';
-import { IProduct } from '../api/product.interface';
-import { Link } from 'react-router-dom';
-import { useCart } from '../contexts/CartContext';
-import { useAuth } from '../contexts/AuthContext';
-import Popin from '../components/Popin';
+import React, { useEffect, useState } from "react";
+import api from "../api/api";
+import { IProduct } from "../api/product.interface";
+import { Link } from "react-router-dom";
+import { useCart } from "../contexts/CartContext";
+import { useAuth } from "../contexts/AuthContext";
+import Popin from "../components/Popin";
 
 function Product() {
   const [products, setProducts] = useState<IProduct[]>([]);
@@ -16,9 +16,10 @@ function Product() {
   const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
-    api.get('/products')
-      .then(res => setProducts(res.data))
-      .catch(err => {
+    api
+      .get("/products")
+      .then((res) => setProducts(res.data))
+      .catch((err) => {
         console.error("Erreur récupération produits :", err);
         setPopinMsg("Erreur chargement produits");
       })
@@ -50,10 +51,10 @@ function Product() {
               quantity: 1,
             },
           ],
-        }
+        };
         setCarts([fakeCart]); // optimiste
 
-        const res = await api.post('/cart', {
+        const res = await api.post("/carts", {
           userId: user.id,
           items: [{ productId: product.id, quantity: 1 }],
         });
@@ -63,13 +64,13 @@ function Product() {
         cartId = firstCart.id;
 
         // 🟢 Incrément optimiste
-        setCarts(prev =>
-          prev.map(cart =>
+        setCarts((prev) =>
+          prev.map((cart) =>
             cart.id === cartId
               ? {
                   ...cart,
-                  items: cart.items.some(i => i.product.id === product.id)
-                    ? cart.items.map(i =>
+                  items: cart.items.some((i) => i.product.id === product.id)
+                    ? cart.items.map((i) =>
                         i.product.id === product.id
                           ? { ...i, quantity: i.quantity + 1 }
                           : i
@@ -87,16 +88,15 @@ function Product() {
               : cart
           )
         );
-        
 
-        await api.put(`/cart/${cartId}`, {
+        await api.put(`/carts/users/me/${cartId}`, {
           items: [{ productId: product.id, quantity: 1 }],
         });
       }
 
       setPopinMsg("Produit ajouté au panier !");
     } catch (err) {
-      console.error('Erreur ajout panier :', err);
+      console.error("Erreur ajout panier :", err);
       setPopinMsg("Impossible d’ajouter au panier.");
       await fetchCart(); // rollback
     } finally {
@@ -110,16 +110,20 @@ function Product() {
 
   return (
     <div className="py-16 px-4 sm:px-6 lg:px-8 bg-white font-sans">
-      {popinMsg && <Popin message={popinMsg} onClose={() => setPopinMsg(null)} />}
+      {popinMsg && (
+        <Popin message={popinMsg} onClose={() => setPopinMsg(null)} />
+      )}
 
       <div className="max-w-7xl mx-auto text-center">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Nos Produits</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          Nos Produits
+        </h2>
         <p className="text-gray-500 mt-2 mb-10 text-sm sm:text-base">
           Commandez pour vous ou vos proches
         </p>
 
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {products.map(product => (
+          {products.map((product) => (
             <div
               key={product.id}
               className="bg-white max-w-xs w-full mx-auto p-4 rounded-xl shadow hover:shadow-md flex flex-col justify-between text-center h-full"
@@ -148,11 +152,11 @@ function Product() {
                 disabled={addingToCart === product.id}
                 className={`mt-4 px-4 py-2 text-white rounded ${
                   addingToCart === product.id
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gray-800'
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-gray-800"
                 }`}
               >
-                {addingToCart === product.id ? 'Ajout...' : 'Ajouter au panier'}
+                {addingToCart === product.id ? "Ajout..." : "Ajouter au panier"}
               </button>
             </div>
           ))}
