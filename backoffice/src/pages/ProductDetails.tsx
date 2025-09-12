@@ -15,6 +15,7 @@ function ProductDetails() {
     description: "",
     price: "",
     stock: "",
+    weight: "" as unknown as number,
     category: "",
     imageUrl: "",
   });
@@ -33,6 +34,7 @@ function ProductDetails() {
           description: res.data.description ?? "",
           price: String(res.data.price ?? ""),
           stock: String(res.data.stock ?? ""),
+          weight: Number(res.data.weight ?? ""),
           category: res.data.category ?? "",
           imageUrl: res.data.imageUrl ?? "",
         });
@@ -73,7 +75,10 @@ function ProductDetails() {
         // Au cas où l’API ne renvoie pas l’URL, on refetch
         const refetched = await api.get<IProduct>(`/products/${productId}`);
         setProduct(refetched.data);
-        setForm((f) => ({ ...f, imageUrl: refetched.data.imageUrl ?? f.imageUrl }));
+        setForm((f) => ({
+          ...f,
+          imageUrl: refetched.data.imageUrl ?? f.imageUrl,
+        }));
       }
     } catch (err) {
       console.error("Erreur lors du changement d'image :", err);
@@ -106,7 +111,8 @@ function ProductDetails() {
   };
 
   if (loading) return <div className="p-6">Chargement...</div>;
-  if (!product) return <div className="p-6 text-red-600">Produit introuvable</div>;
+  if (!product)
+    return <div className="p-6 text-red-600">Produit introuvable</div>;
 
   return (
     <div className="p-6 space-y-6 max-w-2xl mx-auto">
@@ -179,6 +185,16 @@ function ProductDetails() {
               name="stock"
               type="number"
               value={form.stock}
+              onChange={handleChange}
+              className="w-full border px-3 py-2 rounded"
+            />
+          </div>
+          <div>
+            <label className="block font-medium">Poids</label>
+            <input
+              name="weight"
+              type="number"
+              value={form.weight}
               onChange={handleChange}
               className="w-full border px-3 py-2 rounded"
             />
