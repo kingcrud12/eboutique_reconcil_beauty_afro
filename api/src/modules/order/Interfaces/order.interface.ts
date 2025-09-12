@@ -6,6 +6,7 @@ export enum DeliveryModeEnum {
   RELAY = 'RELAY',
   HOME = 'HOME',
   EXPRESS = 'EXPRESS',
+  LOCKER = 'LOCKER',
 }
 
 export interface IOrder {

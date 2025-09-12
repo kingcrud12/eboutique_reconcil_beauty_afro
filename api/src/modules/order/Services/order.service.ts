@@ -11,7 +11,13 @@ import {
   IOrderUpdate,
 } from '../Interfaces/order.interface';
 import { IOrderItem } from '../Interfaces/order.interface';
-import { Order, OrderItem, OrderStatus, Product } from '@prisma/client';
+import {
+  DeliveryMode,
+  Order,
+  OrderItem,
+  OrderStatus,
+  Product,
+} from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 
 type PrismaOrderWithItems = Order & {
@@ -26,11 +32,11 @@ type PrismaOrderWithItems = Order & {
 
 // Barèmes par tranches de poids (kg)
 const SHIPPING_TABLES: Record<
-  DeliveryModeEnum,
+  DeliveryMode,
   Array<[maxKg: number, priceEUR: number]>
 > = {
   RELAY: [
-    [0.25, 4.2],
+    [0.25, 4.19],
     [0.5, 4.3],
     [0.75, 5.4],
     [1.0, 5.4],
@@ -51,6 +57,21 @@ const SHIPPING_TABLES: Record<
     [1.0, 9.4],
     [2.0, 10.7],
     [5.0, 16.6],
+  ],
+  LOCKER: [
+    [0.25, 3.59],
+    [0.5, 3.59],
+    [0.75, 3.59],
+    [1.0, 3.59],
+    [2.0, 5.39],
+    [3.0, 5.99],
+    [4.0, 6.89],
+    [5.0, 9.29],
+    [7.0, 12.19],
+    [10.0, 13.69],
+    [15.0, 19.79],
+    [20.0, 20.89],
+    [25.0, 31.0],
   ],
   EXPRESS: [
     [0.25, 4.55],
@@ -414,7 +435,7 @@ export class OrderService {
       deliveryAddress: order.deliveryAddress,
       userId: order.userId ?? undefined,
       total: Number(order.total),
-      shippingFee: order.shippingFee as Decimal,
+      shippingFee: order.shippingFee,
       status: order.status,
       createdAt: order.createdAt ?? undefined,
       deliveryMode: order.deliveryMode as unknown as DeliveryModeEnum,
