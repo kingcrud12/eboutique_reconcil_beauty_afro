@@ -45,7 +45,7 @@ export class CreateProductDto implements IProductCreate {
   stock: number;
 
   @IsOptional()
-  @IsInt()
+  @IsNumber()
   weight?: number;
 
   @IsOptional()
@@ -81,7 +81,7 @@ export class UpdateProductDto implements IProductUpdate {
   stock?: number;
 
   @IsOptional()
-  @IsInt()
+  @IsNumber()
   weight?: number;
 
   @ApiPropertyOptional({
@@ -132,7 +132,7 @@ export class ProductDto implements IProduct {
   stock: number;
 
   @IsOptional()
-  @IsInt()
+  @IsNumber()
   weight?: number;
 
   @ApiPropertyOptional({
