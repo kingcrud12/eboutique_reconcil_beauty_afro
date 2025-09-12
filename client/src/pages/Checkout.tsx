@@ -1,15 +1,15 @@
 /* eslint-disable jsx-a11y/role-supports-aria-props */
-import React, { useEffect, useState, useRef } from 'react';
-import api from '../api/api';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import { useNavigate } from 'react-router-dom';
-import { IProduct } from '../api/product.interface';
-import { useCart } from '../contexts/CartContext'; // ✅ AJOUT
+import React, { useEffect, useState, useRef } from "react";
+import api from "../api/api";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { useNavigate } from "react-router-dom";
+import { IProduct } from "../api/product.interface";
+import { useCart } from "../contexts/CartContext"; // ✅ AJOUT
 
 const relayIcon = new L.Icon({
-  iconUrl: '/mondial-relay-logo.png',
+  iconUrl: "/mondial-relay-logo.png",
   iconSize: [84, 84],
   iconAnchor: [32, 64],
   popupAnchor: [0, -64],
@@ -29,6 +29,7 @@ interface ParcelShop {
   Latitude?: number;
   Longitude?: number;
   Available: boolean;
+  Nature?: string; // 👈 utile pour locker (ex: "C")
 }
 
 interface Product {
@@ -65,13 +66,15 @@ type BanResponse = { features: BanFeature[] };
 
 function Checkout() {
   const [user, setUser] = useState<User | null>(null);
-  const [address, setAddress] = useState('');
+  const [address, setAddress] = useState("");
   const [parcelShops, setParcelShops] = useState<ParcelShop[]>([]);
   const [selectedShop, setSelectedShop] = useState<ParcelShop | null>(null);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [selectedCartId, setSelectedCartId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  const [ordering, setOrdering] = useState<'home' | 'express' | 'relay' | null>(null);
+  const [ordering, setOrdering] = useState<"home" | "express" | "relay" | null>(
+    null
+  );
 
   // --- Modal gestion
   const [modalOpen, setModalOpen] = useState(false);
@@ -92,19 +95,20 @@ function Checkout() {
   const { fetchCart: fetchCartContext } = useCart();
 
   useEffect(() => {
-    api.get<User>('/users/me')
-      .then(res => {
+    api
+      .get<User>("/users/me")
+      .then((res) => {
         setUser(res.data);
         setAddress(res.data.adress);
         fetchCart();
         fetchCartContext(); // ✅ synchro du contexte dès l’arrivée sur la page
       })
-      .catch(err => console.error('Erreur récupération user :', err));
+      .catch((err) => console.error("Erreur récupération user :", err));
   }, [fetchCartContext]);
 
   const fetchCart = async () => {
     try {
-      const res = await api.get<Cart[]>('/carts/users/me');
+      const res = await api.get<Cart[]>("/carts/users/me");
       if (res.data.length > 0) {
         setCartItems(res.data[0].items);
         setSelectedCartId(res.data[0].id);
@@ -113,19 +117,19 @@ function Checkout() {
         setSelectedCartId(null);
       }
     } catch (err) {
-      console.error('Erreur récupération panier :', err);
+      console.error("Erreur récupération panier :", err);
     }
   };
 
   /** Formatte une suggestion BAN -> "numéro rue, code postale, ville" */
   const formatBan = (p: BanFeatureProps) => {
-    const num = (p.housenumber ?? '').toString().trim();
-    const voie = (p.street || p.name || '').toString().trim();
-    const cp = (p.postcode ?? '').toString().trim();
-    const ville = (p.city ?? '').toString().trim();
-    const left = [num, voie].filter(Boolean).join(' ').trim();
-    const right = [cp, ville].filter(Boolean).join(', ').trim(); // "75015, Paris"
-    return left && right ? `${left}, ${right}` : (p.label ?? '').trim();
+    const num = (p.housenumber ?? "").toString().trim();
+    const voie = (p.street || p.name || "").toString().trim();
+    const cp = (p.postcode ?? "").toString().trim();
+    const ville = (p.city ?? "").toString().trim();
+    const left = [num, voie].filter(Boolean).join(" ").trim();
+    const right = [cp, ville].filter(Boolean).join(", ").trim(); // "75015, Paris"
+    return left && right ? `${left}, ${right}` : (p.label ?? "").trim();
   };
 
   /** Lance la recherche BAN (débouncée + abortable) */
@@ -143,18 +147,20 @@ function Checkout() {
         const ctrl = new AbortController();
         abortRef.current = ctrl;
         setSearching(true);
-        const url = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(q)}&limit=6&autocomplete=1`;
+        const url = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(
+          q
+        )}&limit=6&autocomplete=1`;
         const r = await fetch(url, { signal: ctrl.signal });
         const json: BanResponse = await r.json();
         const list = (json.features || [])
-          .map(f => formatBan(f.properties))
+          .map((f) => formatBan(f.properties))
           .filter(Boolean);
         setSuggestions(list);
         setOpenSug(list.length > 0);
         setHighlight(-1);
       } catch (e) {
-        if ((e as any)?.name !== 'AbortError') {
-          console.error('BAN erreur:', e);
+        if ((e as any)?.name !== "AbortError") {
+          console.error("BAN erreur:", e);
         }
       } finally {
         setSearching(false);
@@ -176,18 +182,18 @@ function Checkout() {
 
   const onAddressKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (!openSug || suggestions.length === 0) return;
-    if (e.key === 'ArrowDown') {
+    if (e.key === "ArrowDown") {
       e.preventDefault();
-      setHighlight(h => (h + 1) % suggestions.length);
-    } else if (e.key === 'ArrowUp') {
+      setHighlight((h) => (h + 1) % suggestions.length);
+    } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setHighlight(h => (h - 1 + suggestions.length) % suggestions.length);
-    } else if (e.key === 'Enter') {
+      setHighlight((h) => (h - 1 + suggestions.length) % suggestions.length);
+    } else if (e.key === "Enter") {
       if (highlight >= 0) {
         e.preventDefault();
         applySuggestion(suggestions[highlight]);
       }
-    } else if (e.key === 'Escape') {
+    } else if (e.key === "Escape") {
       setOpenSug(false);
       setHighlight(-1);
     }
@@ -199,18 +205,18 @@ function Checkout() {
     try {
       const isCustomAddress = address !== user.adress;
       const response = isCustomAddress
-        ? await api.post<ParcelShop[]>('/point-relais', { address })
+        ? await api.post<ParcelShop[]>("/point-relais", { address })
         : await api.post<ParcelShop[]>(`/point-relais/${user.id}`);
       setParcelShops(response.data);
     } catch (error) {
-      console.error('Erreur récupération points relais :', error);
+      console.error("Erreur récupération points relais :", error);
     } finally {
       setLoading(false);
     }
   };
 
   // Création commande pour domicile (standard/express)
-  const createHomeOrder = async (mode: 'home' | 'express') => {
+  const createHomeOrder = async (mode: "home" | "express") => {
     if (!user) return;
     const cleanAddress = address?.trim();
     if (!cleanAddress) {
@@ -219,34 +225,42 @@ function Checkout() {
     }
     setOrdering(mode);
     try {
-      await api.post('/orders', {
+      await api.post("/orders", {
         deliveryAddress: cleanAddress,
         userId: user.id,
-        deliveryMode: mode === 'home' ? 'HOME' : 'EXPRESS',
+        deliveryMode: mode === "home" ? "HOME" : "EXPRESS",
       });
-      navigate('/orders');
+      navigate("/orders");
     } catch (e) {
-      console.error('Erreur création commande (domicile) :', e);
+      console.error("Erreur création commande (domicile) :", e);
       alert("Une erreur est survenue lors de la commande");
     } finally {
       setOrdering(null);
     }
   };
 
-  // Création commande via point relais sélectionné
+  // 👇 utilitaire pour savoir si un point est un LOCKER
+  const isLockerShop = (shop: ParcelShop | null) =>
+    !!shop &&
+    (String(shop.Nom).toUpperCase().includes("LOCKER") ||
+      String(shop.Nature ?? "").toUpperCase() === "C");
+
+  // Création commande via point relais sélectionné (RELAY/LOCKER)
   const handleCreateOrderRelay = async () => {
     if (!user || !selectedShop) return;
     const deliveryAddress = `${selectedShop.Adresse1}, ${selectedShop.CP}, ${selectedShop.Ville}`;
-    setOrdering('relay');
+    const isLocker = isLockerShop(selectedShop);
+
+    setOrdering("relay");
     try {
-      await api.post('/orders', {
+      await api.post("/orders", {
         deliveryAddress,
         userId: user.id,
-        deliveryMode: 'RELAY',
+        deliveryMode: isLocker ? "LOCKER" : "RELAY", // 👈 envoie LOCKER si besoin
       });
-      navigate('/orders');
+      navigate("/orders");
     } catch (error) {
-      console.error('Erreur création commande (relais) :', error);
+      console.error("Erreur création commande (relais/locker) :", error);
       alert("Une erreur est survenue lors de la commande");
     } finally {
       setOrdering(null);
@@ -256,11 +270,11 @@ function Checkout() {
   // --- Ouverture modal & ajout produit
   const openModal = async () => {
     try {
-      const res = await api.get<IProduct[]>('/products');
+      const res = await api.get<IProduct[]>("/products");
       setProducts(res.data);
       setModalOpen(true);
     } catch (error) {
-      console.error('Erreur chargement produits', error);
+      console.error("Erreur chargement produits", error);
     }
   };
 
@@ -274,11 +288,11 @@ function Checkout() {
 
       // ✅ MAJ immédiate de l’icône panier (contexte) + MAJ locale de la liste
       await fetchCartContext(); // met à jour totalQuantity utilisé par l’Appbar
-      await fetchCart();        // met à jour la liste affichée sur cette page
+      await fetchCart(); // met à jour la liste affichée sur cette page
 
       setModalOpen(false);
     } catch (error) {
-      console.error('Erreur ajout produit', error);
+      console.error("Erreur ajout produit", error);
       alert("Impossible d’ajouter l’article.");
     } finally {
       setAddingProductId(null);
@@ -326,7 +340,7 @@ function Checkout() {
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => applySuggestion(s)}
                   className={`px-3 py-2 text-sm cursor-pointer hover:bg-gray-50 ${
-                    idx === highlight ? 'bg-gray-100' : ''
+                    idx === highlight ? "bg-gray-100" : ""
                   }`}
                   title={s}
                 >
@@ -334,7 +348,9 @@ function Checkout() {
                 </li>
               ))}
               {!searching && suggestions.length === 0 && (
-                <li className="px-3 py-2 text-sm text-gray-400">Aucune suggestion</li>
+                <li className="px-3 py-2 text-sm text-gray-400">
+                  Aucune suggestion
+                </li>
               )}
             </ul>
           )}
@@ -348,33 +364,39 @@ function Checkout() {
           onClick={handleFindRelais}
           disabled={loading || !user}
         >
-          {loading ? 'Recherche...' : 'Trouver un point relais'}
+          {loading ? "Recherche..." : "Trouver un point relais"}
         </button>
 
         <button
           className="px-4 py-2 rounded border hover:bg-gray-50 disabled:opacity-60"
-          onClick={() => createHomeOrder('home')}
+          onClick={() => createHomeOrder("home")}
           disabled={!user || ordering !== null}
           title="Livraison standard à l'adresse saisie"
         >
-          {ordering === 'home' ? 'Création...' : 'Livraison à domicile'}
+          {ordering === "home" ? "Création..." : "Livraison à domicile"}
         </button>
 
         <button
           className="px-4 py-2 rounded border hover:bg-gray-50 disabled:opacity-60"
-          onClick={() => createHomeOrder('express')}
+          onClick={() => createHomeOrder("express")}
           disabled={!user || ordering !== null}
           title="Livraison express à l'adresse saisie"
         >
-          {ordering === 'express' ? 'Création...' : 'Livraison express'}
+          {ordering === "express" ? "Création..." : "Livraison express"}
         </button>
       </div>
 
       {parcelShops.length > 0 && (
         <div className="bg-white border rounded-xl shadow p-6 space-y-6">
           <div className="flex items-center space-x-4">
-            <img src="/mondial-relay-logo.png" alt="Mondial Relay" className="w-[120px] h-[60px]" />
-            <h2 className="text-lg font-semibold">Sélectionnez votre point relais</h2>
+            <img
+              src="/mondial-relay-logo.png"
+              alt="Mondial Relay"
+              className="w-[120px] h-[60px]"
+            />
+            <h2 className="text-lg font-semibold">
+              Sélectionnez votre point relais
+            </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-w-0 overflow-hidden">
@@ -387,7 +409,7 @@ function Checkout() {
               zoom={13}
               scrollWheelZoom={false}
               className="h-96 w-full rounded-xl overflow-hidden sticky"
-              style={{ maxWidth: '100%' }}
+              style={{ maxWidth: "100%" }}
             >
               <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -401,7 +423,14 @@ function Checkout() {
                     icon={relayIcon}
                   >
                     <Popup>
-                      <p className="font-bold">{shop.Nom}</p>
+                      <p className="font-bold">
+                        {shop.Nom}
+                        {isLockerShop(shop) && (
+                          <span className="ml-2 inline-block text-[10px] px-2 py-0.5 rounded bg-purple-100 text-purple-700 align-middle">
+                            LOCKER
+                          </span>
+                        )}
+                      </p>
                       <p>
                         {shop.Adresse1}, {shop.CP} {shop.Ville}
                       </p>
@@ -423,16 +452,31 @@ function Checkout() {
                     role="button"
                     onClick={() => !isDisabled && setSelectedShop(shop)}
                     className={`p-4 border rounded-md transition cursor-pointer
-                      ${isSelected ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-300' : ''}
-                      ${isDisabled ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-900'}
+                      ${
+                        isSelected
+                          ? "bg-blue-50 border-blue-500 ring-2 ring-blue-300"
+                          : ""
+                      }
+                      ${
+                        isDisabled
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-white text-gray-900"
+                      }
                     `}
                     title={
                       isDisabled
-                        ? 'Ce point relais est indisponible'
-                        : 'Cliquez pour sélectionner'
+                        ? "Ce point relais est indisponible"
+                        : "Cliquez pour sélectionner"
                     }
                   >
-                    <p className="font-semibold">{shop.Nom}</p>
+                    <p className="font-semibold">
+                      {shop.Nom}
+                      {isLockerShop(shop) && (
+                        <span className="ml-2 inline-block text-[10px] px-2 py-0.5 rounded bg-purple-100 text-purple-700 align-middle">
+                          LOCKER
+                        </span>
+                      )}
+                    </p>
                     <p className="text-sm">
                       {shop.Adresse1}, {shop.CP} {shop.Ville}
                     </p>
@@ -451,7 +495,9 @@ function Checkout() {
               onClick={handleCreateOrderRelay}
               disabled={ordering !== null}
             >
-              {ordering === 'relay' ? 'Création...' : 'Valider ce point relais et commander'}
+              {ordering === "relay"
+                ? "Création..."
+                : "Valider ce point relais et commander"}
             </button>
           )}
         </div>
@@ -461,7 +507,9 @@ function Checkout() {
       {cartItems.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-800">🛒 Votre panier</h2>
+            <h2 className="text-xl font-semibold text-gray-800">
+              🛒 Votre panier
+            </h2>
             <button
               onClick={openModal}
               className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
@@ -488,7 +536,8 @@ function Checkout() {
                   </p>
                 </div>
                 <p className="font-semibold text-primary">
-                  {(item.quantity * parseFloat(item.product.price)).toFixed(2)} €
+                  {(item.quantity * parseFloat(item.product.price)).toFixed(2)}{" "}
+                  €
                 </p>
               </li>
             ))}
@@ -509,7 +558,9 @@ function Checkout() {
             >
               ✕
             </button>
-            <h3 className="text-lg font-bold mb-4">Ajouter un produit au panier</h3>
+            <h3 className="text-lg font-bold mb-4">
+              Ajouter un produit au panier
+            </h3>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {products.map((p) => (
