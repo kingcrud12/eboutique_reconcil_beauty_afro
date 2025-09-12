@@ -18,7 +18,7 @@ export class ProductService {
         description: data.description,
         price: data.price,
         stock: Number(data.stock),
-        weight: data.weight,
+        weight: Number(data.weight),
         imageUrl: data.imageUrl ?? null,
         category: data.category ?? null,
       },
