@@ -247,6 +247,7 @@ enum OrderStatus {
 
 enum DeliveryMode {
   RELAY
+  LOCKER
   HOME
   EXPRESS
 }
