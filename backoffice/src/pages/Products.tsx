@@ -16,6 +16,7 @@ function Products() {
     { label: "Nom", field: "label" },
     { label: "Prix Total (TTC)", field: "price" },
     { label: "Stock", field: "stock" },
+    { label: "Weight", field: "weight" },
     { label: "Category", field: "category" },
     { label: "Actions", field: "actions" },
   ];
@@ -24,7 +25,7 @@ function Products() {
     products.map((product) => ({
       image: (
         <img
-        src={product.imageUrl}
+          src={product.imageUrl}
           alt={product.name}
           className="w-10 h-10 rounded object-cover"
         />
@@ -33,6 +34,7 @@ function Products() {
       label: product.name,
       price: `${parseFloat(product.price).toFixed(2)} €`,
       stock: product.stock,
+      weight: `${product.weight} g`,
       category: product.category,
       actions: (
         <div className="flex space-x-2">
@@ -47,7 +49,8 @@ function Products() {
             onClick={() => {
               setProductToDelete(product.id);
               setShowModal(true);
-            }}          >
+            }}
+          >
             Supprimer
           </button>
         </div>
@@ -93,10 +96,12 @@ function Products() {
       </div>
       <DataTable columns={productColumns} data={formatProductData(products)} />
       {/* MODAL DE CONFIRMATION */}
-        {showModal && (
+      {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full text-center">
-            <h2 className="text-lg font-semibold mb-4">Êtes-vous sûr de vouloir réaliser cette action ?</h2>
+            <h2 className="text-lg font-semibold mb-4">
+              Êtes-vous sûr de vouloir réaliser cette action ?
+            </h2>
             <div className="flex justify-center space-x-4">
               <button
                 onClick={() => setShowModal(false)}

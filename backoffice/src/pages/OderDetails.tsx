@@ -17,6 +17,7 @@ type Order = {
   id: number;
   total: number;
   status: string;
+  shippingFee: number;
   deliveryMode?: string;
   deliveryAddress?: string;
   createdAt?: string;
@@ -30,7 +31,10 @@ function formatDate(input?: string) {
 }
 
 function formatMoney(val: number) {
-  return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(val);
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+  }).format(val);
 }
 
 function translateStatus(status: string) {
@@ -70,7 +74,8 @@ export default function OrderDetails() {
   }, [orderId]);
 
   if (loading) return <div className="p-6">Chargement...</div>;
-  if (!order) return <div className="p-6 text-red-600">Commande introuvable</div>;
+  if (!order)
+    return <div className="p-6 text-red-600">Commande introuvable</div>;
 
   return (
     <div className="p-6 space-y-6 max-w-4xl mx-auto">
@@ -100,6 +105,9 @@ export default function OrderDetails() {
         ))}
       </div>
 
+      <div className="flex-1 font-medium">
+        Fais de livraison : {formatMoney(order.shippingFee)}
+      </div>
       <div className="pt-4 text-lg font-bold">
         Total : {formatMoney(order.total)}
       </div>

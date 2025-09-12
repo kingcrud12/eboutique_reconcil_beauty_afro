@@ -9,7 +9,7 @@ function CreateProduct() {
     description: "",
     price: "",
     stock: "",
-    Weight: "",
+    weight: "",
     category: "",
     image: null as File | null,
   });
@@ -36,7 +36,7 @@ function CreateProduct() {
     formData.append("description", form.description);
     formData.append("price", form.price);
     formData.append("stock", form.stock);
-    formData.append("weight", form.Weight);
+    formData.append("weight", form.weight);
     formData.append("category", form.category);
     if (form.image) {
       formData.append("image", form.image);
