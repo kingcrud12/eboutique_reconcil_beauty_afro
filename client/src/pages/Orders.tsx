@@ -7,7 +7,7 @@ interface Product {
   name?: string;
   imageUrl?: string;
   price?: number | string;
-  weight?: number | string; // 👈 poids en kg (aligné back)
+  weight?: number | string; // 👈 EN GRAMMES (int ou string)
 }
 interface OrderItem {
   id: number;
@@ -74,10 +74,16 @@ function computeItemsSubtotal(order: Order): number {
   }, 0);
 }
 
+// 👇 conversion robuste grammes -> kilogrammes
+const gramsToKg = (v: unknown): number => {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.max(0, n) / 1000 : 0;
+};
+
 function computeTotalWeightKg(order: Order): number {
   return order.items.reduce((sum, it) => {
-    const w = Number(it.product?.weight ?? 0); // kg
-    return sum + (Number.isFinite(w) ? w : 0) * it.quantity;
+    const weightKg = gramsToKg(it.product?.weight); // 👈 conversion g -> kg
+    return sum + weightKg * it.quantity;
   }, 0);
 }
 
@@ -99,8 +105,7 @@ function computeShippingFee(order: Order): number {
   for (const [maxKg, price] of table) {
     if (weight <= maxKg) return price;
   }
-  // au-delà de la dernière tranche, on n'affiche pas d'erreur UI : on retourne 0 par défaut
-  // (le back lèvera l'erreur si besoin)
+  // au-delà de la dernière tranche : 0 (le back tranchera)
   return 0;
 }
 
@@ -172,10 +177,7 @@ function Orders() {
     try {
       setPayingOrderId(orderId);
 
-      await api.post("/payments/intent", {
-        orderId,
-        userId: meId ?? 1,
-      });
+      await api.post("/payments/intent", { orderId, userId: meId ?? 1 });
 
       const checkoutRes = await api.post(`/payments/checkout/${orderId}`);
       const checkoutUrl =
@@ -221,13 +223,10 @@ function Orders() {
       await api.patch(
         `/orders/users/me/${selectedOrderId}`,
         { items: [{ productId, quantity: 1 }] },
-        { params: { userId: meId } } // ← query param requis par le back
+        { params: { userId: meId } }
       );
 
-      // rafraîchit les commandes
       await fetchOrders(meId);
-
-      // ferme la modal
       setProductsModalOpen(false);
       setSelectedOrderId(null);
     } catch (e) {
@@ -381,12 +380,16 @@ function Orders() {
                 Total (avec livraison) : {grandTotal.toFixed(2)} €
               </div>
 
-              {/* Si l'API renvoie déjà total (incl. livraison), on peut l'afficher à côté pour contrôle */}
+              {/* Contrôle vs serveur */}
               {Number(order.total) !== grandTotal && (
                 <div className="text-xs text-amber-600">
                   (Total serveur : {Number(order.total).toFixed(2)} €)
                 </div>
               )}
+              {/* Optionnel debug poids :
+              <div className="text-xs text-gray-500">
+                Poids total : {computeTotalWeightKg(order).toFixed(2)} kg
+              </div> */}
             </div>
           </div>
         );
