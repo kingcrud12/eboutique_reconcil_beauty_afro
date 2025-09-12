@@ -20,6 +20,71 @@ type PrismaOrderWithItems = Order & {
   })[];
 };
 
+/* =========================
+   Barèmes & helpers frais
+   ========================= */
+
+// Barèmes par tranches de poids (kg)
+const SHIPPING_TABLES: Record<
+  DeliveryModeEnum,
+  Array<[maxKg: number, priceEUR: number]>
+> = {
+  RELAY: [
+    [0.25, 4.2],
+    [0.5, 4.3],
+    [0.75, 5.4],
+    [1.0, 5.4],
+    [2.0, 6.6],
+    [3.0, 14.99],
+    [4.0, 8.9],
+    [5.0, 12.4],
+    [7.0, 14.4],
+    [10.0, 14.4],
+    [15.0, 22.4],
+    [20.0, 22.4],
+    [25.0, 32.4],
+  ],
+  HOME: [
+    [0.25, 5.25],
+    [0.5, 7.35],
+    [0.75, 8.65],
+    [1.0, 9.4],
+    [2.0, 10.7],
+    [5.0, 16.6],
+  ],
+  EXPRESS: [
+    [0.25, 4.55],
+    [0.5, 6.65],
+    [0.75, 7.95],
+    [1.0, 8.7],
+    [2.0, 10.0],
+    [5.0, 15.9],
+  ],
+};
+
+function computeShippingFeeEUR(
+  mode: DeliveryModeEnum,
+  totalWeightKg: number,
+): number {
+  const table = SHIPPING_TABLES[mode] ?? SHIPPING_TABLES.RELAY;
+  for (const [maxKg, price] of table) {
+    if (totalWeightKg <= maxKg) return price;
+  }
+  // Au-delà de la dernière tranche prévue → on bloque (ou définis ici une politique custom)
+  throw new ForbiddenException(
+    `Poids ${totalWeightKg.toFixed(2)} kg au-dessus de la dernière tranche pour le mode ${mode}.`,
+  );
+}
+
+function computeTotalWeightKg(
+  items: Array<{ quantity: number; product: { weight?: number | null } }>,
+): number {
+  return items.reduce((sum, it) => {
+    const w = Number(it.product?.weight ?? 0); // kg
+    return sum + (Number.isFinite(w) ? w : 0) * it.quantity;
+  }, 0);
+}
+
 @Injectable()
 export class OrderService {
   constructor(private readonly prisma: PrismaService) {}
@@ -38,22 +103,29 @@ export class OrderService {
 
     if (!cart || cart.items.length === 0) return null;
 
+    // Total des articles (inchangé)
     const total = cart.items.reduce((sum, item) => {
       return sum + item.quantity * Number(item.product.price);
     }, 0);
+
+    // 👉 AJOUT : frais selon mode (enum sur la commande) et poids total
+    const totalWeightKg = computeTotalWeightKg(cart.items);
+    const mode = data.deliveryMode;
+    const shippingFee = computeShippingFeeEUR(mode, totalWeightKg);
 
     const order = await this.prisma.order.create({
       data: {
         userId: data.userId,
         deliveryAddress: data.deliveryAddress,
-        deliveryMode: data.deliveryMode,
-        total,
+        deliveryMode: data.deliveryMode, // enum stocké sur Order
+        shippingFee, // ✅ nouveau champ
+        total: +(total + shippingFee).toFixed(2), // ✅ total articles + frais
         items: {
           create: cart.items.map((item) => ({
             productId: item.productId,
             quantity: item.quantity,
             unitPrice: item.product.price,
-            weight: Number(item.product.weight),
+            weight: Number(item.product.weight), // si tu traces le poids unitaire
           })),
         },
       },
@@ -180,7 +252,7 @@ export class OrderService {
         }
       }
 
-      // 4) Recalcul du total
+      // 4) Recalcul du total articles (inchangé)
       const refreshedItems = await tx.orderItem.findMany({
         where: { orderId: existing.id },
         include: { product: true },
@@ -191,10 +263,18 @@ export class OrderService {
         return sum + unit * it.quantity;
       }, 0);
 
-      // 5) Mise à jour du total
+      // 👉 AJOUT : frais selon le mode stocké sur la commande + poids total
+      const mode = existing.deliveryMode as unknown as DeliveryModeEnum;
+      const totalWeightKg = computeTotalWeightKg(refreshedItems);
+      const shippingFee = computeShippingFeeEUR(mode, totalWeightKg);
+
+      // 5) Mise à jour du total & shippingFee
       const updatedOrder = await tx.order.update({
         where: { id: existing.id },
-        data: { total: newTotal },
+        data: {
+          total: +(newTotal + shippingFee).toFixed(2),
+          shippingFee,
+        },
         include: { items: { include: { product: true } } },
       });
 
@@ -296,12 +376,25 @@ export class OrderService {
       );
     }
 
+    // 👉 AJOUT : recalcule frais/total à partir du mode stocké sur la commande
+    const items = existing.items;
+    const itemsSum = items.reduce(
+      (s, it) => s + Number(it.unitPrice) * it.quantity,
+      0,
+    );
+    const mode = existing.deliveryMode as unknown as DeliveryModeEnum;
+    const totalWeightKg = computeTotalWeightKg(items);
+    const shippingFee = computeShippingFeeEUR(mode, totalWeightKg);
+    const grandTotal = +(itemsSum + shippingFee).toFixed(2);
+
     const updated = await this.prisma.order.update({
       where: { id: orderId },
       data: {
         status: (data.status as OrderStatus) ?? undefined,
         deliveryAddress: data.deliveryAddress ?? undefined,
         paymentIntentId: data.paymentIntentId ?? undefined,
+        shippingFee, // ✅
+        total: grandTotal, // ✅
       },
       include: {
         items: { include: { product: true } },
@@ -317,6 +410,7 @@ export class OrderService {
       deliveryAddress: order.deliveryAddress,
       userId: order.userId ?? undefined,
       total: Number(order.total),
+      shippingFee: order.shippingFee as Decimal,
       status: order.status,
       createdAt: order.createdAt ?? undefined,
       deliveryMode: order.deliveryMode as unknown as DeliveryModeEnum,
