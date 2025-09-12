@@ -105,7 +105,6 @@ function computeTotalWeightKg(
   }, 0);
 }
 
-/** ✅ NEW: total du poids en grammes (somme des (poids unitaire g * quantité)) */
 function computeTotalWeightGrams(
   items: Array<{ quantity: number; product: { weight?: number | null } }>,
 ): number {
@@ -282,7 +281,6 @@ export class OrderService {
       const totalWeightKg = computeTotalWeightKg(refreshedItems);
       const shippingFee = computeShippingFeeEUR(mode, totalWeightKg);
 
-      /** ✅ NEW: recalcul & persist du poids total en grammes */
       const totalWeightGrams = computeTotalWeightGrams(refreshedItems);
 
       const updatedOrder = await tx.order.update({
@@ -400,13 +398,13 @@ export class OrderService {
   }
 
   private exportToOrderInterface(order: PrismaOrderWithItems): IOrder {
-    // ⚠️ On ne change pas l’interface retournée (pas d’ajout de field)
     return {
       id: order.id,
       deliveryAddress: order.deliveryAddress,
       userId: order.userId ?? undefined,
       total: Number(order.total),
       shippingFee: order.shippingFee,
+      totalWeightGrams: Number(order.totalWeightGrams),
       status: order.status,
       createdAt: order.createdAt ?? undefined,
       deliveryMode: order.deliveryMode as unknown as DeliveryModeEnum,
