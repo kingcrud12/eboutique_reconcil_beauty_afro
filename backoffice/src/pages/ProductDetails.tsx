@@ -15,7 +15,7 @@ function ProductDetails() {
     description: "",
     price: "",
     stock: "",
-    weight: "" as unknown as number,
+    weight: "",
     category: "",
     imageUrl: "",
   });
@@ -34,7 +34,7 @@ function ProductDetails() {
           description: res.data.description ?? "",
           price: String(res.data.price ?? ""),
           stock: String(res.data.stock ?? ""),
-          weight: Number(res.data.weight ?? ""),
+          weight: String(res.data.weight ?? ""),
           category: res.data.category ?? "",
           imageUrl: res.data.imageUrl ?? "",
         });
@@ -99,6 +99,7 @@ function ProductDetails() {
         description: form.description,
         price: parseFloat(form.price),
         stock: parseInt(form.stock, 10),
+        weight: parseInt(form.weight, 10),
         category: form.category || undefined,
         // imageUrl non envoyé ici : l’image est gérée via le PATCH multipart ci-dessus
       });
