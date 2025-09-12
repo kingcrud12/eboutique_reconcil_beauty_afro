@@ -364,7 +364,7 @@ function Checkout() {
           onClick={handleFindRelais}
           disabled={loading || !user}
         >
-          {loading ? "Recherche..." : "Trouver un point relais"}
+          {loading ? "Recherche..." : "Trouver un point relais ou un locker"}
         </button>
 
         <button
