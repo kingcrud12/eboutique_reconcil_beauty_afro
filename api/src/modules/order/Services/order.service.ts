@@ -67,21 +67,25 @@ function computeShippingFeeEUR(
   totalWeightKg: number,
 ): number {
   const table = SHIPPING_TABLES[mode] ?? SHIPPING_TABLES.RELAY;
+
   for (const [maxKg, price] of table) {
     if (totalWeightKg <= maxKg) return price;
   }
-  // Au-delà de la dernière tranche prévue → on bloque (ou définis ici une politique custom)
-  throw new ForbiddenException(
-    `Poids ${totalWeightKg.toFixed(2)} kg au-dessus de la dernière tranche pour le mode ${mode}.`,
-  );
+
+  // ✅ Si on dépasse la dernière tranche → appliquer le tarif max au lieu de throw
+  const [, lastPrice] = table[table.length - 1];
+  return lastPrice;
 }
 
 function computeTotalWeightKg(
   items: Array<{ quantity: number; product: { weight?: number | null } }>,
 ): number {
   return items.reduce((sum, it) => {
-    const w = Number(it.product?.weight ?? 0); // kg
-    return sum + (Number.isFinite(w) ? w : 0) * it.quantity;
+    // ✅ poids en grammes → conversion en kg
+    const weightKg = Number.isFinite(Number(it.product?.weight))
+      ? Number(it.product?.weight) / 1000
+      : 0;
+    return sum + weightKg * it.quantity;
   }, 0);
 }
 
