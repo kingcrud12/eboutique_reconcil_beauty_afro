@@ -6,6 +6,7 @@ export interface IProduct {
   description: string;
   price: Decimal;
   stock: number;
+  weight?: number;
   imageUrl?: string;
   category?: string;
 }
@@ -15,6 +16,7 @@ export interface IProductUpdate {
   description?: string;
   price?: number;
   stock?: number;
+  weight?: number;
   imageUrl?: string;
   category?: string;
 }
@@ -24,6 +26,7 @@ export interface IProductCreate {
   description: string;
   price: number;
   stock: number;
+  weight?: number;
   imageUrl?: string;
   category?: string;
 }

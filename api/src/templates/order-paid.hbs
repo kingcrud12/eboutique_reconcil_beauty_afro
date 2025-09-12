@@ -13,16 +13,24 @@
           <th align="right">Total (€)</th>
         </tr>
         {{#each items}}
-          <tr>
-            <td>{{this.name}}</td>
-            <td align="right">{{this.quantity}}</td>
-            <td align="right">{{this.unitPrice}}</td>
-            <td align="right">{{this.lineTotal}}</td>
-          </tr>
+        <tr>
+          <td>{{this.name}}</td>
+          <td align="right">{{this.quantity}}</td>
+          <td align="right">{{this.unitPrice}}</td>
+          <td align="right">{{this.lineTotal}}</td>
+        </tr>
         {{/each}}
         <tr>
-          <td colspan="3" align="right" style="border-top:1px solid #eee;"><strong>Total</strong></td>
-          <td align="right" style="border-top:1px solid #eee;"><strong>{{total}}</strong></td>
+          <td colspan="3" align="right" style="border-top:1px solid #eee;">Sous-total articles</td>
+          <td align="right" style="border-top:1px solid #eee;">{{itemsSubtotal}}</td>
+        </tr>
+        <tr>
+          <td colspan="3" align="right">Frais de livraison</td>
+          <td align="right">{{shippingFee}}</td>
+        </tr>
+        <tr>
+          <td colspan="3" align="right"><strong>Total</strong></td>
+          <td align="right"><strong>{{total}}</strong></td>
         </tr>
       </table>
 
@@ -30,11 +38,11 @@
       <p><strong>Mode :</strong> {{deliveryMode}}</p>
 
       {{#if deliveryAddress}}
-        <p><strong>Adresse :</strong><br/>{{deliveryAddress}}</p>
+      <p><strong>Adresse :</strong><br />{{deliveryAddress}}</p>
       {{/if}}
 
       {{#if relayLabel}}
-        <p><strong>Point Relais :</strong> {{relayLabel}}<br/>{{relayAddress}}</p>
+      <p><strong>Point Relais :</strong> {{relayLabel}}<br />{{relayAddress}}</p>
       {{/if}}
 
       <p><strong>Durée estimée :</strong> {{etaDays}} jours environ.</p>

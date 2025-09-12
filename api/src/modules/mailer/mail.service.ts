@@ -7,8 +7,8 @@ type deliveryMode = 'EXPRESS' | 'HOME' | 'RELAY';
 interface OrderItemCtx {
   name: string;
   quantity: number;
-  unitPrice: number; // en €
-  lineTotal: number; // en €
+  unitPrice: number; // €
+  lineTotal: number; // €
 }
 
 interface OrderMailContext {
@@ -16,12 +16,15 @@ interface OrderMailContext {
   customerFirstName?: string;
   customerLastName?: string;
   deliveryMode: deliveryMode;
-  deliveryAddress?: string; // si livraison à domicile
-  relayLabel?: string; // si point relais
-  relayAddress?: string; // si point relais
-  etaDays: number;
+  deliveryAddress?: string;
+  relayLabel?: string;
+  relayAddress?: string;
+  etaDays?: number;
+
   items: OrderItemCtx[];
-  total: number; // en €
+  itemsSubtotal: number; // 👈 NEW: total articles (€)
+  shippingFee: number; // 👈 NEW: frais de livraison (€)
+  total: number; // 👈 total final (€) = itemsSubtotal + shippingFee
 }
 
 @Injectable()

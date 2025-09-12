@@ -100,13 +100,24 @@ export class PaymentController {
       order.items.map((it) => ({
         price_data: {
           currency: 'eur',
-          product_data: {
-            name: it.product.name,
-          },
+          product_data: { name: it.product.name },
           unit_amount: Math.round(Number(it.unitPrice) * 100), // centimes
         },
         quantity: it.quantity,
       }));
+
+    // ➕ Ajouter la ligne des frais de livraison si > 0
+    const shippingFee = Number(order.shippingFee ?? 0);
+    if (shippingFee > 0) {
+      lineItems.push({
+        price_data: {
+          currency: 'eur',
+          product_data: { name: 'Frais de livraison' },
+          unit_amount: Math.round(shippingFee * 100),
+        },
+        quantity: 1,
+      });
+    }
 
     const frontendUrl = process.env.FRONTEND_URL;
     if (!frontendUrl) {

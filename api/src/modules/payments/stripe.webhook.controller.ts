@@ -15,6 +15,7 @@ import { STRIPE_CLIENT } from './stripe.provider';
 import { Request } from 'express';
 import { MailService } from '../../modules/mailer/mail.service'; // ✅ AJOUT
 import { Prisma, SlotStatus } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
 
 type StripeRawRequest = Request & { rawBody: Buffer };
 type DeliveryMode = 'EXPRESS' | 'HOME' | 'RELAY';
@@ -176,18 +177,37 @@ export class StripeWebhookController {
               };
             });
 
+            const itemsSubtotal = +items
+              .reduce((s, i) => s + i.lineTotal, 0)
+              .toFixed(2);
+
+            // shippingFee peut être Decimal | number | string | null
+            const shippingFeeRaw = fullOrder.shippingFee as Decimal | number;
+            const shippingFee = Number(shippingFeeRaw ?? 0);
+            const safeShippingFee = Number.isFinite(shippingFee)
+              ? +shippingFee.toFixed(2)
+              : 0;
+
+            const totalRaw =
+              typeof fullOrder.total === 'number'
+                ? fullOrder.total
+                : Number(fullOrder.total as any);
+            const total = Number.isFinite(totalRaw)
+              ? +totalRaw.toFixed(2)
+              : +(itemsSubtotal + safeShippingFee).toFixed(2);
+
             await this.mailService.sendOrderPaidEmail(fullOrder.user.email, {
               orderId: fullOrder.id,
               customerFirstName: fullOrder.user.firstName ?? undefined,
               customerLastName: fullOrder.user.lastName ?? undefined,
               deliveryMode: fullOrder.deliveryMode as DeliveryMode,
               deliveryAddress: fullOrder.deliveryAddress ?? undefined,
+
               items,
-              total:
-                typeof fullOrder.total === 'number'
-                  ? fullOrder.total
-                  : Number(fullOrder.total as any) ||
-                    items.reduce((s, i) => s + i.lineTotal, 0),
+              itemsSubtotal,
+              shippingFee: safeShippingFee,
+              total,
+              // etaDays est ajouté par le MailService
             });
           }
           break;

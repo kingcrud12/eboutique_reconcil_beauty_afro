@@ -7,6 +7,7 @@ interface Product {
   name?: string;
   imageUrl?: string;
   price?: number | string;
+  weight?: number | string; // 👈 EN GRAMMES (int ou string)
 }
 interface OrderItem {
   id: number;
@@ -18,39 +19,121 @@ interface OrderItem {
 interface Order {
   id: number;
   total: number | string;
+  shippingFee?: number | string; // 👈 si dispo via API
   status: "pending" | "paid" | string;
   deliveryAddress: string;
-  deliveryMode: string;
+  deliveryMode: "RELAY" | "HOME" | "EXPRESS" | string;
   items: OrderItem[];
 }
-interface User { id: number; }
+interface User {
+  id: number;
+}
+
+// ===== Helpers FRAIS DE LIVRAISON (mêmes barèmes que le back) =====
+const SHIPPING_TABLES: Record<
+  "RELAY" | "HOME" | "EXPRESS",
+  Array<[number, number]>
+> = {
+  RELAY: [
+    [0.25, 4.2],
+    [0.5, 4.3],
+    [0.75, 5.4],
+    [1.0, 5.4],
+    [2.0, 6.6],
+    [3.0, 14.99],
+    [4.0, 8.9],
+    [5.0, 12.4],
+    [7.0, 14.4],
+    [10.0, 14.4],
+    [15.0, 22.4],
+    [20.0, 22.4],
+    [25.0, 32.4],
+  ],
+  HOME: [
+    [0.25, 5.25],
+    [0.5, 7.35],
+    [0.75, 8.65],
+    [1.0, 9.4],
+    [2.0, 10.7],
+    [5.0, 16.6],
+  ],
+  EXPRESS: [
+    [0.25, 4.55],
+    [0.5, 6.65],
+    [0.75, 7.95],
+    [1.0, 8.7],
+    [2.0, 10.0],
+    [5.0, 15.9],
+  ],
+};
+
+function computeItemsSubtotal(order: Order): number {
+  return order.items.reduce((sum, it) => {
+    const unit = Number(it.unitPrice);
+    return sum + unit * it.quantity;
+  }, 0);
+}
+
+// 👇 conversion robuste grammes -> kilogrammes
+const gramsToKg = (v: unknown): number => {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.max(0, n) / 1000 : 0;
+};
+
+function computeTotalWeightKg(order: Order): number {
+  return order.items.reduce((sum, it) => {
+    const weightKg = gramsToKg(it.product?.weight); // 👈 conversion g -> kg
+    return sum + weightKg * it.quantity;
+  }, 0);
+}
+
+function computeShippingFee(order: Order): number {
+  // si le back fournit shippingFee, on l'utilise
+  const provided = order.shippingFee;
+  if (provided !== undefined && provided !== null && !isNaN(Number(provided))) {
+    return Number(provided);
+  }
+
+  // sinon on recalcule côté front
+  const modeKey = String(order.deliveryMode || "RELAY").toUpperCase() as
+    | "RELAY"
+    | "HOME"
+    | "EXPRESS";
+  const table = SHIPPING_TABLES[modeKey] ?? SHIPPING_TABLES.RELAY;
+  const weight = computeTotalWeightKg(order);
+
+  for (const [maxKg, price] of table) {
+    if (weight <= maxKg) return price;
+  }
+  // au-delà de la dernière tranche : 0 (le back tranchera)
+  return 0;
+}
 
 // Traduction statut
-  const translateStatus = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "paid":
-        return "Payé";
-      case "pending":
-        return "En cours";
-      default:
-        return status;
-    }
-  };
+const translateStatus = (status: string) => {
+  switch (status.toLowerCase()) {
+    case "paid":
+      return "Payé";
+    case "pending":
+      return "En cours";
+    default:
+      return status;
+  }
+};
 
-  // Traduction mode de livraison
-  const translateDeliveryMode = (mode: string) => {
-    switch (mode.toLowerCase()) {
-      case "home":
-        return "Livraison à domicile standard";
-      case "express":
-        return "Livraison à domicile express";
-      case "relay":
-          return "Livraison en point relais";
-      default:
-        return mode;
-    }
-  };
-
+// Traduction mode de livraison
+const translateDeliveryMode = (mode: string) => {
+  switch (mode.toLowerCase()) {
+    case "home":
+      return "Livraison à domicile standard";
+    case "express":
+      return "Livraison à domicile express";
+    case "relay":
+      return "Livraison en point relais";
+    default:
+      return mode;
+  }
+};
 
 function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -66,7 +149,7 @@ function Orders() {
   const [addingProductId, setAddingProductId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchOrders = useCallback(async (uid: number) => {
+  const fetchOrders = useCallback(async (_uid: number) => {
     const res = await api.get<Order[]>(`/orders/users/me`);
     setOrders(res.data ?? []);
   }, []);
@@ -94,10 +177,7 @@ function Orders() {
     try {
       setPayingOrderId(orderId);
 
-      await api.post("/payments/intent", {
-        orderId,
-        userId: meId ?? 1,
-      });
+      await api.post("/payments/intent", { orderId, userId: meId ?? 1 });
 
       const checkoutRes = await api.post(`/payments/checkout/${orderId}`);
       const checkoutUrl =
@@ -112,7 +192,9 @@ function Orders() {
       window.location.href = checkoutUrl;
     } catch (err) {
       console.error("Erreur paiement :", err);
-      alert("Impossible d'initier le paiement pour le moment. Merci de réessayer.");
+      alert(
+        "Impossible d'initier le paiement pour le moment. Merci de réessayer."
+      );
       setPayingOrderId(null);
     }
   };
@@ -141,13 +223,10 @@ function Orders() {
       await api.patch(
         `/orders/users/me/${selectedOrderId}`,
         { items: [{ productId, quantity: 1 }] },
-        { params: { userId: meId } } // ← query param requis par le back
+        { params: { userId: meId } }
       );
 
-      // rafraîchit les commandes
       await fetchOrders(meId);
-
-      // ferme la modal
       setProductsModalOpen(false);
       setSelectedOrderId(null);
     } catch (e) {
@@ -181,7 +260,9 @@ function Orders() {
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {orders.map((order) => {
-        const orderTotal = Number(order.total);
+        const itemsSubtotal = computeItemsSubtotal(order);
+        const shippingFee = computeShippingFee(order);
+        const grandTotal = +(itemsSubtotal + shippingFee).toFixed(2);
         const isPending = String(order.status).toLowerCase() === "pending";
         const isPaid = String(order.status).toLowerCase() === "paid";
         const isPaying = payingOrderId === order.id;
@@ -206,7 +287,7 @@ function Orders() {
                   {translateStatus(order.status)}
                 </span>
                 <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">
-                {translateDeliveryMode(order.deliveryMode)}
+                  {translateDeliveryMode(order.deliveryMode)}
                 </span>
               </div>
 
@@ -238,7 +319,9 @@ function Orders() {
                       : "Modifier la commande"
                   }
                   className={`px-3 py-2 rounded border text-sm ${
-                    isPaid ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
+                    isPaid
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-gray-50"
                   }`}
                 >
                   Modifier
@@ -285,8 +368,28 @@ function Orders() {
               })}
             </ul>
 
-            <div className="mt-4 font-bold text-right">
-              Total : {isNaN(orderTotal) ? "-" : orderTotal.toFixed(2)} €
+            {/* Récap pricing */}
+            <div className="mt-4 text-right space-y-1">
+              <div className="text-sm text-gray-600">
+                Sous-total articles : {itemsSubtotal.toFixed(2)} €
+              </div>
+              <div className="text-sm text-gray-600">
+                Frais de livraison : {shippingFee.toFixed(2)} €
+              </div>
+              <div className="font-bold">
+                Total (avec livraison) : {grandTotal.toFixed(2)} €
+              </div>
+
+              {/* Contrôle vs serveur */}
+              {Number(order.total) !== grandTotal && (
+                <div className="text-xs text-amber-600">
+                  (Total serveur : {Number(order.total).toFixed(2)} €)
+                </div>
+              )}
+              {/* Optionnel debug poids :
+              <div className="text-xs text-gray-500">
+                Poids total : {computeTotalWeightKg(order).toFixed(2)} kg
+              </div> */}
             </div>
           </div>
         );
@@ -327,7 +430,10 @@ function Orders() {
                     />
                     <p className="text-center text-sm font-medium">{p.name}</p>
                     <p className="text-center text-xs text-gray-500">
-                      {typeof p.price === "number" ? p.price.toFixed(2) : p.price} €
+                      {typeof p.price === "number"
+                        ? p.price.toFixed(2)
+                        : p.price}{" "}
+                      €
                     </p>
                     {addingProductId === p.id && (
                       <p className="text-xs text-center text-blue-600 mt-1">

@@ -42,6 +42,7 @@ model Product {
   stock       Int         @default(0)
   imageUrl    String?
   category    String?
+  weight      Int?
   cartItems   CartItem[]
   orderItems  OrderItem[]
 }
@@ -78,46 +79,45 @@ enum SlotStatus {
 }
 
 model Service {
-  id          Int         @id @default(autoincrement())
-  name        String      @unique
-  duration    Int
-  price       Decimal     @db.Decimal(10, 2)
+  id       Int     @id @default(autoincrement())
+  name     String  @unique
+  duration Int
+  price    Decimal @db.Decimal(10, 2)
 
-  imageUrl    String?
+  imageUrl String?
 
   category    Category
-  subcategory Subcategory 
+  subcategory Subcategory
 
-  slots       Slot[]
+  slots Slot[]
 
   @@index([category, subcategory])
 }
 
 model StripeEvent {
-  id          Int      @id @default(autoincrement())
-  eventId     String   @unique
+  id          Int       @id @default(autoincrement())
+  eventId     String    @unique
   type        String
   status      String
   error       String?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
   processedAt DateTime?
 }
 
-
 model Slot {
-  id        Int        @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   serviceId Int
-  service   Service    @relation(fields: [serviceId], references: [id])
+  service   Service @relation(fields: [serviceId], references: [id])
 
-  startAt   DateTime   @unique
-  endAt     DateTime   @unique
+  startAt DateTime @unique
+  endAt   DateTime @unique
 
-  status    SlotStatus @default(open)
+  status          SlotStatus @default(open)
   paymentIntentId String?
-  booking   Booking?
+  booking         Booking?
 
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([serviceId])
   @@index([startAt, endAt])
@@ -125,13 +125,13 @@ model Slot {
 }
 
 model Booking {
-  id        Int      @id @default(autoincrement())
-  slotId    Int      @unique
-  slot      Slot     @relation(fields: [slotId], references: [id], onDelete: Cascade)
-  
+  id     Int  @id @default(autoincrement())
+  slotId Int  @unique
+  slot   Slot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+
   // Cas utilisateur inscrit
-  userId    Int?
-  user      User?    @relation(fields: [userId], references: [id])
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id])
 
   // Cas invité (pas de userId)
   guestFirstName String?
@@ -147,9 +147,6 @@ model Booking {
 
   @@index([userId])
 }
-
-
-
 
 model Appointment {
   id          Int               @id @default(autoincrement())
@@ -196,6 +193,7 @@ model CartItem {
 model Order {
   id              Int          @id @default(autoincrement())
   total           Decimal      @db.Decimal(10, 2)
+  shippingFee     Decimal?     @default(0) @db.Decimal(10, 2)
   status          OrderStatus  @default(pending)
   createdAt       DateTime     @default(now())
   deliveryAddress String       @db.Text
@@ -218,6 +216,7 @@ model OrderItem {
   unitPrice Decimal @db.Decimal(10, 2)
   orderId   Int
   productId Int
+  weight    Int?
   order     Order   @relation(fields: [orderId], references: [id])
   product   Product @relation(fields: [productId], references: [id])
 
@@ -239,7 +238,6 @@ enum AppointmentStatus {
 enum Knotless {
   Boho_knotless
 }
-
 
 enum OrderStatus {
   pending

@@ -32,10 +32,8 @@ export class PaymentService {
     if (order.status !== 'pending')
       throw new ForbiddenException('Commande déjà payée ou invalide');
 
-    const amountCents = order.items.reduce((sum, it) => {
-      const unit = Number(it.unitPrice);
-      return sum + Math.round(unit * 100) * it.quantity;
-    }, 0);
+    // ⚠️ Désormais on se base sur le total stocké (incluant shippingFee)
+    const amountCents = Math.round(Number(order.total) * 100);
 
     const pi = await this.stripe.paymentIntents.create(
       {
