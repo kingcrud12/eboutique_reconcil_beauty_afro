@@ -496,8 +496,8 @@ function Checkout() {
               disabled={ordering !== null}
             >
               {ordering === "relay"
-                ? "Création..."
-                : "Valider ce point relais et commander"}
+                ? "valider ce point relais et commander"
+                : "Valider locker et commander"}
             </button>
           )}
         </div>
