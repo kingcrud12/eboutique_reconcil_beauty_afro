@@ -286,9 +286,8 @@ function Checkout() {
         items: [{ productId, quantity: 1 }],
       });
 
-      // ✅ MAJ immédiate de l’icône panier (contexte) + MAJ locale de la liste
-      await fetchCartContext(); // met à jour totalQuantity utilisé par l’Appbar
-      await fetchCart(); // met à jour la liste affichée sur cette page
+      await fetchCartContext();
+      await fetchCart();
 
       setModalOpen(false);
     } catch (error) {
@@ -497,7 +496,7 @@ function Checkout() {
             >
               {ordering === "relay"
                 ? "valider ce point relais et commander"
-                : "Valider locker et commander"}
+                : "Valider ce locker et commander"}
             </button>
           )}
         </div>

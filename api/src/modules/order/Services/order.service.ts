@@ -30,7 +30,6 @@ type PrismaOrderWithItems = Order & {
    Barèmes & helpers frais
    ========================= */
 
-// Barèmes par tranches de poids (kg)
 const SHIPPING_TABLES: Record<
   DeliveryMode,
   Array<[maxKg: number, priceEUR: number]>
@@ -88,12 +87,9 @@ function computeShippingFeeEUR(
   totalWeightKg: number,
 ): number {
   const table = SHIPPING_TABLES[mode] ?? SHIPPING_TABLES.RELAY;
-
   for (const [maxKg, price] of table) {
     if (totalWeightKg <= maxKg) return price;
   }
-
-  // ✅ Si on dépasse la dernière tranche → appliquer le tarif max au lieu de throw
   const [, lastPrice] = table[table.length - 1];
   return lastPrice;
 }
@@ -102,11 +98,21 @@ function computeTotalWeightKg(
   items: Array<{ quantity: number; product: { weight?: number | null } }>,
 ): number {
   return items.reduce((sum, it) => {
-    // ✅ poids en grammes → conversion en kg
     const weightKg = Number.isFinite(Number(it.product?.weight))
       ? Number(it.product?.weight) / 1000
       : 0;
     return sum + weightKg * it.quantity;
+  }, 0);
+}
+
+/** ✅ NEW: total du poids en grammes (somme des (poids unitaire g * quantité)) */
+function computeTotalWeightGrams(
+  items: Array<{ quantity: number; product: { weight?: number | null } }>,
+): number {
+  return items.reduce((sum, it) => {
+    const unitG = Number(it.product?.weight ?? 0);
+    const safe = Number.isFinite(unitG) ? Math.max(0, unitG) : 0;
+    return sum + safe * it.quantity;
   }, 0);
 }
 
@@ -128,29 +134,33 @@ export class OrderService {
 
     if (!cart || cart.items.length === 0) return null;
 
-    // Total des articles (inchangé)
     const total = cart.items.reduce((sum, item) => {
       return sum + item.quantity * Number(item.product.price);
     }, 0);
 
-    // 👉 AJOUT : frais selon mode (enum sur la commande) et poids total
     const totalWeightKg = computeTotalWeightKg(cart.items);
-    const mode = data.deliveryMode;
-    const shippingFee = computeShippingFeeEUR(mode, totalWeightKg);
+    const shippingFee = computeShippingFeeEUR(data.deliveryMode, totalWeightKg);
+
+    /** ✅ NEW: calcule et persiste le poids total en grammes */
+    const totalWeightGrams = computeTotalWeightGrams(cart.items);
 
     const order = await this.prisma.order.create({
       data: {
         userId: data.userId,
         deliveryAddress: data.deliveryAddress,
-        deliveryMode: data.deliveryMode, // enum stocké sur Order
-        shippingFee, // ✅ nouveau champ
-        total: +(total + shippingFee).toFixed(2), // ✅ total articles + frais
+        deliveryMode: data.deliveryMode,
+        shippingFee,
+        total: +(total + shippingFee).toFixed(2),
+
+        /** ✅ NEW: enregistrement en BDD (le champ doit exister côté Prisma) */
+        totalWeightGrams,
+
         items: {
           create: cart.items.map((item) => ({
             productId: item.productId,
             quantity: item.quantity,
             unitPrice: item.product.price,
-            weight: Number(item.product.weight), // si tu traces le poids unitaire
+            weight: Number(item.product.weight), // on ne touche pas à l’existant
           })),
         },
       },
@@ -167,16 +177,9 @@ export class OrderService {
   async getOrders(userId: number): Promise<IOrder[]> {
     const orders = await this.prisma.order.findMany({
       where: { userId },
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-      },
+      include: { items: { include: { product: true } } },
     });
     if (!orders) return [];
-
     return orders.map((order) => this.exportToOrderInterface(order));
   }
 
@@ -185,7 +188,6 @@ export class OrderService {
       where: { id: orderId },
       include: { items: { include: { product: true } } },
     });
-
     return this.exportToOrderInterface(existing);
   }
 
@@ -199,31 +201,24 @@ export class OrderService {
     }
 
     const updated = await this.prisma.$transaction(async (tx) => {
-      // 1) Récupérer la commande + items
       const existing = await tx.order.findUnique({
         where: { id: orderId },
         include: { items: { include: { product: true } } },
       });
 
-      if (!existing) {
-        throw new NotFoundException('Commande introuvable');
-      }
-      if (existing.userId !== userId) {
+      if (!existing) throw new NotFoundException('Commande introuvable');
+      if (existing.userId !== userId)
         throw new ForbiddenException(
           'Vous ne pouvez pas modifier cette commande',
         );
-      }
-      if (existing.status !== 'pending') {
+      if (existing.status !== 'pending')
         throw new ForbiddenException('Commande déjà payée ou non modifiable');
-      }
 
-      // 2) Index des items existants
       const itemByProduct = new Map<number, { id: number; quantity: number }>();
       for (const it of existing.items) {
         itemByProduct.set(it.productId, { id: it.id, quantity: it.quantity });
       }
 
-      // 3) Application des modifications
       for (const newItem of data.items) {
         const productId = Number(newItem.productId);
         const qtyToAdd = Number(newItem.quantity);
@@ -235,18 +230,15 @@ export class OrderService {
           continue;
         }
 
-        // Vérifier que le produit existe
         const product = await tx.product.findUnique({
           where: { id: productId },
           select: { id: true, price: true },
         });
-        if (!product) {
+        if (!product)
           throw new NotFoundException(`Produit #${productId} introuvable`);
-        }
 
         const current = itemByProduct.get(productId);
         if (!current) {
-          // Créer un nouvel item
           if (qtyToAdd > 0) {
             const created = await tx.orderItem.create({
               data: {
@@ -262,7 +254,6 @@ export class OrderService {
             });
           }
         } else {
-          // Ajuster la quantité
           const newQty = current.quantity + qtyToAdd;
           if (newQty <= 0) {
             await tx.orderItem.delete({ where: { id: current.id } });
@@ -277,7 +268,6 @@ export class OrderService {
         }
       }
 
-      // 4) Recalcul du total articles (inchangé)
       const refreshedItems = await tx.orderItem.findMany({
         where: { orderId: existing.id },
         include: { product: true },
@@ -288,17 +278,19 @@ export class OrderService {
         return sum + unit * it.quantity;
       }, 0);
 
-      // 👉 AJOUT : frais selon le mode stocké sur la commande + poids total
       const mode = existing.deliveryMode as unknown as DeliveryModeEnum;
       const totalWeightKg = computeTotalWeightKg(refreshedItems);
       const shippingFee = computeShippingFeeEUR(mode, totalWeightKg);
 
-      // 5) Mise à jour du total & shippingFee
+      /** ✅ NEW: recalcul & persist du poids total en grammes */
+      const totalWeightGrams = computeTotalWeightGrams(refreshedItems);
+
       const updatedOrder = await tx.order.update({
         where: { id: existing.id },
         data: {
           total: +(newTotal + shippingFee).toFixed(2),
           shippingFee,
+          totalWeightGrams, // ✅ NEW
         },
         include: { items: { include: { product: true } } },
       });
@@ -311,16 +303,9 @@ export class OrderService {
 
   async getAllOrders(): Promise<IOrder[]> {
     const orders = await this.prisma.order.findMany({
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-      },
+      include: { items: { include: { product: true } } },
     });
     if (!orders) return [];
-
     return orders.map((order) => this.exportToOrderInterface(order));
   }
 
@@ -329,9 +314,7 @@ export class OrderService {
       where: { id: orderId, userId },
       include: { items: { include: { product: true } } },
     });
-
     if (!existing) return null;
-
     return this.exportToOrderInterface(existing);
   }
 
@@ -340,7 +323,6 @@ export class OrderService {
       where: { id: orderId, userId },
       include: { items: { include: { product: true } } },
     });
-
     if (!existing) return null;
     const snapshot = this.exportToOrderInterface(existing);
 
@@ -354,28 +336,20 @@ export class OrderService {
     userId: number,
   ): Promise<{ itemsDeleted: number; ordersDeleted: number }> {
     return this.prisma.$transaction(async (tx) => {
-      // 1) Récupérer les IDs des commandes de l'utilisateur
       const orders = await tx.order.findMany({
         where: { userId },
         select: { id: true },
       });
-
       if (orders.length === 0) {
         return { itemsDeleted: 0, ordersDeleted: 0 };
       }
-
       const orderIds = orders.map((o) => o.id);
-
-      // 2) Supprimer tous les items de ces commandes
       const itemsRes = await tx.orderItem.deleteMany({
         where: { orderId: { in: orderIds } },
       });
-
-      // 3) Supprimer les commandes
       const ordersRes = await tx.order.deleteMany({
         where: { id: { in: orderIds }, userId },
       });
-
       return { itemsDeleted: itemsRes.count, ordersDeleted: ordersRes.count };
     });
   }
@@ -387,21 +361,15 @@ export class OrderService {
   ): Promise<IOrder> {
     const existing = await this.prisma.order.findUnique({
       where: { id: orderId },
-      include: {
-        items: { include: { product: true } },
-      },
+      include: { items: { include: { product: true } } },
     });
 
-    if (!existing) {
-      throw new NotFoundException('Commande introuvable');
-    }
-    if (existing.userId !== userId) {
+    if (!existing) throw new NotFoundException('Commande introuvable');
+    if (existing.userId !== userId)
       throw new ForbiddenException(
         'Vous ne pouvez pas modifier cette commande',
       );
-    }
 
-    // 👉 AJOUT : recalcule frais/total à partir du mode stocké sur la commande
     const items = existing.items;
     const itemsSum = items.reduce(
       (s, it) => s + Number(it.unitPrice) * it.quantity,
@@ -412,24 +380,27 @@ export class OrderService {
     const shippingFee = computeShippingFeeEUR(mode, totalWeightKg);
     const grandTotal = +(itemsSum + shippingFee).toFixed(2);
 
+    /** ✅ NEW: recalcul du poids total en grammes pour persistance */
+    const totalWeightGrams = computeTotalWeightGrams(items);
+
     const updated = await this.prisma.order.update({
       where: { id: orderId },
       data: {
         status: (data.status as OrderStatus) ?? undefined,
         deliveryAddress: data.deliveryAddress ?? undefined,
         paymentIntentId: data.paymentIntentId ?? undefined,
-        shippingFee, // ✅
-        total: grandTotal, // ✅
+        shippingFee,
+        total: grandTotal,
+        totalWeightGrams, // ✅ NEW
       },
-      include: {
-        items: { include: { product: true } },
-      },
+      include: { items: { include: { product: true } } },
     });
 
     return this.exportToOrderInterface(updated);
   }
 
   private exportToOrderInterface(order: PrismaOrderWithItems): IOrder {
+    // ⚠️ On ne change pas l’interface retournée (pas d’ajout de field)
     return {
       id: order.id,
       deliveryAddress: order.deliveryAddress,
