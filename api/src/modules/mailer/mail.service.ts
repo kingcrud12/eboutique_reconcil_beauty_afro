@@ -8,6 +8,7 @@ interface OrderItemCtx {
   name: string;
   quantity: number;
   unitPrice: number; // en €
+  shippingFee: number; // en €
   lineTotal: number; // en €
 }
 
@@ -16,6 +17,7 @@ interface OrderMailContext {
   customerFirstName?: string;
   customerLastName?: string;
   deliveryMode: deliveryMode;
+  shippingFee: number; // en €
   deliveryAddress?: string; // si livraison à domicile
   relayLabel?: string; // si point relais
   relayAddress?: string; // si point relais

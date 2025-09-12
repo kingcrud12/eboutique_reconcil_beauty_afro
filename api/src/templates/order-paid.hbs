@@ -10,6 +10,7 @@
           <th align="left">Produit</th>
           <th align="right">Qté</th>
           <th align="right">PU (€)</th>
+          <th align="right">Frais de livraison (€)</th>
           <th align="right">Total (€)</th>
         </tr>
         {{#each items}}
@@ -17,6 +18,7 @@
             <td>{{this.name}}</td>
             <td align="right">{{this.quantity}}</td>
             <td align="right">{{this.unitPrice}}</td>
+            <td align="right">{{this.shippingFee}}</td>
             <td align="right">{{this.lineTotal}}</td>
           </tr>
         {{/each}}
