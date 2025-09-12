@@ -1,5 +1,6 @@
 import {
   IsDate,
+  IsDecimal,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -20,6 +21,7 @@ import { OrderStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { ProductDto } from 'src/modules/product/Models/product.dto';
 import { IProduct } from 'src/modules/product/Interfaces/product.interface';
+import { Decimal } from '@prisma/client/runtime/library';
 
 export class CreateOrderDto implements IOrderCreate {
   @ApiProperty({
@@ -37,6 +39,10 @@ export class CreateOrderDto implements IOrderCreate {
   @IsOptional()
   @IsNumber()
   userId?: number;
+
+  @IsOptional()
+  @IsDecimal()
+  shippingFee?: Decimal;
 
   @ApiProperty({ enum: DeliveryModeEnum, example: 'relay' })
   @IsEnum(DeliveryModeEnum)
@@ -60,6 +66,10 @@ export class UpdateOrderDto implements IOrderUpdate {
   @IsOptional()
   @IsString()
   deliveryAddress?: string;
+
+  @IsOptional()
+  @IsDecimal()
+  shippingFee?: Decimal;
 
   @ApiProperty({
     description: 'Identifiant de paiement Stripe',
@@ -88,6 +98,10 @@ export class OrderItemDto implements IOrderItem {
   @IsNotEmpty()
   @IsInt()
   quantity: number;
+
+  @IsOptional()
+  @IsDecimal()
+  shippingFee?: Decimal;
 
   @ApiProperty({ description: 'Prix unitaire', example: 8.5 })
   @IsNotEmpty()
@@ -125,6 +139,10 @@ export class OrderDto implements IOrder {
   @ApiProperty({ enum: OrderStatus, example: OrderStatus.pending })
   @IsEnum(OrderStatus)
   status: OrderStatus;
+
+  @IsOptional()
+  @IsDecimal()
+  shippingFee?: Decimal;
 
   @ApiProperty({
     description: 'Date de création de la commande',
