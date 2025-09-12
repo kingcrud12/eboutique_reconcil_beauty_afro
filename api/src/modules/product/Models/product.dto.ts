@@ -46,6 +46,10 @@ export class CreateProductDto implements IProductCreate {
 
   @IsOptional()
   @IsString()
+  weight?: number;
+
+  @IsOptional()
+  @IsString()
   category?: string;
 }
 
@@ -75,6 +79,10 @@ export class UpdateProductDto implements IProductUpdate {
   })
   @IsOptional()
   stock?: number;
+
+  @IsOptional()
+  @IsString()
+  weight?: number;
 
   @ApiPropertyOptional({
     description: 'Product image',
@@ -122,6 +130,10 @@ export class ProductDto implements IProduct {
   @IsNotEmpty()
   @IsInt()
   stock: number;
+
+  @IsOptional()
+  @IsString()
+  weight?: number;
 
   @ApiPropertyOptional({
     description: 'Product image',
