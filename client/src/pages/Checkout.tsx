@@ -395,7 +395,7 @@ function Checkout() {
               className="w-[120px] h-[60px]"
             />
             <h2 className="text-lg font-semibold">
-              Sélectionnez votre point relais
+              Sélectionnez votre point relais ou votre locker
             </h2>
           </div>
 
