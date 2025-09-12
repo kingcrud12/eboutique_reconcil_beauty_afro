@@ -15,6 +15,7 @@ export interface IOrder {
   status: OrderStatus;
   createdAt?: Date;
   shippingFee?: Decimal;
+  totalWeightGrams?: number;
   deliveryMode: DeliveryModeEnum;
   deliveryAddress: string;
   userId?: number;
@@ -26,6 +27,7 @@ export interface IOrderCreate {
   deliveryAddress: string;
   userId?: number;
   shippingFee?: Decimal;
+  totalWeightGrams?: number;
   deliveryMode: DeliveryModeEnum;
 }
 
@@ -33,6 +35,7 @@ export interface IOrderUpdate {
   status?: string;
   items?: IOrderItem[];
   shippingFee?: Decimal;
+  totalWeightGrams?: number;
   deliveryAddress?: string;
   paymentIntentId?: string;
 }
@@ -44,5 +47,6 @@ export interface IOrderItem {
   orderId: number;
   productId: number;
   shippingFee?: Decimal;
+  totalWeightGrams?: number;
   product?: IProduct;
 }

@@ -44,6 +44,10 @@ export class CreateOrderDto implements IOrderCreate {
   @IsDecimal()
   shippingFee?: Decimal;
 
+  @IsOptional()
+  @IsNumber()
+  totalWeightGrams?: number;
+
   @ApiProperty({ enum: DeliveryModeEnum, example: 'relay' })
   @IsEnum(DeliveryModeEnum)
   deliveryMode: DeliveryModeEnum;
@@ -70,6 +74,10 @@ export class UpdateOrderDto implements IOrderUpdate {
   @IsOptional()
   @IsDecimal()
   shippingFee?: Decimal;
+
+  @IsOptional()
+  @IsNumber()
+  totalWeightGrams?: number;
 
   @ApiProperty({
     description: 'Identifiant de paiement Stripe',
@@ -143,6 +151,10 @@ export class OrderDto implements IOrder {
   @IsOptional()
   @IsDecimal()
   shippingFee?: Decimal;
+
+  @IsOptional()
+  @IsNumber()
+  totalWeightGrams?: number;
 
   @ApiProperty({
     description: 'Date de création de la commande',
