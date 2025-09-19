@@ -71,10 +71,9 @@
 
 ---
 
-## Installation
-
 ### API
 ```bash
+
 git clone <repo-api-url>
 cd api
 npm install
@@ -82,15 +81,8 @@ cp .env.example .env # remplissez les variables d'environnement
 npx prisma migrate dev # crée la base de données
 npm run start:dev
 
-git clone <repo-backoffice-url>
-cd backoffice
-npm install
-npm start
+---
 
-git clone <repo-client-url>
-cd client
-npm install
-npm start
 
 src/
 ├─ auth/           # Module d'authentification
@@ -101,17 +93,6 @@ src/
 ├─ point-relay/    # Gestion des points relais
 └─ main.ts
 
-src/
-├─ components/     # Composants réutilisables
-├─ pages/          # Pages principales
-├─ services/       # Appels API
-└─ App.tsx
-
-src/
-├─ components/     # Cartes produits, boutons, etc.
-├─ pages/          # Accueil, produits, checkout
-├─ services/       # Appels API
-└─ App.tsx
 
 | Méthode | Endpoint               | Description                            | Auth |
 | ------- | ---------------------- | -------------------------------------- | ---- |
@@ -129,31 +110,20 @@ src/
 | POST    | `/order`               | Créer une commande                     | ✅    |
 | POST    | `/point-relay/:userId` | Trouver un point relais pour livraison | ✅    |
 
-Utilisation
+```
 
-Créez un compte via l’interface client ou admin.
+## Utilisation
 
-Connectez-vous pour explorer les prestations ou produits.
+- Créez un compte via l’interface client ou admin.
 
-Ajoutez des produits ou prestations au panier.
+- Connectez-vous pour explorer les prestations ou produits.
 
-Choisissez un point relais pour la livraison et validez votre commande.
+- Ajoutez des produits ou prestations au panier.
 
-Les administrateurs peuvent gérer le catalogue, les commandes et les utilisateurs via le backoffice.
+- Choisissez un point relais pour la livraison et validez votre commande.
 
-Contribuer
+- Les administrateurs peuvent gérer le catalogue, les commandes et les utilisateurs via le backoffice.
 
-Fork le projet
-
-Créez une branche (git checkout -b feature/ma-feature)
-
-Effectuez vos modifications
-
-Committez (git commit -m "Ajout feature X")
-
-Push (git push origin feature/ma-feature)
-
-Ouvrez une Pull Request
 
 Licence
 
