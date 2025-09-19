@@ -76,7 +76,7 @@
 ### API
 ```bash
 
-L'api dispose de la structure suivante
+Notre API est découpée en modules, chaque module gère une fonctionnalité précise :
 
 ---
 
@@ -90,7 +90,7 @@ src/
 ├─ payment/        # Gestion des paiements
 ├─ service/        # Gestion des prestations
 ├─ point-relay/    # Gestion des points relais
-└─ main.ts
+└─ main.ts         # point d'entrée de notre api
 
 
 | Méthode | Endpoint               | Description                            | Auth 
