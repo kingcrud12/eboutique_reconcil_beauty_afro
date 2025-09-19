@@ -71,15 +71,12 @@
 
 ---
 
+## Structure du projet
+
 ### API
 ```bash
 
-git clone <repo-api-url>
-cd api
-npm install
-cp .env.example .env # remplissez les variables d'environnement
-npx prisma migrate dev # crée la base de données
-npm run start:dev
+L'api dispose de la structure suivante
 
 ---
 
@@ -90,25 +87,27 @@ src/
 ├─ product/        # Gestion des produits
 ├─ cart/           # Gestion du panier
 ├─ order/          # Gestion des commandes
+├─ payment/        # Gestion des paiements
+├─ service/        # Gestion des prestations
 ├─ point-relay/    # Gestion des points relais
 └─ main.ts
 
 
-| Méthode | Endpoint               | Description                            | Auth |
-| ------- | ---------------------- | -------------------------------------- | ---- |
-| POST    | `/auth/signup`         | Inscription utilisateur                | ❌    |
-| POST    | `/auth/login`          | Connexion utilisateur                  | ❌    |
-| POST    | `/auth/logout`         | Déconnexion utilisateur                | ✅    |
-| GET     | `/user/me`             | Récupérer profil utilisateur           | ✅    |
-| GET     | `/product`             | Lister tous les produits               | ❌    |
-| GET     | `/product/:id`         | Détails d’un produit                   | ❌    |
-| POST    | `/product`             | Créer un produit (admin)               | ✅    |
-| PATCH   | `/product/:id`         | Modifier un produit (admin)            | ✅    |
-| DELETE  | `/product/:id`         | Supprimer un produit (admin)           | ✅    |
-| POST    | `/cart`                | Ajouter un produit au panier           | ✅    |
-| GET     | `/cart`                | Récupérer le panier                    | ✅    |
-| POST    | `/order`               | Créer une commande                     | ✅    |
-| POST    | `/point-relay/:userId` | Trouver un point relais pour livraison | ✅    |
+| Méthode | Endpoint               | Description                            | Auth 
+| ------- | ---------------------- | -------------------------------------- | ----  
+| POST    | `/auth/signup`         | Inscription utilisateur                | ❌    
+| POST    | `/auth/login`          | Connexion utilisateur                  | ❌    
+| POST    | `/auth/logout`         | Déconnexion utilisateur                | ✅    
+| GET     | `/user/me`             | Récupérer profil utilisateur           | ✅    
+| GET     | `/product`             | Lister tous les produits               | ❌    
+| GET     | `/product/:id`         | Détails d’un produit                   | ❌    
+| POST    | `/product`             | Créer un produit (admin)               | ✅    
+| PATCH   | `/product/:id`         | Modifier un produit (admin)            | ✅    
+| DELETE  | `/product/:id`         | Supprimer un produit (admin)           | ✅    
+| POST    | `/cart`                | Ajouter un produit au panier           | ✅    
+| GET     | `/cart`                | Récupérer le panier                    | ✅    
+| POST    | `/order`               | Créer une commande                     | ✅    
+| POST    | `/point-relay/:userId` | Trouver un point relais pour livraison | ✅  
 
 ```
 
