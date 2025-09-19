@@ -6,11 +6,11 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blueviolet)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
-**Reconcil Beauty Afro** est une plateforme complète pour la gestion et la réservation de prestations beauté afro. Le projet se compose de trois parties :
+**Reconcil Beauty Afro** est ensemble de trois technlogies qui assurent la vente et l'achat de produits de beauté Afro, la réservation de prestations de coiffure ainsi que la gestion du catalogue produit coté administrateur, la gestion de clients, de commandes, des créneaux de prestations de coiffures. Les trois technologies sont les suivantes :
 
-- **API** – Serveur back-end gérant les données, l’authentification, les commandes et les points relais.  
-- **Backoffice** – Interface admin pour gérer les produits, les services et les utilisateurs.  
-- **Client** – Application front-end pour les utilisateurs finaux afin de consulter, réserver et acheter des prestations.
+- **Une API** – Serveur back-end gérant les données, l’authentification, les commandes et les points relais.  
+- **Un Backoffice** – Interface admin pour gérer les produits, les services et les utilisateurs.  
+- **Un Client web** – Application front-end pour les utilisateurs finaux afin de consulter, réserver et acheter des prestations.
 
 ---
 
