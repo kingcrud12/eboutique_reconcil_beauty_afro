@@ -100,14 +100,14 @@ src/
 | POST    | `/auth/login`          | Connexion utilisateur                  | ❌    
 | POST    | `/auth/logout`         | Déconnexion utilisateur                | ✅    
 | GET     | `/user/me`             | Récupérer profil utilisateur           | ✅    
-| GET     | `/product`             | Lister tous les produits               | ❌    
-| GET     | `/product/:id`         | Détails d’un produit                   | ❌    
-| POST    | `/product`             | Créer un produit (admin)               | ✅    
-| PATCH   | `/product/:id`         | Modifier un produit (admin)            | ✅    
-| DELETE  | `/product/:id`         | Supprimer un produit (admin)           | ✅    
-| POST    | `/cart`                | Ajouter un produit au panier           | ✅    
-| GET     | `/cart`                | Récupérer le panier                    | ✅    
-| POST    | `/order`               | Créer une commande                     | ✅    
+| GET     | `/products`             | Lister tous les produits              | ❌    
+| GET     | `/products/:id`         | Détails d’un produit                  | ❌    
+| POST    | `/products`             | Créer un produit (admin)              | ✅    
+| PATCH   | `/products/:id`         | Modifier un produit (admin)           | ✅    
+| DELETE  | `/products/:id`         | Supprimer un produit (admin)          | ✅    
+| POST    | `/carts`                | Ajouter un produit au panier          | ✅    
+| GET     | `/carts`                | Récupérer le panier                   | ✅    
+| POST    | `/orders`               | Créer une commande                    | ✅    
 | POST    | `/point-relay/:userId` | Trouver un point relais pour livraison | ✅  
 
 ```
