@@ -11,12 +11,10 @@ type RequestWithRawBody = express.Request & { rawBody?: Buffer };
 const bootstrap = async () => {
   const app = await NestFactory.create(AppModule, {
     cors: {
-      origin: '*',
+      origin: [process.env.FRONTEND_URL, process.env.BACKOFFICE_URL],
       credentials: true,
     },
   });
-
-  app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
   app.setGlobalPrefix('/reconcil/api/shop');
 
   const config = new DocumentBuilder()

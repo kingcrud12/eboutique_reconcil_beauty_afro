@@ -13,6 +13,7 @@ import {
   IProduct,
 } from '../Interfaces/product.interface';
 import { Decimal } from '@prisma/client/runtime/library';
+import { Type } from 'class-transformer';
 
 export class CreateProductDto implements IProductCreate {
   @ApiProperty({ description: 'Product name', example: 'Shampoo' })
@@ -40,10 +41,12 @@ export class CreateProductDto implements IProductCreate {
     description: 'Product stock',
     example: 2,
   })
+  @Type(() => Number)
   @IsNotEmpty()
   @IsNumber()
   stock: number;
 
+  @Type(() => Number)
   @IsOptional()
   @IsNumber()
   weight?: number;

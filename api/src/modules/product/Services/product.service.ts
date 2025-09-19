@@ -59,7 +59,7 @@ export class ProductService {
       description: product.description,
       price: product.price,
       stock: product.stock,
-      weight: product.weight as number,
+      weight: product.weight,
       imageUrl: product.imageUrl,
       category: product.category,
     };
