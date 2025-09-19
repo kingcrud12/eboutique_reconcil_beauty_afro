@@ -15,8 +15,6 @@ const bootstrap = async () => {
       credentials: true,
     },
   });
-
-  app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
   app.setGlobalPrefix('/reconcil/api/shop');
 
   const config = new DocumentBuilder()
