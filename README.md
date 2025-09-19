@@ -84,6 +84,7 @@ Notre API est découpée en modules, chaque module gère une fonctionnalité pr�
 src/
 ├─ auth/           # Module d'authentification
 ├─ user/           # Gestion des utilisateurs
+├─ mailer/         # Gestion du mailing
 ├─ product/        # Gestion des produits
 ├─ cart/           # Gestion du panier
 ├─ order/          # Gestion des commandes
