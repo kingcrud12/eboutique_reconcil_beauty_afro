@@ -5,6 +5,7 @@ import { ValidationPipe } from '@nestjs/common';
 import * as express from 'express';
 import { join } from 'path';
 import './config/cloudinary.config';
+import cookieParser from 'cookie-parser';
 
 type RequestWithRawBody = express.Request & { rawBody?: Buffer };
 
@@ -36,6 +37,9 @@ const bootstrap = async () => {
       },
     }),
   );
+
+  app.use(cookieParser());
+
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
 

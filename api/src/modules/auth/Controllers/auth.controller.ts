@@ -6,13 +6,13 @@ import {
   Patch,
   Post,
   Query,
-  UnauthorizedException,
+  Res,
 } from '@nestjs/common';
 import { AuthService } from '../Services/auth.service';
-import { LoginDto } from '../Models/login.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserService } from 'src/modules/user/Services/user.service';
 import { JwtService } from '@nestjs/jwt';
+import { Response } from 'express';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -24,18 +24,27 @@ export class AuthController {
   ) {}
 
   @Post('login')
-  @ApiOperation({
-    summary: 'Connexion à mon compte',
-  })
-  async login(@Body() loginDto: LoginDto): Promise<{ token: string }> {
-    const { email, password } = loginDto;
-    const token = await this.authService.login(email, password);
-
-    if (!token) {
-      throw new UnauthorizedException('Email ou mot de passe invalide');
+  async login(
+    @Body() body: { email: string; password: string },
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const payload = await this.authService.login(body.email, body.password);
+    if (!payload) {
+      throw new HttpException(
+        'Identifiants invalides',
+        HttpStatus.UNAUTHORIZED,
+      );
     }
+    const token = this.jwtService.sign(payload, { expiresIn: '1d' });
 
-    return token;
+    res.cookie('token', token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    return { message: 'Connexion réussie' };
   }
 
   @Post('logout')
