@@ -52,7 +52,10 @@ const bootstrap = async () => {
     }),
   );
 
-  app.enableCors();
+  app.enableCors({
+    origin: [process.env.FRONTEND_URL, process.env.BACKOFFICE_URL],
+    credentials: true,
+  });
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
