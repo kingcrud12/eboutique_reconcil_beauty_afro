@@ -6,6 +6,7 @@ import {
   Patch,
   Body,
   Req,
+  Res,
   UseGuards,
   HttpStatus,
   HttpException,
@@ -19,6 +20,7 @@ import { JwtRequest } from '../../auth/jwt/Jwt-request.interface';
 import { MailService } from 'src/modules/mailer/mail.service';
 import { JwtService } from '@nestjs/jwt';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
 
 @ApiTags('User')
 @Controller('users')
@@ -33,20 +35,33 @@ export class UserController {
   @ApiOperation({
     summary: 'Créer un compte utilisateur',
   })
-  async create(@Body() userDto: CreateUserDto) {
+  async create(
+    @Body() userDto: CreateUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const user = await this.isUserExistOrNot(userDto.email);
     if (user) {
       throw new HttpException('Email already in use', HttpStatus.BAD_REQUEST);
     }
+
     const newUser = await this.userService.create(userDto);
+
     const token = this.jwtService.sign(
       { sub: newUser.id },
       { expiresIn: '1d' },
     );
+
     await this.mailerService.sendConfirmationEmail(newUser.email, token);
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
     return {
       user: newUser,
-      token,
     };
   }
 
