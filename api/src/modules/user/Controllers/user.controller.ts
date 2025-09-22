@@ -58,6 +58,7 @@ export class UserController {
       secure: true,
       sameSite: 'none',
       path: '/',
+      domain: 'eboutique-reconcil-beauty-afro.onrender.com',
       maxAge: 24 * 60 * 60 * 1000,
     });
 
