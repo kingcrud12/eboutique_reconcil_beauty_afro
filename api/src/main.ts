@@ -11,6 +11,11 @@ type RequestWithRawBody = express.Request & { rawBody?: Buffer };
 
 const bootstrap = async () => {
   const app = await NestFactory.create(AppModule);
+
+  const expressApp = app.getHttpAdapter().getInstance() as express.Express;
+
+  expressApp.set('trust proxy', 1);
+
   app.setGlobalPrefix('/reconcil/api/shop');
 
   const config = new DocumentBuilder()
