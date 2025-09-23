@@ -1,7 +1,8 @@
+// src/pages/Login.tsx
 import React, { useState } from "react";
-import {useNavigate } from "react-router-dom";
-import api from "../api/api"; // ton helper axios
-import { useAuth } from "../contexts/AuthContext"; // ton contexte Auth
+import { useNavigate } from "react-router-dom";
+import api from "../api/api";
+import { useAuth } from "../contexts/AuthContext";
 
 function Login() {
   const navigate = useNavigate();
@@ -10,36 +11,40 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
     try {
-      const response = await api.post("/login", { email, password });
-      const { token } = response.data;
-
-      // Stocker le token dans localStorage
-      localStorage.setItem("token", token);
-
-      // Mettre à jour le contexte
-      login(token);
-
-      // Rediriger vers le dashboard admin
+      await api.post("/admin/login", { email, password });
+      await login();
       navigate("/");
     } catch (err: any) {
       console.error("Erreur lors de la connexion :", err);
-      setError("Email ou mot de passe incorrect");
+      const backendMsg =
+        err?.response?.data?.message || err?.response?.data || null;
+      setError(
+        typeof backendMsg === "string"
+          ? backendMsg
+          : "Email ou mot de passe incorrect"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
       <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
         <h2 className="text-2xl font-bold mb-6 text-center">Connexion</h2>
 
         {error && (
-          <div className="mb-4 text-red-600 bg-red-100 p-2 rounded">{error}</div>
+          <div className="mb-4 text-red-600 bg-red-100 p-2 rounded">
+            {error}
+          </div>
         )}
 
         <form onSubmit={handleSubmit}>
@@ -51,6 +56,7 @@ function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              autoComplete="email"
             />
           </div>
 
@@ -62,14 +68,18 @@ function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              autoComplete="current-password"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-gray-800 text-white py-2 rounded hover:bg-gray-800"
+            disabled={loading}
+            className={`w-full bg-gray-800 text-white py-2 rounded ${
+              loading ? "opacity-60 cursor-not-allowed" : "hover:bg-gray-700"
+            }`}
           >
-            Se connecter
+            {loading ? "Connexion..." : "Se connecter"}
           </button>
         </form>
       </div>

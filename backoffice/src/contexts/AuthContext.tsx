@@ -1,65 +1,55 @@
-// AuthContext.tsx
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { jwtDecode } from 'jwt-decode';
+// src/contexts/AuthContext.tsx
+import React, { createContext, useContext, useState, ReactNode } from "react";
+import api from "../api/api";
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  user: { id: number; email: string; role?: string } | null;
-  token: string | null;
-  login: (token: string) => void;
-  logout: () => void;
-}
-
-interface JwtPayload {
-  sub: number;
-  email: string;
-  role?: string;
-  exp: number; // secondes
+  login: () => Promise<void>;
+  logout: () => Promise<void>;
+  authLoading: boolean;
+  user: { id: number } | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-function getInitialAuth() {
-  const token = localStorage.getItem('token');
-  if (!token) return { isAuthenticated: false, user: null, token: null };
-
-  try {
-    const decoded = jwtDecode<JwtPayload>(token);
-    if (decoded.exp * 1000 <= Date.now()) {
-      localStorage.removeItem('token');
-      return { isAuthenticated: false, user: null, token: null };
-    }
-    return {
-      isAuthenticated: true,
-      user: { id: decoded.sub, email: decoded.email, role: decoded.role },
-      token,
-    };
-  } catch {
-    localStorage.removeItem('token');
-    return { isAuthenticated: false, user: null, token: null };
-  }
-}
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [state, setState] = useState(getInitialAuth);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [authLoading, setAuthLoading] = useState<boolean>(false);
+  const [user, setUser] = useState<{ id: number } | null>(null);
 
-  const login = (token: string) => {
-    localStorage.setItem('token', token);
-    const decoded = jwtDecode<JwtPayload>(token);
-    setState({
-      isAuthenticated: true,
-      user: { id: decoded.sub, email: decoded.email, role: decoded.role },
-      token,
-    });
+  const login = async () => {
+    try {
+      setAuthLoading(true);
+      const res = await api.post<{ id: number }>("/admin/login");
+      setUser(res.data);
+      setIsAuthenticated(true);
+    } catch (err) {
+      console.error("Erreur login :", err);
+      setUser(null);
+      setIsAuthenticated(false);
+      throw err;
+    } finally {
+      setAuthLoading(false);
+    }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setState({ isAuthenticated: false, user: null, token: null });
+  const logout = async () => {
+    try {
+      setAuthLoading(true);
+      await api.post("/admin/logout");
+    } catch (err) {
+      console.error("Erreur logout :", err);
+    } finally {
+      setUser(null);
+      setIsAuthenticated(false);
+      setAuthLoading(false);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ ...state, login, logout }}>
+    <AuthContext.Provider
+      value={{ isAuthenticated, login, logout, authLoading, user }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -67,6 +57,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = (): AuthContextType => {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within an AuthProvider');
+  if (!ctx) throw new Error("useAuth doit être utilisé dans un AuthProvider");
   return ctx;
 };
