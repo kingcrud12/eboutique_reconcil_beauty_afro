@@ -2,9 +2,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import cookie from "cookie";
 
-const RENDER_BASE =
-  process.env.REACT_APP_BASE_URL ||
-  "https://eboutique-reconcil-beauty-afro.onrender.com/reconcil/api/shop";
+const RENDER_BASE = process.env.REACT_APP_BASE_URL;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
