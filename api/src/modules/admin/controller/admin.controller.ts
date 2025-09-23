@@ -80,6 +80,21 @@ export class AdminController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('me')
+  @ApiOperation({
+    summary: 'Récupérer les informations du compte administrateur connecté',
+  })
+  async getMe(@Req() req: JwtRequest) {
+    const user = req.user;
+    await this.ensureIsAdmin(user);
+    return {
+      id: user.userId,
+      email: user.email,
+      role: user.role,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('orders')
   async getOrders(@Req() req: JwtRequest) {
     const user = req.user;
