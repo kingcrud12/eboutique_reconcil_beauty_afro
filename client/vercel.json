@@ -13,5 +13,9 @@
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1.ts" }
+  ],
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1.ts" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
