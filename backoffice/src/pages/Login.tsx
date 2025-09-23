@@ -20,7 +20,7 @@ function Login() {
 
     try {
       await api.post("/login", { email, password });
-      await login();
+      await login(email, password);
       navigate("/");
     } catch (err: any) {
       console.error("Erreur lors de la connexion :", err);
