@@ -19,7 +19,7 @@ function Login() {
     setLoading(true);
 
     try {
-      await api.post("/admin/login", { email, password });
+      await api.post("/login", { email, password });
       await login();
       navigate("/");
     } catch (err: any) {
