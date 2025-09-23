@@ -1,7 +1,5 @@
-// src/pages/Login.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api/api";
 import { useAuth } from "../contexts/AuthContext";
 
 function Login() {
@@ -19,9 +17,8 @@ function Login() {
     setLoading(true);
 
     try {
-      await api.post("/login", { email, password });
-      await login(email, password);
-      navigate("/");
+      await login(email, password); // Appelle le login de AuthContext
+      navigate("/"); // Redirection après le login réussi
     } catch (err: any) {
       console.error("Erreur lors de la connexion :", err);
       const backendMsg =

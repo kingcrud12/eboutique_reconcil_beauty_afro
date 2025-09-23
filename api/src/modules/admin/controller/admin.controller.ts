@@ -54,6 +54,7 @@ export class AdminController {
 
     const { token } = await this.adminService.login(email);
 
+    res.clearCookie('token', { path: '/' });
     res.cookie('token', token, {
       httpOnly: true,
       secure: true,
