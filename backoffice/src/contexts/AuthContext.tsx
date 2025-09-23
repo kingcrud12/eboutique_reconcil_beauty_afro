@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import api from "../api/api";
+import jwt_decode from "jwt-decode";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -20,10 +21,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     role: string;
   } | null>(null);
 
+  const getTokenFromCookie = (): string | null => {
+    const token = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("token="))
+      ?.split("=")[1];
+    return token || null;
+  };
+
   const login = async (email: string, password: string) => {
     try {
       setAuthLoading(true);
       await api.post("/login", { email, password });
+
+      const token = getTokenFromCookie();
+      if (!token) throw new Error("Token introuvable dans le cookie");
+
+      const payload = jwt_decode<{ sub: number; email: string; role: string }>(
+        token
+      );
+
+      setUser({
+        id: payload.sub,
+        email: payload.email,
+        role: payload.role,
+      });
       setIsAuthenticated(true);
     } catch (err) {
       console.error("Erreur login :", err);
@@ -38,7 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     try {
       setAuthLoading(true);
-      await api.post("/admin/logout"); // supprime le cookie côté serveur
+      await api.post("/logout");
     } catch (err) {
       console.error("Erreur logout :", err);
     } finally {
@@ -57,7 +79,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth doit être utilisé dans un AuthProvider");
   return ctx;
