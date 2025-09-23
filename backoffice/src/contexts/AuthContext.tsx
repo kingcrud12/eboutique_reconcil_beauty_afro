@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async () => {
     try {
       setAuthLoading(true);
-      const res = await api.post<{ id: number }>("/admin/login");
+      const res = await api.post<{ id: number }>("/admin/orders");
       setUser(res.data);
       setIsAuthenticated(true);
     } catch (err) {
