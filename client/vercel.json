@@ -1,7 +1,17 @@
 {
-  "functions": {
-    "api/**/*.ts": {
-      "runtime": "vercel-nodejs@20.x"
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "build" }
+    },
+    {
+      "src": "api/**/*.ts",
+      "use": "@vercel/node"
     }
-  }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1.ts" }
+  ]
 }
