@@ -8,10 +8,10 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^13.5.0",
     "@types/jest": "^27.5.2",
-    "@types/node": "^16.18.126",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "axios": "^1.11.0",
+    "cookie": "^1.0.2",
     "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.525.0",
@@ -50,7 +50,10 @@
     ]
   },
   "devDependencies": {
+    "@types/cookie": "^0.6.0",
     "@types/leaflet": "^1.9.20",
+    "@types/node": "^24.5.2",
+    "@vercel/node": "^5.3.24",
     "tailwindcss": "^3.4.17"
   }
 }

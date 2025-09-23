@@ -55,7 +55,7 @@ export class CartController {
     const carts = await this.cartService.getCartsByUser(userId);
 
     if (!carts) {
-      return []; // Aucun panier trouvé
+      return [];
     }
 
     return carts;

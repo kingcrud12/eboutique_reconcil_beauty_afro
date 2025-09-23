@@ -1,14 +1,19 @@
 // AuthContext.tsx
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { jwtDecode } from 'jwt-decode';
-import api from '../api/api';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
+import api from "../api/api";
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  login: (token: string) => void;
-  logout: () => void;
+  login: () => Promise<void>;
+  logout: () => Promise<void>;
   authLoading: boolean;
-  user: { id: number } | null;         // <-- nouveau
+  user: { id: number } | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,50 +23,50 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authLoading, setAuthLoading] = useState(true);
   const [user, setUser] = useState<{ id: number } | null>(null);
 
+  // Vérifie automatiquement si l'utilisateur est connecté
   useEffect(() => {
     const init = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const decoded = jwtDecode<{ exp: number }>(token);
-          const now = Date.now() / 1000;
-          if (decoded.exp < now) throw new Error('expired');
-
-          setIsAuthenticated(true);
-
-          // récupération de l'utilisateur connecté
-          const res = await api.get<{ id: number }>('/users/me');
-          setUser(res.data);
-        } catch {
-          logout();
-        }
+      try {
+        const res = await api.get<{ id: number }>("/users/me"); // cookie envoyé automatiquement
+        setUser(res.data);
+        setIsAuthenticated(true);
+      } catch {
+        setUser(null);
+        setIsAuthenticated(false);
+      } finally {
+        setAuthLoading(false);
       }
-      setAuthLoading(false);
     };
     init();
   }, []);
 
-  const login = async (token: string) => {
-    localStorage.setItem('token', token);
-    setIsAuthenticated(true);
-  
+  const login = async () => {
     try {
-      const res = await api.get<{ id: number }>('/users/me');
+      const res = await api.get<{ id: number }>("/users/me"); // après login côté serveur, cookie HttpOnly est présent
       setUser(res.data);
-    } catch (error) {
-      console.error('Erreur récupération user après login :', error);
-      logout();
+      setIsAuthenticated(true);
+    } catch (err) {
+      console.error("Erreur login :", err);
+      setUser(null);
+      setIsAuthenticated(false);
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setIsAuthenticated(false);
-    setUser(null);
+  const logout = async () => {
+    try {
+      await api.post("/users/logout"); // tu peux créer un endpoint qui clear le cookie côté serveur
+    } catch (err) {
+      console.error("Erreur logout :", err);
+    } finally {
+      setUser(null);
+      setIsAuthenticated(false);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout, authLoading, user }}>
+    <AuthContext.Provider
+      value={{ isAuthenticated, login, logout, authLoading, user }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -69,6 +74,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = (): AuthContextType => {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth doit être utilisé dans un AuthProvider');
+  if (!ctx) throw new Error("useAuth doit être utilisé dans un AuthProvider");
   return ctx;
 };

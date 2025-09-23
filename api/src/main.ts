@@ -10,12 +10,12 @@ import cookieParser from 'cookie-parser';
 type RequestWithRawBody = express.Request & { rawBody?: Buffer };
 
 const bootstrap = async () => {
-  const app = await NestFactory.create(AppModule, {
-    cors: {
-      origin: [process.env.FRONTEND_URL, process.env.BACKOFFICE_URL],
-      credentials: true,
-    },
-  });
+  const app = await NestFactory.create(AppModule);
+
+  const expressApp = app.getHttpAdapter().getInstance() as express.Express;
+
+  expressApp.set('trust proxy', 1);
+
   app.setGlobalPrefix('/reconcil/api/shop');
 
   const config = new DocumentBuilder()
@@ -38,8 +38,6 @@ const bootstrap = async () => {
     }),
   );
 
-  app.use(cookieParser());
-
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
 
@@ -52,7 +50,11 @@ const bootstrap = async () => {
     }),
   );
 
-  app.enableCors();
+  app.use(cookieParser());
+  app.enableCors({
+    origin: [process.env.FRONTEND_URL, process.env.BACKOFFICE_URL],
+    credentials: true,
+  });
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
