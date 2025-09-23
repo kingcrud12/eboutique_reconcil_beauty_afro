@@ -9,6 +9,7 @@ import {
   Req,
   ParseIntPipe,
   Param,
+  Res,
 } from '@nestjs/common';
 import { AdminService } from '../services/admin.service';
 import { JwtService } from '@nestjs/jwt';
@@ -21,6 +22,7 @@ import { AuthService } from 'src/modules/auth/Services/auth.service';
 import { OrderService } from 'src/modules/order/Services/order.service';
 import { OrderDto } from 'src/modules/order/Models/order.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
 
 @ApiTags('Admin')
 @Controller('admin')
@@ -37,7 +39,10 @@ export class AdminController {
   @ApiOperation({
     summary: 'Connexion à mon compte administrateur',
   })
-  async login(@Body() loginDto: LoginDto) {
+  async login(
+    @Body() loginDto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const { email, password } = loginDto;
 
     const user = await this.authservice.validateUser(email, password);
@@ -47,7 +52,15 @@ export class AdminController {
     }
     await this.ensureIsAdmin(user);
 
-    return await this.adminService.login(email);
+    const { token } = await this.adminService.login(email);
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 1000 * 60 * 60 * 24,
+    });
+    return { message: 'Login successful' };
   }
 
   @Post('logout')
