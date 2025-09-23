@@ -7,8 +7,8 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import api from "../../api/api";
-import { ICart } from "../../api/cart.interface";
+import api from "../connect_to_api/api";
+import { ICart } from "../connect_to_api/cart.interface";
 import { useAuth } from "./AuthContext";
 
 interface CartContextType {

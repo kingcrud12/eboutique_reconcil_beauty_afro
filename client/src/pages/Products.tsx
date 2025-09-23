@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import api from "../../api/api";
-import { IProduct } from "../../api/product.interface";
+import api from "../connect_to_api/api";
+import { IProduct } from "../connect_to_api/product.interface";
 import { Link } from "react-router-dom";
 import Popin from "../components/Popin";
 import { useCart } from "../contexts/CartContext";

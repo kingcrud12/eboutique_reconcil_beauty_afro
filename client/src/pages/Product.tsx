@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import api from "../../api/api";
-import { IProduct } from "../../api/product.interface";
+import api from "../connect_to_api/api";
+import { IProduct } from "../connect_to_api/product.interface";
 
 function Product() {
   const { productId } = useParams();
