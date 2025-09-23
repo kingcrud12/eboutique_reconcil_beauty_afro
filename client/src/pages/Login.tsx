@@ -9,7 +9,7 @@ const Login = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [showResetLink, setShowResetLink] = useState(false);
   const [resetSent, setResetSent] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // 👁 toggle
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -20,11 +20,9 @@ const Login = () => {
     setResetSent(false);
 
     try {
-      const response = await api.post("/auth/login", { email, password });
-      const { token } = response.data;
+      await api.post("/auth/login", { email, password });
+      await login();
 
-      localStorage.setItem("token", token);
-      login(token);
       navigate("/");
     } catch (error: any) {
       console.error("Erreur de connexion :", error.response?.data || error);
@@ -41,7 +39,10 @@ const Login = () => {
       setResetSent(true);
       setShowResetLink(false);
     } catch (error: any) {
-      console.error("Erreur d'envoi de l'e-mail de réinitialisation :", error.response?.data || error);
+      console.error(
+        "Erreur d'envoi de l'e-mail de réinitialisation :",
+        error.response?.data || error
+      );
       setErrorMessage("Impossible d’envoyer l’e-mail. Veuillez réessayer.");
     }
   };
@@ -49,11 +50,16 @@ const Login = () => {
   return (
     <div className="mt-[90px] flex items-center justify-center min-h-screen bg-gray-50 px-4">
       <div className="bg-white shadow-md rounded-lg w-full max-w-md p-8">
-        <h2 className="text-2xl font-bold mb-6 text-center text-slate-800">Connexion</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center text-slate-800">
+          Connexion
+        </h2>
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700"
+            >
               Adresse email
             </label>
             <input
@@ -67,7 +73,10 @@ const Login = () => {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700"
+            >
               Mot de passe
             </label>
             <div className="relative">
@@ -79,7 +88,6 @@ const Login = () => {
                 required
                 className="mt-1 w-full px-4 py-2 pr-10 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-slate-500"
               />
-              {/* 👁 bouton œil */}
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
@@ -110,7 +118,8 @@ const Login = () => {
               onClick={handleSendResetLink}
               className="text-blue-600 hover:underline"
             >
-              Mot de passe oublié ? Cliquez ici pour recevoir un lien de réinitialisation.
+              Mot de passe oublié ? Cliquez ici pour recevoir un lien de
+              réinitialisation.
             </button>
           </p>
         )}
@@ -123,7 +132,10 @@ const Login = () => {
 
         <p className="text-sm text-center mt-6 text-gray-600">
           Pas encore de compte ?{" "}
-          <Link to="/register" className="text-slate-800 font-medium hover:underline">
+          <Link
+            to="/register"
+            className="text-slate-800 font-medium hover:underline"
+          >
             Créer un compte
           </Link>
         </p>
