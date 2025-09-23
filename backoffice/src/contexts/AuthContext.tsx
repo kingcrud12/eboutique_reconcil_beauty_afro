@@ -20,8 +20,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async () => {
     try {
       setAuthLoading(true);
-      const res = await api.get<{ id: number }>("/orders");
-      setUser(res.data);
       setIsAuthenticated(true);
     } catch (err) {
       console.error("Erreur login :", err);
