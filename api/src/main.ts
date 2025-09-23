@@ -1,31 +1,33 @@
+import { VercelRequest, VercelResponse } from '@vercel/node';
 import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AppModule } from './app.module';
+import { ExpressAdapter } from '@nestjs/platform-express';
+import express from 'express';
+import { AppModule } from '../src/app.module';
 import { ValidationPipe } from '@nestjs/common';
-import * as express from 'express';
-import { join } from 'path';
-import './config/cloudinary.config';
 import cookieParser from 'cookie-parser';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 type RequestWithRawBody = express.Request & { rawBody?: Buffer };
 
-const bootstrap = async () => {
-  const app = await NestFactory.create(AppModule);
+let cachedServer: express.Express;
+
+async function bootstrapServer() {
+  const server = express();
+  const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
 
   const expressApp = app.getHttpAdapter().getInstance() as express.Express;
-
   expressApp.set('trust proxy', 1);
 
   app.setGlobalPrefix('/reconcil/api/shop');
 
+  // Swagger (optionnel, utile pour dev)
   const config = new DocumentBuilder()
     .setTitle('Eshop API')
-    .setDescription('Eshop API built for arcenciel Manwema')
+    .setDescription('Eshop API built for Arcenciel Manwema')
     .setVersion('1.0')
     .addBearerAuth()
     .addTag('Endpoints')
     .build();
-
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/reconcil/api/shop', app, document);
 
@@ -40,6 +42,7 @@ const bootstrap = async () => {
 
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
+  app.use(cookieParser());
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -50,19 +53,18 @@ const bootstrap = async () => {
     }),
   );
 
-  app.use(cookieParser());
   app.enableCors({
     origin: [process.env.FRONTEND_URL, process.env.BACKOFFICE_URL],
     credentials: true,
   });
 
-  const port = process.env.PORT || 3000;
-  await app.listen(port);
+  await app.init();
+  return server;
+}
 
-  console.log(
-    `✅ Server is running: http://localhost:${port}/reconcil/api/shop`,
-  );
-  console.log('Template path resolved:', join(__dirname, 'templates'));
-};
-
-bootstrap().catch((err) => console.error(err));
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (!cachedServer) {
+    cachedServer = await bootstrapServer();
+  }
+  cachedServer(req, res);
+}
