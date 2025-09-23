@@ -13,6 +13,7 @@
     "@types/react-dom": "^19.1.6",
     "axios": "^1.11.0",
     "install": "^0.13.0",
+    "jwt-decode": "^3.1.2",
     "lucide-react": "^0.526.0",
     "npm": "^11.4.2",
     "react": "^19.1.0",
