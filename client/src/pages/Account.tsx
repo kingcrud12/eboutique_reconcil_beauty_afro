@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import api from "../../api/api";
+import api from "../connect_to_api/api";
 
 interface IUser {
   id: number;

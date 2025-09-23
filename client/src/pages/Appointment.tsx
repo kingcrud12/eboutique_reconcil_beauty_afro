@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import api from "../../api/api";
+import api from "../connect_to_api/api";
 
 type Service = {
   id: number;

@@ -6,7 +6,7 @@ import React, {
   useState,
   ReactNode,
 } from "react";
-import api from "../../api/api";
+import api from "../connect_to_api/api";
 
 interface AuthContextType {
   isAuthenticated: boolean;

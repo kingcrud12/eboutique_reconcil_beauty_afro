@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import api from "../../api/api";
+import api from "../connect_to_api/api";
 
 function ConfirmAccount() {
   const [message, setMessage] = useState("Confirmation en cours...");

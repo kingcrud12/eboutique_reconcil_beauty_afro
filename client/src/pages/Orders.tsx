@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import api from "../../api/api";
+import api from "../connect_to_api/api";
 import { useNavigate } from "react-router-dom";
 
 interface Product {
