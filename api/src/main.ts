@@ -52,7 +52,11 @@ const bootstrap = async () => {
 
   app.use(cookieParser());
   app.enableCors({
-    origin: [process.env.FRONTEND_URL, process.env.BACKOFFICE_URL],
+    origin: [
+      process.env.FRONTEND_URL,
+      process.env.BACKOFFICE_URL,
+      process.env.BACKOFFICE_UP_URL,
+    ],
     credentials: true,
   });
 
