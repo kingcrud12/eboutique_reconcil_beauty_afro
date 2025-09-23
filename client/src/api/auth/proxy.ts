@@ -18,8 +18,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         : undefined,
     });
 
-    const data = await apiRes.text();
-    res.status(apiRes.status).send(data);
+    const data = await apiRes.json(); // ✅ parse JSON ici
+    res.status(apiRes.status).json(data); // ✅ renvoie objet JSO
   } catch (err) {
     console.error("proxy error:", err);
     res.status(500).json({ message: "Proxy error" });
