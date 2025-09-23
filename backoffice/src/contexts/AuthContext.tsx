@@ -24,6 +24,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setAuthLoading(true);
       await api.post("/login", { email, password });
+      setUser({ id: 1, email, role: "admin" });
       setIsAuthenticated(true);
     } catch (err) {
       console.error("Erreur login :", err);
@@ -38,7 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     try {
       setAuthLoading(true);
-      await api.post("/admin/logout"); // supprime le cookie côté serveur
+      await api.post("/logout");
     } catch (err) {
       console.error("Erreur logout :", err);
     } finally {
