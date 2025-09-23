@@ -102,25 +102,23 @@ export default function ServiceDetail() {
     setError(null);
     try {
       if (file) {
-        // ⚙️ envoi multipart/form-data quand un fichier est choisi
         const fd = new FormData();
         fd.append("name", form.name);
         fd.append("duration", String(form.duration));
-        fd.append("price", String(form.price)); // le backend attend un décimal en string
+        fd.append("price", String(form.price));
         if (form.category) fd.append("category", form.category);
         if (form.subcategory) fd.append("subcategory", form.subcategory);
-        fd.append("image", file); // 🔑 même clé que côté create (image)
+        fd.append("image", file);
 
         await api.patch(`/services/${id}`, fd, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       } else {
-        // ⚙️ pas d’upload → JSON classique
         const payload = {
           name: form.name,
           duration: Number(form.duration),
           price: String(form.price),
-          imageUrl: form.imageUrl || undefined, // conserve l’URL existante si pas d’upload
+          imageUrl: form.imageUrl || undefined,
           category: form.category,
           subcategory: form.subcategory,
         };
