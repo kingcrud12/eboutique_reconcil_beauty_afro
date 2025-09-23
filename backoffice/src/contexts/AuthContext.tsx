@@ -1,25 +1,33 @@
-// src/contexts/AuthContext.tsx
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import api from "../api/api";
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  login: () => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   authLoading: boolean;
-  user: { id: number } | null;
+  user: { id: number; email: string; role: string } | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [authLoading, setAuthLoading] = useState<boolean>(false);
-  const [user, setUser] = useState<{ id: number } | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [user, setUser] = useState<{
+    id: number;
+    email: string;
+    role: string;
+  } | null>(null);
 
-  const login = async () => {
+  const login = async (email: string, password: string) => {
     try {
       setAuthLoading(true);
+      await api.post("/admin/login", { email, password });
+      const res = await api.get<{ id: number; email: string; role: string }>(
+        "/users/me"
+      );
+      setUser(res.data);
       setIsAuthenticated(true);
     } catch (err) {
       console.error("Erreur login :", err);
@@ -34,7 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     try {
       setAuthLoading(true);
-      await api.post("/logout");
+      await api.post("/admin/logout"); // supprime le cookie côté serveur
     } catch (err) {
       console.error("Erreur logout :", err);
     } finally {
@@ -53,7 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useAuth = (): AuthContextType => {
+export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth doit être utilisé dans un AuthProvider");
   return ctx;
