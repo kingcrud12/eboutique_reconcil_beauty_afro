@@ -24,10 +24,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setAuthLoading(true);
       await api.post("/login", { email, password });
-      const res = await api.get<{ id: number; email: string; role: string }>(
-        "/users/me"
-      );
-      setUser(res.data);
       setIsAuthenticated(true);
     } catch (err) {
       console.error("Erreur login :", err);
