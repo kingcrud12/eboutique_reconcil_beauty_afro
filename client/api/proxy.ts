@@ -42,7 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             cookie.serialize("token", c.token, {
               httpOnly: true,
               secure: true,
-              sameSite: "lax",
+              sameSite: "none",
               path: "/",
               maxAge: 24 * 60 * 60,
             })

@@ -38,7 +38,7 @@ app.all('/api/proxy/*', async (req, res) => {
             'Set-Cookie',
             cookie.serialize('token', c.token, {
               httpOnly: true,
-              secure: false, // en local on peut mettre false
+              secure: false,
               sameSite: 'lax',
               path: '/',
               maxAge: 24 * 60 * 60,
