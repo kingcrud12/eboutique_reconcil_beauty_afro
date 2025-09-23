@@ -1,15 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { useCart } from '../contexts/CartContext';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import api from '../api/api';
-import { IProduct } from '../api/product.interface';
-
+import React, { useEffect, useState } from "react";
+import { useCart } from "../contexts/CartContext";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import api from "../../api/api";
+import { IProduct } from "../../api/product.interface";
 
 function Cart() {
   const { carts, fetchCart, setCarts } = useCart();
   const navigate = useNavigate();
-
 
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(false);
@@ -17,7 +15,9 @@ function Cart() {
   const [selectedCartId, setSelectedCartId] = useState<number | null>(null);
   const [products, setProducts] = useState<IProduct[]>([]);
   const [addingProductId, setAddingProductId] = useState<number | null>(null);
-  const [confirmDeleteCartId, setConfirmDeleteCartId] = useState<number | null>(null);
+  const [confirmDeleteCartId, setConfirmDeleteCartId] = useState<number | null>(
+    null
+  );
 
   useEffect(() => {
     const loadCart = async () => {
@@ -27,7 +27,7 @@ function Cart() {
         if (axios.isAxiosError(error) && error.response?.status === 401) {
           setAuthError(true);
         } else {
-          console.error('Erreur chargement panier:', error);
+          console.error("Erreur chargement panier:", error);
         }
       } finally {
         setLoading(false);
@@ -38,12 +38,12 @@ function Cart() {
 
   // Incrément optimiste
   const handleAddOne = (cartId: number, productId: number) => {
-    setCarts(prev =>
-      prev.map(cart =>
+    setCarts((prev) =>
+      prev.map((cart) =>
         cart.id === cartId
           ? {
               ...cart,
-              items: cart.items.map(i =>
+              items: cart.items.map((i) =>
                 i.product.id === productId
                   ? { ...i, quantity: i.quantity + 1 }
                   : i
@@ -53,47 +53,53 @@ function Cart() {
       )
     );
 
-    api.patch(`/carts/users/me/${cartId}`, { items: [{ productId, quantity: 1 }] })
-      .catch(err => {
-        console.error('Erreur incrément :', err);
+    api
+      .patch(`/carts/users/me/${cartId}`, {
+        items: [{ productId, quantity: 1 }],
+      })
+      .catch((err) => {
+        console.error("Erreur incrément :", err);
         fetchCart();
       });
   };
 
   // Décrément optimiste
   const handleRemoveOne = (cartId: number, productId: number) => {
-    setCarts(prev =>
-      prev.map(cart =>
+    setCarts((prev) =>
+      prev.map((cart) =>
         cart.id === cartId
           ? {
               ...cart,
               items: cart.items
-                .map(i =>
+                .map((i) =>
                   i.product.id === productId
                     ? { ...i, quantity: i.quantity - 1 }
                     : i
                 )
-                .filter(i => i.quantity > 0),
+                .filter((i) => i.quantity > 0),
             }
           : cart
       )
     );
 
-    api.patch(`/carts/users/me/${cartId}`, { items: [{ productId, quantity: -1 }] })
-      .catch(err => {
-        console.error('Erreur décrément :', err);
+    api
+      .patch(`/carts/users/me/${cartId}`, {
+        items: [{ productId, quantity: -1 }],
+      })
+      .catch((err) => {
+        console.error("Erreur décrément :", err);
         fetchCart();
       });
   };
 
   const openModal = async (cartId: number) => {
     try {
-      const res = await api.get('/products');
+      const res = await api.get("/products");
       setProducts(res.data);
       setSelectedCartId(cartId);
       setModalOpen(true);
     } catch (error) {
-      console.error('Erreur chargement produits', error);
+      console.error("Erreur chargement produits", error);
     }
   };
 
@@ -107,7 +113,7 @@ function Cart() {
       await fetchCart();
       setModalOpen(false);
     } catch (error) {
-      console.error('Erreur ajout produit', error);
+      console.error("Erreur ajout produit", error);
       alert("Impossible d’ajouter l’article.");
     } finally {
       setAddingProductId(null);
@@ -121,7 +127,7 @@ function Cart() {
       await fetchCart();
       setConfirmDeleteCartId(null);
     } catch (error) {
-      console.error('Erreur suppression panier', error);
+      console.error("Erreur suppression panier", error);
     }
   };
 
@@ -133,7 +139,7 @@ function Cart() {
           Veuillez vous connecter pour accéder à votre panier.
         </p>
         <button
-          onClick={() => navigate('/login')}
+          onClick={() => navigate("/login")}
           className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
         >
           Se connecter
@@ -143,9 +149,13 @@ function Cart() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto mt-[80px]">
-      <h1 className={`text-2xl font-bold ${
-    carts.length === 0 ? 'mb-[280px]' : 'mb-8'
-  }`}>🛒 Vos Paniers</h1>
+      <h1
+        className={`text-2xl font-bold ${
+          carts.length === 0 ? "mb-[280px]" : "mb-8"
+        }`}
+      >
+        🛒 Vos Paniers
+      </h1>
 
       <div className="space-y-6">
         {carts.map((cart, idx) => (
@@ -164,7 +174,7 @@ function Cart() {
               <p className="text-gray-500">Ce panier est vide.</p>
             ) : (
               <ul className="divide-y divide-gray-200">
-                {cart.items.map(item => (
+                {cart.items.map((item) => (
                   <li
                     key={item.id}
                     className="py-4 flex items-center space-x-4"
@@ -190,9 +200,7 @@ function Cart() {
                         −
                       </button>
                       <button
-                        onClick={() =>
-                          handleAddOne(cart.id, item.product.id)
-                        }
+                        onClick={() => handleAddOne(cart.id, item.product.id)}
                         className="px-2 py-1 bg-gray-300 hover:bg-gray-400 rounded text-sm"
                       >
                         +
@@ -202,19 +210,19 @@ function Cart() {
                 ))}
               </ul>
             )}
-            <div className='mt-4 flex space-x-4'>
-            <button
-              onClick={() => openModal(cart.id)}
-              className="mt-4 px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
-            >
-              Ajouter des articles
-            </button>
-            <button
-              onClick={() => navigate('/delivery')}
-              className="mt-4 px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
-            >
-              Valider le panier
-            </button>
+            <div className="mt-4 flex space-x-4">
+              <button
+                onClick={() => openModal(cart.id)}
+                className="mt-4 px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
+              >
+                Ajouter des articles
+              </button>
+              <button
+                onClick={() => navigate("/delivery")}
+                className="mt-4 px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
+              >
+                Valider le panier
+              </button>
             </div>
           </div>
         ))}
@@ -235,7 +243,7 @@ function Cart() {
             </h3>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {products.map(p => (
+              {products.map((p) => (
                 <div
                   key={p.id}
                   onClick={() => handleAddProduct(p.id)}
@@ -267,9 +275,7 @@ function Cart() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-sm w-full">
             <h3 className="text-lg font-semibold mb-4">Confirmation</h3>
-            <p className="mb-6">
-              Voulez-vous vraiment supprimer ce panier ?
-            </p>
+            <p className="mb-6">Voulez-vous vraiment supprimer ce panier ?</p>
             <div className="flex justify-end space-x-4">
               <button
                 onClick={() => setConfirmDeleteCartId(null)}

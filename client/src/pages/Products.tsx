@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import api from "../api/api";
-import { IProduct } from "../api/product.interface";
+import api from "../../api/api";
+import { IProduct } from "../../api/product.interface";
 import { Link } from "react-router-dom";
 import Popin from "../components/Popin";
 import { useCart } from "../contexts/CartContext";
@@ -19,9 +19,10 @@ const Products = () => {
   const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
-    api.get("/products")
-      .then(res => setProducts(res.data))
-      .catch(err => {
+    api
+      .get("/products")
+      .then((res) => setProducts(res.data))
+      .catch((err) => {
         console.error(err);
         setPopinMsg("Échec du chargement des produits");
       })
@@ -68,7 +69,7 @@ const Products = () => {
   const filtered =
     selectedCategory === "Tous"
       ? products
-      : products.filter(p => p.category === selectedCategory);
+      : products.filter((p) => p.category === selectedCategory);
 
   if (loading) {
     return <div className="py-16 text-center">Chargement des produits...</div>;
@@ -76,7 +77,9 @@ const Products = () => {
 
   return (
     <div className="py-16 px-4 sm:px-6 lg:px-8 bg-white mt-[80px] font-sans">
-      {popinMsg && <Popin message={popinMsg} onClose={() => setPopinMsg(null)} />}
+      {popinMsg && (
+        <Popin message={popinMsg} onClose={() => setPopinMsg(null)} />
+      )}
 
       <div className="mb-8 flex justify-center">
         <select
@@ -84,7 +87,7 @@ const Products = () => {
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
         >
-          {categories.map(cat => (
+          {categories.map((cat) => (
             <option key={cat} value={cat}>
               {cat === "hair"
                 ? "Produits capillaires"
@@ -97,40 +100,42 @@ const Products = () => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-        {filtered.map(p => (
+        {filtered.map((p) => (
           <div
-          key={p.id}
-          className="bg-white p-4 rounded-xl shadow hover:shadow-md transition flex flex-col justify-between text-center max-w-xs mx-auto h-full"
-        >
-          <div className="flex flex-col items-center">
-            <img
-              src={p.imageUrl}
-              alt={p.name}
-              className="h-32 sm:h-40 object-contain mb-4"
-            />
-            <Link to={`/product/${p.id}`} className="w-full">
-              <h3 className="font-semibold text-gray-800 mb-2">{p.name.slice(0, 60)}</h3>
-              <p className="text-sm text-slate-600 line-clamp-3 min-h-[60px]">
-                {truncated(p.description)}
-              </p>
-              <p className="text-green-600 font-bold mt-3">
-                {Number(p.price).toFixed(2)} €
-              </p>
-            </Link>
-          </div>
-        
-          <button
-            onClick={() => handleAdd(p.id)}
-            disabled={addingId === p.id}
-            className={`mt-4 px-4 py-2 text-white rounded ${
-              addingId === p.id
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-gray-800"
-            }`}
+            key={p.id}
+            className="bg-white p-4 rounded-xl shadow hover:shadow-md transition flex flex-col justify-between text-center max-w-xs mx-auto h-full"
           >
-            {addingId === p.id ? "Ajout..." : "Ajouter au panier"}
-          </button>
-        </div>
+            <div className="flex flex-col items-center">
+              <img
+                src={p.imageUrl}
+                alt={p.name}
+                className="h-32 sm:h-40 object-contain mb-4"
+              />
+              <Link to={`/product/${p.id}`} className="w-full">
+                <h3 className="font-semibold text-gray-800 mb-2">
+                  {p.name.slice(0, 60)}
+                </h3>
+                <p className="text-sm text-slate-600 line-clamp-3 min-h-[60px]">
+                  {truncated(p.description)}
+                </p>
+                <p className="text-green-600 font-bold mt-3">
+                  {Number(p.price).toFixed(2)} €
+                </p>
+              </Link>
+            </div>
+
+            <button
+              onClick={() => handleAdd(p.id)}
+              disabled={addingId === p.id}
+              className={`mt-4 px-4 py-2 text-white rounded ${
+                addingId === p.id
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-gray-800"
+              }`}
+            >
+              {addingId === p.id ? "Ajout..." : "Ajouter au panier"}
+            </button>
+          </div>
         ))}
       </div>
     </div>

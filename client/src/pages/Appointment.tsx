@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import api from "../api/api";
+import api from "../../api/api";
 
 type Service = {
   id: number;
@@ -15,7 +15,7 @@ type Slot = {
   id: number;
   serviceId: number;
   startAt: string; // ISO UTC
-  endAt: string;   // ISO UTC
+  endAt: string; // ISO UTC
   status: "open" | "booked" | "cancelled";
 };
 
@@ -43,7 +43,9 @@ function timeFR(iso: string) {
   });
 }
 const euro = (n: number) =>
-  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(n);
+  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(
+    n
+  );
 
 export default function Appointment() {
   const [services, setServices] = useState<Service[]>([]);
@@ -82,7 +84,11 @@ export default function Appointment() {
     if (!token) return;
     (async () => {
       try {
-        const me = await api.get<{ firstName?: string; lastName?: string; email?: string }>("/users/me");
+        const me = await api.get<{
+          firstName?: string;
+          lastName?: string;
+          email?: string;
+        }>("/users/me");
         if (me.data) {
           setIsAuthed(true);
           if (me.data.firstName) setFirstName(me.data.firstName);
@@ -116,7 +122,11 @@ export default function Appointment() {
             params: { serviceId: selectedService },
           });
           const data = res.data ?? [];
-          setSlots(data.filter((s) => s.serviceId === selectedService && s.status === "open"));
+          setSlots(
+            data.filter(
+              (s) => s.serviceId === selectedService && s.status === "open"
+            )
+          );
         } catch {
           const resAll = await api.get<Slot[]>("/slots");
           setSlots(
@@ -208,7 +218,10 @@ export default function Appointment() {
   };
 
   const selectedServiceObj = useMemo(
-    () => (selectedService ? services.find(s => s.id === selectedService) : undefined),
+    () =>
+      selectedService
+        ? services.find((s) => s.id === selectedService)
+        : undefined,
     [selectedService, services]
   );
 
@@ -350,7 +363,9 @@ export default function Appointment() {
                               setShowSlotModal(false);
                             }}
                           >
-                            {selectedSlot?.id === sl.id ? "Sélectionné" : "Choisir"}
+                            {selectedSlot?.id === sl.id
+                              ? "Sélectionné"
+                              : "Choisir"}
                           </button>
                         </div>
                       </div>
@@ -417,7 +432,9 @@ export default function Appointment() {
                   disabled={loading}
                   className="bg-gray-800 text-white px-6 py-3 rounded-md font-semibold disabled:opacity-60"
                 >
-                  {loading ? "Chargement..." : "Payer un acompte et bloquer le créneau"}
+                  {loading
+                    ? "Chargement..."
+                    : "Payer un acompte et bloquer le créneau"}
                 </button>
               </div>
             )}
