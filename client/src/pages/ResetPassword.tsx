@@ -1,6 +1,6 @@
-import React, {useState } from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import api from "../api/api";
+import api from "../../api/api";
 
 function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -53,7 +53,9 @@ function ResetPassword() {
         {!error && (
           <form onSubmit={handleReset} className="space-y-4 text-left">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Nouveau mot de passe</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Nouveau mot de passe
+              </label>
               <input
                 type="password"
                 value={password}
@@ -63,7 +65,9 @@ function ResetPassword() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Confirmer le mot de passe</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Confirmer le mot de passe
+              </label>
               <input
                 type="password"
                 value={confirmPassword}

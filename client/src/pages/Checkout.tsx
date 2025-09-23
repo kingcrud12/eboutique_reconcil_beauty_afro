@@ -1,11 +1,11 @@
 /* eslint-disable jsx-a11y/role-supports-aria-props */
 import React, { useEffect, useState, useRef } from "react";
-import api from "../api/api";
+import api from "../../api/api";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useNavigate } from "react-router-dom";
-import { IProduct } from "../api/product.interface";
+import { IProduct } from "../../api/product.interface";
 import { useCart } from "../contexts/CartContext"; // ✅ AJOUT
 
 const relayIcon = new L.Icon({

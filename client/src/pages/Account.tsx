@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import api from "../api/api";
+import api from "../../api/api";
 
 interface IUser {
   id: number;
@@ -29,7 +29,11 @@ interface IOrder {
 function Account() {
   const [user, setUser] = useState<IUser | null>(null);
   const [formData, setFormData] = useState<IUser>({
-    id: 0, firstName: "", lastName: "", email: "", adress: "",
+    id: 0,
+    firstName: "",
+    lastName: "",
+    email: "",
+    adress: "",
   });
 
   const [showAccountCard, setShowAccountCard] = useState(true);
@@ -49,7 +53,10 @@ function Account() {
   const openAddressInfo = () => {
     setShowAddressToast(true);
     if (hideTimer.current) window.clearTimeout(hideTimer.current);
-    hideTimer.current = window.setTimeout(() => setShowAddressToast(false), 5000);
+    hideTimer.current = window.setTimeout(
+      () => setShowAddressToast(false),
+      5000
+    );
   };
   const closeAddressInfo = () => {
     setShowAddressToast(false);
@@ -75,8 +82,12 @@ function Account() {
   };
 
   useEffect(() => {
-    api.get<IUser>("/users/me")
-      .then((res) => { setUser(res.data); setFormData(res.data); })
+    api
+      .get<IUser>("/users/me")
+      .then((res) => {
+        setUser(res.data);
+        setFormData(res.data);
+      })
       .catch((err) => console.error("Erreur récupération user :", err));
     return () => {
       if (hideTimer.current) window.clearTimeout(hideTimer.current);
@@ -93,12 +104,19 @@ function Account() {
     // ✅ bloque si l'adresse du formulaire compte est au mauvais format
     const addr = formData.adress?.trim();
     if (addr && !isValidAddressFormat(addr)) {
-      showError("Adresse invalide. Utilisez le format : « 12 rue Exemple, 75001, Paris ».");
+      showError(
+        "Adresse invalide. Utilisez le format : « 12 rue Exemple, 75001, Paris »."
+      );
       return;
     }
 
-    try { await api.patch("/users/me", formData); setUser(formData); setIsEditingAccount(false); }
-    catch (err) { console.error("Erreur mise à jour du compte :", err); }
+    try {
+      await api.patch("/users/me", formData);
+      setUser(formData);
+      setIsEditingAccount(false);
+    } catch (err) {
+      console.error("Erreur mise à jour du compte :", err);
+    }
   };
 
   const handleSubmitAddress = async (e: React.FormEvent) => {
@@ -106,7 +124,9 @@ function Account() {
 
     // ✅ bloque si l'adresse (section adresses) est au mauvais format
     if (!isValidAddressFormat(formData.adress)) {
-      showError("Adresse invalide. Exemple attendu : « 12 rue de l'ingénieur robert keller, 75015, Paris ».");
+      showError(
+        "Adresse invalide. Exemple attendu : « 12 rue de l'ingénieur robert keller, 75015, Paris »."
+      );
       return;
     }
 
@@ -114,33 +134,60 @@ function Account() {
       await api.patch("/users/me", { adress: formData.adress });
       setUser((prev) => (prev ? { ...prev, adress: formData.adress } : null));
       setIsEditingAddress(false);
-    } catch (err) { console.error("Erreur mise à jour adresse :", err); }
+    } catch (err) {
+      console.error("Erreur mise à jour adresse :", err);
+    }
   };
 
-  const openAccount = () => { setShowAccountCard(true); setShowAddressCard(false); setShowOrdersCard(false); };
-  const openAddress = () => { setShowAccountCard(false); setShowAddressCard(true); setShowOrdersCard(false); };
+  const openAccount = () => {
+    setShowAccountCard(true);
+    setShowAddressCard(false);
+    setShowOrdersCard(false);
+  };
+  const openAddress = () => {
+    setShowAccountCard(false);
+    setShowAddressCard(true);
+    setShowOrdersCard(false);
+  };
   const openOrders = async () => {
     if (!user?.id) return;
-    setShowAccountCard(false); setShowAddressCard(false); setShowOrdersCard(true);
-    setOrdersError(null); setLoadingOrders(true);
-    try { const res = await api.get<IOrder[]>(`/orders/users/me`); setOrders(res.data || []); }
-    catch (e) { console.error("Erreur récupération commandes :", e); setOrdersError("Impossible de récupérer vos commandes."); }
-    finally { setLoadingOrders(false); }
+    setShowAccountCard(false);
+    setShowAddressCard(false);
+    setShowOrdersCard(true);
+    setOrdersError(null);
+    setLoadingOrders(true);
+    try {
+      const res = await api.get<IOrder[]>(`/orders/users/me`);
+      setOrders(res.data || []);
+    } catch (e) {
+      console.error("Erreur récupération commandes :", e);
+      setOrdersError("Impossible de récupérer vos commandes.");
+    } finally {
+      setLoadingOrders(false);
+    }
   };
 
   const badge = (text: string, color: string) => (
-    <span className={`inline-block text-xs px-2 py-1 rounded-full ${color}`}>{text}</span>
+    <span className={`inline-block text-xs px-2 py-1 rounded-full ${color}`}>
+      {text}
+    </span>
   );
   const statusBadge = (s: string) =>
-    s === "paid" ? badge("Payée", "bg-green-100 text-green-700")
-    : s === "pending" ? badge("En attente", "bg-yellow-100 text-yellow-700")
-    : s === "canceled" ? badge("Annulée", "bg-red-100 text-red-700")
-    : badge(s, "bg-gray-100 text-gray-700");
+    s === "paid"
+      ? badge("Payée", "bg-green-100 text-green-700")
+      : s === "pending"
+      ? badge("En attente", "bg-yellow-100 text-yellow-700")
+      : s === "canceled"
+      ? badge("Annulée", "bg-red-100 text-red-700")
+      : badge(s, "bg-gray-100 text-gray-700");
   const deliveryBadge = (m?: string) =>
-    m === "RELAY" ? badge("Point relais", "bg-blue-100 text-blue-700")
-    : m === "HOME" ? badge("Domicile", "bg-purple-100 text-purple-700")
-    : m === "EXPRESS" ? badge("Express", "bg-pink-100 text-pink-700")
-    : null;
+    m === "RELAY"
+      ? badge("Point relais", "bg-blue-100 text-blue-700")
+      : m === "HOME"
+      ? badge("Domicile", "bg-purple-100 text-purple-700")
+      : m === "EXPRESS"
+      ? badge("Express", "bg-pink-100 text-pink-700")
+      : null;
 
   return (
     <div className="relative p-6 max-w-6xl mx-auto mt-[160px] mb-[100px]">
@@ -161,10 +208,17 @@ function Account() {
           </div>
 
           <ul className="space-y-2 text-sm flex-1">
-            <li>👤 <button className="hover:underline" onClick={openAccount}>Mon compte</button></li>
+            <li>
+              👤{" "}
+              <button className="hover:underline" onClick={openAccount}>
+                Mon compte
+              </button>
+            </li>
             <li className="flex items-center gap-2">
               📍
-              <button className="hover:underline" onClick={openAddress}>Mes adresses de livraison</button>
+              <button className="hover:underline" onClick={openAddress}>
+                Mes adresses de livraison
+              </button>
               {/* ℹ️ icône info (gauche) */}
               <button
                 type="button"
@@ -176,7 +230,12 @@ function Account() {
                 ℹ️
               </button>
             </li>
-            <li>🛒 <button className="hover:underline" onClick={openOrders}>Mes commandes</button></li>
+            <li>
+              🛒{" "}
+              <button className="hover:underline" onClick={openOrders}>
+                Mes commandes
+              </button>
+            </li>
           </ul>
 
           <div className="h-0 flex-shrink-0" />
@@ -185,18 +244,25 @@ function Account() {
         {/* Card droite : Compte */}
         {showAccountCard && (
           <div className="bg-gray-100 p-6 rounded shadow text-sm w-full h-[250px] overflow-hidden flex flex-col">
-            <h2 className="text-lg font-medium mb-4 flex-shrink-0">Vos informations de compte :</h2>
+            <h2 className="text-lg font-medium mb-4 flex-shrink-0">
+              Vos informations de compte :
+            </h2>
             <div className="flex-1 overflow-y-auto pr-1">
               {!isEditingAccount ? (
                 <>
                   <ul className="space-y-2 mb-4">
-                    <li><strong>Nom :</strong> {user?.lastName}</li>
-                    <li><strong>Prénom :</strong> {user?.firstName}</li>
-                    <li><strong>Email :</strong> {user?.email}</li>
+                    <li>
+                      <strong>Nom :</strong> {user?.lastName}
+                    </li>
+                    <li>
+                      <strong>Prénom :</strong> {user?.firstName}
+                    </li>
+                    <li>
+                      <strong>Email :</strong> {user?.email}
+                    </li>
                     <li>
                       <strong className="inline-flex items-center gap-2">
-                        Adresse :
-                        {/* ℹ️ icône info (dans le récap compte) */}
+                        Adresse :{/* ℹ️ icône info (dans le récap compte) */}
                         <button
                           type="button"
                           className="text-gray-500 hover:text-gray-800"
@@ -210,19 +276,62 @@ function Account() {
                       {user?.adress || "Non renseignée"}
                     </li>
                   </ul>
-                  <button className="bg-black text-white px-4 py-2 rounded" onClick={() => setIsEditingAccount(true)}>
+                  <button
+                    className="bg-black text-white px-4 py-2 rounded"
+                    onClick={() => setIsEditingAccount(true)}
+                  >
                     Modifier mes informations
                   </button>
                 </>
               ) : (
                 <form onSubmit={handleSubmitAccount} className="space-y-4">
-                  <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Nom" className="w-full p-2 border rounded" />
-                  <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="Prénom" className="w-full p-2 border rounded" />
-                  <input type="email" disabled name="email" value={formData.email} onChange={handleChange} placeholder="Email" className="w-full p-2 border cursor-not-allowed rounded" />
-                  <input type="text" name="adress" value={formData.adress} onChange={handleChange} placeholder="Adresse" className="w-full p-2 border rounded" />
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    placeholder="Nom"
+                    className="w-full p-2 border rounded"
+                  />
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    placeholder="Prénom"
+                    className="w-full p-2 border rounded"
+                  />
+                  <input
+                    type="email"
+                    disabled
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="Email"
+                    className="w-full p-2 border cursor-not-allowed rounded"
+                  />
+                  <input
+                    type="text"
+                    name="adress"
+                    value={formData.adress}
+                    onChange={handleChange}
+                    placeholder="Adresse"
+                    className="w-full p-2 border rounded"
+                  />
                   <div className="flex gap-2">
-                    <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Enregistrer</button>
-                    <button type="button" onClick={() => setIsEditingAccount(false)} className="bg-gray-300 px-4 py-2 rounded">Annuler</button>
+                    <button
+                      type="submit"
+                      className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                    >
+                      Enregistrer
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingAccount(false)}
+                      className="bg-gray-300 px-4 py-2 rounded"
+                    >
+                      Annuler
+                    </button>
                   </div>
                 </form>
               )}
@@ -233,13 +342,16 @@ function Account() {
         {/* Card droite : Adresse */}
         {showAddressCard && (
           <div className="bg-gray-100 p-6 rounded shadow text-sm w-full h-[250px] overflow-hidden flex flex-col">
-            <h2 className="text-lg font-medium mb-2 flex-shrink-0">Mon adresse de livraison :</h2>
+            <h2 className="text-lg font-medium mb-2 flex-shrink-0">
+              Mon adresse de livraison :
+            </h2>
 
             {/* Bandeau d'aide (dans la "modal"/section adresse) */}
             <div className="mb-2 bg-blue-50 text-blue-900 border border-blue-200 rounded px-3 py-2 text-xs flex items-start gap-2">
               <span className="mt-[1px]">ℹ️</span>
               <span>
-                Format recommandé : <strong>N° de rue + rue, code postale, ville</strong>
+                Format recommandé :{" "}
+                <strong>N° de rue + rue, code postale, ville</strong>
               </span>
             </div>
 
@@ -247,7 +359,8 @@ function Account() {
               {!isEditingAddress ? (
                 <>
                   <p className="mt-[6px]">
-                    <strong>Adresse :</strong> {user?.adress || "Non renseignée"}
+                    <strong>Adresse :</strong>{" "}
+                    {user?.adress || "Non renseignée"}
                   </p>
                   <button
                     className="bg-black text-white px-4 py-2 rounded mt-[60px]"
@@ -268,12 +381,24 @@ function Account() {
                       className="w-full p-2 border rounded"
                     />
                     <p className="mt-1 text-[11px] text-gray-500">
-                      Exemple : 12 rue de l'ingénieur robert keller, 75015, Paris
+                      Exemple : 12 rue de l'ingénieur robert keller, 75015,
+                      Paris
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Enregistrer</button>
-                    <button type="button" onClick={() => setIsEditingAddress(false)} className="bg-gray-300 px-4 py-2 rounded">Annuler</button>
+                    <button
+                      type="submit"
+                      className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                    >
+                      Enregistrer
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingAddress(false)}
+                      className="bg-gray-300 px-4 py-2 rounded"
+                    >
+                      Annuler
+                    </button>
                   </div>
                 </form>
               )}
@@ -284,11 +409,15 @@ function Account() {
         {/* Card droite : Commandes */}
         {showOrdersCard && (
           <div className="bg-white p-6 rounded shadow text-sm w-full h-[520px] overflow-hidden flex flex-col">
-            <h2 className="text-lg font-medium mb-4 flex-shrink-0">Mes commandes</h2>
+            <h2 className="text-lg font-medium mb-4 flex-shrink-0">
+              Mes commandes
+            </h2>
             <div className="flex-1 overflow-y-auto pr-1">
               {loadingOrders && <p>Chargement des commandes…</p>}
               {ordersError && <p className="text-red-600">{ordersError}</p>}
-              {!loadingOrders && !ordersError && orders.length === 0 && <p>Aucune commande trouvée.</p>}
+              {!loadingOrders && !ordersError && orders.length === 0 && (
+                <p>Aucune commande trouvée.</p>
+              )}
 
               <div className="space-y-4">
                 {orders.map((o) => (
@@ -301,19 +430,31 @@ function Account() {
                       </div>
                     </div>
 
-                    <p className="text-gray-600 mt-1">Adresse : {o.deliveryAddress}</p>
+                    <p className="text-gray-600 mt-1">
+                      Adresse : {o.deliveryAddress}
+                    </p>
 
                     <ul className="mt-3 divide-y">
                       {o.items.map((it) => (
-                        <li key={it.id} className="py-2 flex items-center justify-between">
+                        <li
+                          key={it.id}
+                          className="py-2 flex items-center justify-between"
+                        >
                           <div className="flex items-center gap-3">
                             {it.product?.imageUrl && (
-                              <img src={it.product.imageUrl} alt={it.product.name}
-                                   className="w-10 h-10 object-cover rounded flex-shrink-0" />
+                              <img
+                                src={it.product.imageUrl}
+                                alt={it.product.name}
+                                className="w-10 h-10 object-cover rounded flex-shrink-0"
+                              />
                             )}
                             <div>
-                              <div className="font-medium">{it.product?.name ?? `Produit #${it.productId}`}</div>
-                              <div className="text-xs text-gray-500">Qté : {it.quantity}</div>
+                              <div className="font-medium">
+                                {it.product?.name ?? `Produit #${it.productId}`}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Qté : {it.quantity}
+                              </div>
                             </div>
                           </div>
                           <div className="font-semibold">
@@ -344,7 +485,9 @@ function Account() {
           <div className="flex items-start gap-3">
             <div className="text-blue-500 mt-[2px]">ℹ️</div>
             <div className="text-sm">
-              <div className="font-medium mb-1">Format d’adresse recommandé</div>
+              <div className="font-medium mb-1">
+                Format d’adresse recommandé
+              </div>
               <div className="text-gray-600">
                 12 rue de l'ingénieur robert keller, 75015, Paris
               </div>
@@ -371,7 +514,9 @@ function Account() {
           <div className="flex items-start gap-3">
             <div className="text-red-600 mt-[2px]">⚠️</div>
             <div className="text-sm">
-              <div className="font-medium mb-1 text-red-700">Adresse non valide</div>
+              <div className="font-medium mb-1 text-red-700">
+                Adresse non valide
+              </div>
               <div className="text-gray-700">{errorToast}</div>
             </div>
             <button

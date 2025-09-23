@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import api from "../api/api";
-import { IProduct } from "../api/product.interface";
+import api from "../../api/api";
+import { IProduct } from "../../api/product.interface";
 
 function Product() {
   const { productId } = useParams();
@@ -11,7 +11,8 @@ function Product() {
 
   useEffect(() => {
     if (productId) {
-      api.get(`/products/${productId}`)
+      api
+        .get(`/products/${productId}`)
         .then((res) => setProduct(res.data))
         .catch((err) => console.error("Erreur produit :", err))
         .finally(() => setLoading(false));
@@ -21,7 +22,10 @@ function Product() {
   const formatDescription = (description: string | undefined) => {
     if (!description) return null;
 
-    const parts = description.split(/✅/).map(p => p.trim()).filter(Boolean);
+    const parts = description
+      .split(/✅/)
+      .map((p) => p.trim())
+      .filter(Boolean);
     const intro = parts.shift();
 
     return (
@@ -39,12 +43,17 @@ function Product() {
   };
 
   if (loading) return <div className="p-6 text-center">Chargement...</div>;
-  if (!product) return <div className="p-6 text-red-600 text-center">Produit introuvable</div>;
+  if (!product)
+    return (
+      <div className="p-6 text-red-600 text-center">Produit introuvable</div>
+    );
 
   return (
     <div className="font-sans py-16 px-4 sm:px-6 lg:px-8 bg-white min-h-screen mt-[100px] shadow">
       <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-md">
-        <h1 className="text-2xl font-bold text-center mb-8">Détails du produit</h1>
+        <h1 className="text-2xl font-bold text-center mb-8">
+          Détails du produit
+        </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
           {/* Image */}
@@ -64,7 +73,9 @@ function Product() {
 
             <p>
               <strong>Prix :</strong>{" "}
-              <span className="text-green-600 font-semibold">{Number(product.price).toFixed(2)} €</span>
+              <span className="text-green-600 font-semibold">
+                {Number(product.price).toFixed(2)} €
+              </span>
             </p>
             <p>
               <strong>Stock :</strong> {product.stock}

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import api from "../api/api";
+import api from "../../api/api";
 
 const Register = () => {
   const [firstName, setFirstName] = useState("");
@@ -14,7 +14,7 @@ const Register = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-  
+
     try {
       const response = await api.post("/users", {
         firstName,
@@ -22,7 +22,7 @@ const Register = () => {
         email,
         password,
       });
-  
+
       if (response.status === 201 || response.status === 200) {
         navigate("/check");
       } else {
@@ -30,7 +30,7 @@ const Register = () => {
       }
     } catch (error: any) {
       console.error("Erreur d'inscription :", error);
-  
+
       if (error.response?.status === 400) {
         setError("Cette adresse email est déjà utilisée.");
       } else {
@@ -42,7 +42,9 @@ const Register = () => {
   return (
     <div className="mt-[90px] flex items-center justify-center min-h-screen bg-gray-50 px-4">
       <div className="bg-white shadow-md rounded-lg w-full max-w-md p-8">
-        <h2 className="text-2xl font-bold mb-6 text-center text-slate-800">Créer un compte</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center text-slate-800">
+          Créer un compte
+        </h2>
 
         {error && (
           <div className="mb-4 text-sm text-red-600 bg-red-100 p-2 rounded">
@@ -52,7 +54,12 @@ const Register = () => {
 
         <form onSubmit={handleRegister} className="space-y-4">
           <div>
-            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Nom</label>
+            <label
+              htmlFor="lastName"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Nom
+            </label>
             <input
               id="lastName"
               type="text"
@@ -64,7 +71,12 @@ const Register = () => {
           </div>
 
           <div>
-            <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">Prénom</label>
+            <label
+              htmlFor="firstName"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Prénom
+            </label>
             <input
               id="firstName"
               type="text"
@@ -76,7 +88,12 @@ const Register = () => {
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Adresse email</label>
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Adresse email
+            </label>
             <input
               id="email"
               type="email"
@@ -88,7 +105,12 @@ const Register = () => {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Mot de passe</label>
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Mot de passe
+            </label>
             <div className="relative">
               <input
                 id="password"
@@ -119,7 +141,10 @@ const Register = () => {
 
         <p className="text-sm text-center mt-6 text-gray-600">
           Déjà un compte ?{" "}
-          <Link to="/Login" className="text-slate-800 font-medium hover:underline">
+          <Link
+            to="/Login"
+            className="text-slate-800 font-medium hover:underline"
+          >
             Se connecter
           </Link>
         </p>

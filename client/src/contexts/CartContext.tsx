@@ -6,17 +6,17 @@ import React, {
   ReactNode,
   useCallback,
   useMemo,
-} from 'react';
-import api from '../api/api';
-import { ICart } from '../api/cart.interface';
-import { useAuth } from './AuthContext';
+} from "react";
+import api from "../../api/api";
+import { ICart } from "../../api/cart.interface";
+import { useAuth } from "./AuthContext";
 
 interface CartContextType {
   carts: ICart[];
   setCarts: React.Dispatch<React.SetStateAction<ICart[]>>;
   fetchCart: () => Promise<void>;
-  totalItems: number;      // Nombre de produits distincts
-  totalQuantity: number;   // Quantité totale
+  totalItems: number; // Nombre de produits distincts
+  totalQuantity: number; // Quantité totale
   firstCart: ICart | null;
 }
 
@@ -25,18 +25,20 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const useCart = (): CartContextType => {
   const context = useContext(CartContext);
   if (!context) {
-    throw new Error('useCart must be used within a CartProvider');
+    throw new Error("useCart must be used within a CartProvider");
   }
   return context;
 };
 
-export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const CartProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [carts, setCarts] = useState<ICart[]>([]);
   const { isAuthenticated } = useAuth();
 
   const fetchCart = useCallback(async () => {
     try {
-      const res = await api.get<ICart[]>('/carts/users/me');
+      const res = await api.get<ICart[]>("/carts/users/me");
       setCarts(res.data || []);
     } catch {
       setCarts([]);
@@ -55,7 +57,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // 👉 dérivé de carts
   const firstCart = carts.length > 0 ? carts[0] : null;
   const totalItems = firstCart?.items?.length ?? 0;
-  const totalQuantity = firstCart?.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
+  const totalQuantity =
+    firstCart?.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
 
   const value = useMemo(
     () => ({
