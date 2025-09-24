@@ -54,7 +54,8 @@ const bootstrap = async () => {
   app.enableCors({
     origin: [
       process.env.FRONTEND_URL,
-      process.env.BACKOFFICE_URL,
+      process.env.FRONTEND_TEST_URL,
+      process.env.BACKOFFICE_TEST_URL,
       process.env.BACKOFFICE_UP_URL,
     ],
     credentials: true,
