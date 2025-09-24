@@ -17,8 +17,8 @@ function Login() {
     setLoading(true);
 
     try {
-      await login(email, password); // Appelle le login de AuthContext
-      navigate("/"); // Redirection après le login réussi
+      await login(email, password);
+      navigate("/");
     } catch (err: any) {
       console.error("Erreur lors de la connexion :", err);
       const backendMsg =

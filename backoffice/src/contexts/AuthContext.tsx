@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  ReactNode,
-  useEffect,
-} from "react";
+import React, { createContext, useContext, useState, ReactNode } from "react";
 import api from "../api/api";
 
 interface User {
@@ -19,7 +13,6 @@ interface AuthContextType {
   logout: () => Promise<void>;
   authLoading: boolean;
   user: User | null;
-  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,25 +22,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authLoading, setAuthLoading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
-  const refreshUser = async () => {
-    try {
-      setAuthLoading(true);
-      const { data } = await api.get<User>("/me");
-      setUser(data);
-      setIsAuthenticated(true);
-    } catch (err) {
-      setUser(null);
-      setIsAuthenticated(false);
-    } finally {
-      setAuthLoading(false);
-    }
-  };
-
   const login = async (email: string, password: string) => {
     try {
       setAuthLoading(true);
+      // Appel login → serveur met le cookie
       await api.post("/login", { email, password });
-      await refreshUser();
+
+      // Ensuite seulement on récupère l’utilisateur
+      const { data } = await api.get<User>("/me");
+      setUser(data);
+      setIsAuthenticated(true);
     } catch (err) {
       console.error("Erreur login :", err);
       setUser(null);
@@ -71,13 +55,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  useEffect(() => {
-    refreshUser();
-  }, []);
-
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, login, logout, authLoading, user, refreshUser }}
+      value={{ isAuthenticated, login, logout, authLoading, user }}
     >
       {children}
     </AuthContext.Provider>
