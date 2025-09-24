@@ -1,3 +1,4 @@
+// AuthContext.tsx
 import React, {
   createContext,
   useContext,
@@ -7,16 +8,12 @@ import React, {
 } from "react";
 import api from "../connect_to_api/api";
 
-interface User {
-  id: number;
-}
-
 interface AuthContextType {
   isAuthenticated: boolean;
   login: () => Promise<void>;
   logout: () => Promise<void>;
   authLoading: boolean;
-  user: User | null;
+  user: { id: number } | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,28 +21,26 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authLoading, setAuthLoading] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
-
-  const fetchUser = async () => {
-    try {
-      const res = await api.get<User>("/users/me");
-      setUser(res.data);
-      setIsAuthenticated(true);
-    } catch (error) {
-      setUser(null);
-      setIsAuthenticated(false);
-    } finally {
-      setAuthLoading(false);
-    }
-  };
-
+  const [user, setUser] = useState<{ id: number } | null>(null);
   useEffect(() => {
-    fetchUser();
+    const init = async () => {
+      try {
+        const res = await api.get<{ id: number }>("/users/me");
+        setUser(res.data);
+        setIsAuthenticated(true);
+      } catch {
+        setUser(null);
+        setIsAuthenticated(false);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+    init();
   }, []);
 
   const login = async () => {
     try {
-      const res = await api.get<User>("/users/me");
+      const res = await api.get<{ id: number }>("/users/me");
       setUser(res.data);
       setIsAuthenticated(true);
     } catch (err) {
@@ -57,7 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      await api.post("/users/logout");
+      await api.post("/auth/logout");
     } catch (err) {
       console.error("Erreur logout :", err);
     } finally {
