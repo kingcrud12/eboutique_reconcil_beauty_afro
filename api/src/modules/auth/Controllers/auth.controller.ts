@@ -50,11 +50,20 @@ export class AuthController {
   }
 
   @Post('logout')
-  @ApiOperation({
-    summary: 'Déconnexion à mon compte',
-  })
-  logout(): { message: string } {
-    return this.authService.logout();
+  logout(@Res({ passthrough: true }) res: Response) {
+    const cookieOptions = {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none' as 'none' | 'lax' | 'strict',
+      path: '/',
+    };
+
+    res.clearCookie('token', {
+      path: cookieOptions.path,
+      sameSite: cookieOptions.sameSite,
+      secure: cookieOptions.secure,
+    });
+    return { message: 'Logged out' };
   }
 
   @Patch('confirm-account')

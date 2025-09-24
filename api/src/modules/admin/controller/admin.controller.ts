@@ -36,31 +36,34 @@ export class AdminController {
   ) {}
 
   @Post('login')
-  @ApiOperation({
-    summary: 'Connexion à mon compte administrateur',
-  })
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response,
   ) {
     const { email, password } = loginDto;
-
     const user = await this.authservice.validateUser(email, password);
-
-    if (!user) {
+    if (!user)
       throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
-    }
     await this.ensureIsAdmin(user);
 
     const { token } = await this.adminService.login(email);
 
-    res.clearCookie('token', { path: '/' });
-    res.cookie('token', token, {
+    const cookieOptions = {
       httpOnly: true,
       secure: true,
-      sameSite: 'none',
-      maxAge: 1000 * 60 * 60 * 24,
+      sameSite: 'none' as 'none' | 'lax' | 'strict',
+      path: '/',
+      maxAge: 24 * 60 * 60 * 1000,
+    };
+
+    res.clearCookie('token', {
+      path: cookieOptions.path,
+      sameSite: cookieOptions.sameSite,
+      secure: cookieOptions.secure,
     });
+
+    res.cookie('token', token, cookieOptions);
+
     return { message: 'Login successful' };
   }
 
