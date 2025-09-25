@@ -8,7 +8,6 @@ export interface ITPReview {
   id?: string | null;
 }
 
-// Typages pour le JSON LD
 interface JsonReviewRating {
   ratingValue?: string | number;
 }
