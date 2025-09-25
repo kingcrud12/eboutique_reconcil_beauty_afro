@@ -15,8 +15,8 @@ interface CartContextType {
   carts: ICart[];
   setCarts: React.Dispatch<React.SetStateAction<ICart[]>>;
   fetchCart: () => Promise<void>;
-  totalItems: number; // Nombre de produits distincts
-  totalQuantity: number; // Quantité totale
+  totalItems: number;
+  totalQuantity: number;
   firstCart: ICart | null;
 }
 

@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { User, ShoppingCart, Menu } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext'; 
-import { useCart } from '../contexts/CartContext';
+import React, { useState, useRef, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { User, ShoppingCart, Menu } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { useCart } from "../contexts/CartContext";
 
 function Appbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -19,8 +19,8 @@ function Appbar() {
         setUserModalOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -32,14 +32,13 @@ function Appbar() {
   const handleLogout = () => {
     logout();
     setCarts([]);
-    window.dispatchEvent(new Event('cart:clear')); 
+    window.dispatchEvent(new Event("cart:clear"));
     setUserModalOpen(false);
-
   };
 
   const handleLoginRedirect = () => {
     setUserModalOpen(false);
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
@@ -53,7 +52,9 @@ function Appbar() {
 
         <Link to="/" className="flex flex-col items-center">
           <img src="/AM_LOGO.png" alt="Logo" className="h-10 sm:h-12 w-auto" />
-          <p className="text-[10px] sm:text-xs leading-none">Réconcil' Afro Beauty</p>
+          <p className="text-[10px] sm:text-xs leading-none">
+            Réconcil' Afro Beauty
+          </p>
         </Link>
 
         <div className="flex items-center gap-4 relative" ref={userRef}>
@@ -62,7 +63,10 @@ function Appbar() {
             onClick={() => setUserModalOpen(!userModalOpen)}
           />
 
-          <div className="relative cursor-pointer hover:text-gray-400" onClick={() => navigate('/cart')}>
+          <div
+            className="relative cursor-pointer hover:text-gray-400"
+            onClick={() => navigate("/cart")}
+          >
             <ShoppingCart className="w-6 h-6" />
             {totalQuantity > 0 && (
               <span className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full px-1 text-xs">
@@ -103,16 +107,28 @@ function Appbar() {
       </div>
 
       <div className="hidden md:flex justify-center space-x-10 mt-[-20px] text-sm font-medium">
-        <Link to="/products" className="hover:text-gray-300">Nos produits</Link>
-        <Link to="/about" className="hover:text-gray-300">A propos de nous</Link>
-        <Link to="/appointment" className="hover:text-gray-300">Prenez rendez-vous</Link>
+        <Link to="/products" className="hover:text-gray-300">
+          Nos produits
+        </Link>
+        <Link to="/about" className="hover:text-gray-300">
+          A propos de nous
+        </Link>
+        <Link to="/appointment" className="hover:text-gray-300">
+          Prenez rendez-vous
+        </Link>
       </div>
 
       {menuOpen && (
         <div className="md:hidden mt-2 flex flex-col space-y-2 text-sm font-medium">
-          <Link to="/products" className="hover:text-gray-300">Nos produits</Link>
-          <Link to="/about" className="hover:text-gray-300">A propos de nous</Link>
-          <Link to="/appointment" className="hover:text-gray-300">Prenez rendez-vous</Link>
+          <Link to="/products" className="hover:text-gray-300">
+            Nos produits
+          </Link>
+          <Link to="/about" className="hover:text-gray-300">
+            A propos de nous
+          </Link>
+          <Link to="/appointment" className="hover:text-gray-300">
+            Prenez rendez-vous
+          </Link>
         </div>
       )}
     </div>

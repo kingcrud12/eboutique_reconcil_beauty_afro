@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 function Footer() {
   return (
@@ -9,11 +9,11 @@ function Footer() {
         <div className="md:max-w-md">
           <div className="flex items-center gap-2 mb-4">
             <img src="/AM_LOGO.png" alt="Logo" className="w-[100px] h-[90px]" />
-            <span className="text-2xl font-bold mt-[-10px]">Réconcil' Afro Beauty</span>
+            <span className="text-2xl font-bold mt-[-10px]">
+              Réconcil' Afro Beauty
+            </span>
           </div>
-          <p className="text-gray-300">
-            Your natural candle made for your home and for your wellness.
-          </p>
+          <p className="text-gray-300">Texte à trouver pour cet espace</p>
         </div>
 
         {/* Liens groupés en responsive */}
@@ -27,7 +27,9 @@ function Footer() {
             </ul>
           </div>
           <div className="min-w-[130px]">
-            <h4 className="text-green-500 font-semibold mb-4">A propos de nous</h4>
+            <h4 className="text-green-500 font-semibold mb-4">
+              A propos de nous
+            </h4>
             <ul className="space-y-2">
               <li>Help</li>
               <li>Shipping</li>
@@ -49,7 +51,8 @@ function Footer() {
       <div className="mt-6 pt-4 border-t border-gray-700 text-sm text-gray-400 flex flex-col md:flex-row justify-between items-center gap-2">
         <p>© Yann Dipita All Rights Reserved.</p>
         <p>
-          Designed with <span className="text-red-500">❤️</span> by <span className="text-white">Yann Dipita</span>
+          Designed with <span className="text-red-500">❤️</span> by{" "}
+          <span className="text-white">Yann Dipita</span>
         </p>
       </div>
     </footer>
