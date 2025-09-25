@@ -16,6 +16,7 @@ import { OrderModule } from './modules/order/order.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { PrestationsModule } from './modules/prestations/prestations.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { TrustpilotModule } from './modules/trustPilot/trustpilot.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     OrderModule,
     PaymentsModule,
     PrestationsModule,
+    TrustpilotModule,
   ],
   controllers: [AppController],
   providers: [AppService],
