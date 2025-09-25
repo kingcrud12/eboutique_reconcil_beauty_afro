@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom"; 
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./Layout/Layout";
 import Home from "./pages/Home";
 import About from "./pages/About";
@@ -12,12 +12,13 @@ import Product from "./pages/Product";
 import ConfirmAccount from "./pages/ConfirmAccount";
 import CheckEmail from "./pages/CheckEmail";
 import ResetPassword from "./pages/ResetPassword";
-import Cart from "./pages/Cart"
+import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Orders from "./pages/Orders";
 import CancelPage from "./pages/CancelPage";
 import SuccessPageSlot from "./pages/SuccessPageSlot";
 import SuccessPageOrder from "./pages/SucessPageOrder";
+import TestPage from "./TestPage";
 
 function App() {
   return (
@@ -40,7 +41,7 @@ function App() {
           <Route path="checkout/success/slot" element={<SuccessPageSlot />} />
           <Route path="checkout/success" element={<SuccessPageOrder />} />
           <Route path="checkout/cancel" element={<CancelPage />} />
-
+          <Route path="TestPage" element={<TestPage />} />
 
           <Route
             path="account"
