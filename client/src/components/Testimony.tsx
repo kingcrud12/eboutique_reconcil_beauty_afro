@@ -1,28 +1,34 @@
-// Testimony.tsx
+// src/components/Testimony.tsx
 import React, { useEffect, useRef, useState } from "react";
 
 /**
- * Composant minimal pour afficher Trustpilot reviews uniquement.
- * - Affiche TrustBox (widget officiel)
- * - Si le widget ne rend rien après un délai, affiche "Aucun avis pour le moment"
- * - Bouton "Laisser / éditer sur Trustpilot" ouvre Trustpilot dans un nouvel onglet
- * - Quand l'utilisateur revient sur l'onglet (visibilitychange), on ré-initialise le widget
+ * Testimony: affiche le Trustpilot Reviews widget + un Review Collector.
  *
- * Remplace BUSINESS_UNIT_ID et REVIEW_URL par tes valeurs Trustpilot.
+ * - Vérifie la présence du script global (index.html) sinon l'injecte.
+ * - Réinitialise le widget quand l'utilisateur revient sur l'onglet.
+ *
+ * IMPORTANT: Remplace TEMPLATE_ID_REVIEW / TEMPLATE_ID_COLLECTOR / DATA_TOKEN_COLLECTOR
+ * par les valeurs exactes fournies dans ton compte Trustpilot si nécessaire.
  */
 
-// ==== CONFIG ====
-// business unit id fourni par Trustpilot (remplace par le tien)
+// ---- CONFIG (remplace si besoin depuis ton dashboard Trustpilot) ----
+// Template pour l'affichage des avis (reviews). Exemple que tu as mentionné plus haut:
+const TEMPLATE_ID_REVIEW = "53aa8807dec7e10d38f59f36";
+
+// Template pour le "Review Collector" (permet aux visiteurs d'envoyer un avis)
+const TEMPLATE_ID_COLLECTOR = "56278e9abfbbba0bdcd568bc";
+// Token fourni pour le collector (si fourni)
+const DATA_TOKEN_COLLECTOR = "4c45da26-04cf-4f60-88e0-2b47f88ca5ee";
+
+// business unit id
 const BUSINESS_UNIT_ID = "68d4f8190cc45584c391486f";
-// url publique de la page review sur Trustpilot (où l'utilisateur peut laisser/éditer son avis)
+// url publique review
 const TRUSTPILOT_REVIEW_URL =
   "https://fr.trustpilot.com/review/eboutique-reconcil-beauty-afro.vercel.app";
-// template id — choisis un template "reviews" depuis Trustpilot, ici un template d'exemple
-const TEMPLATE_ID = "53aa8807dec7e10d38f59f36";
-// style height for the TrustBox
+
+// style height
 const STYLE_HEIGHT = "320px";
 
-// ==== types pour window.Trustpilot (TS) ====
 declare global {
   interface Window {
     Trustpilot?: {
@@ -32,7 +38,8 @@ declare global {
 }
 
 export default function Testimony() {
-  const trustboxRef = useRef<HTMLDivElement | null>(null);
+  const reviewRef = useRef<HTMLDivElement | null>(null);
+  const collectorRef = useRef<HTMLDivElement | null>(null);
   const [loadingWidget, setLoadingWidget] = useState(true);
   const [noReviews, setNoReviews] = useState(false);
 
@@ -41,14 +48,17 @@ export default function Testimony() {
     const SCRIPT_SRC =
       "//widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js";
 
-    const initWidget = () => {
-      // si la lib est dispo, on appelle la méthode d'init (si fournie)
+    const init = () => {
       if (
         window.Trustpilot &&
         typeof window.Trustpilot.loadFromElement === "function"
       ) {
         try {
-          window.Trustpilot.loadFromElement(trustboxRef.current);
+          // init both elements if present
+          if (reviewRef.current)
+            window.Trustpilot.loadFromElement(reviewRef.current);
+          if (collectorRef.current)
+            window.Trustpilot.loadFromElement(collectorRef.current);
         } catch (e) {
           // ignore
         }
@@ -62,33 +72,28 @@ export default function Testimony() {
         s.async = true;
         s.onload = () => {
           if (!mounted) return;
-          initWidget();
+          init();
           setLoadingWidget(false);
-          // après init, vérifie si le widget a rendu du contenu
           setTimeout(checkRendered, 1200);
         };
         document.head.appendChild(s);
       } else {
-        // script déjà présent
         setTimeout(() => {
-          initWidget();
+          init();
           setLoadingWidget(false);
           setTimeout(checkRendered, 1200);
         }, 50);
       }
     };
 
-    // fonction qui regarde si le TrustBox a rendu quelque chose
     const checkRendered = () => {
       if (!mounted) return;
-      const el = trustboxRef.current;
+      const el = reviewRef.current;
       if (!el) {
         setNoReviews(true);
         return;
       }
-      // heuristique : si innerText vide ou trop court → aucun avis visible
       const text = el.innerText?.trim() ?? "";
-      // si le widget utilise iframe, innerText peut être vide mais le iframe présent => on checke presence d'iframe ou d'enfants
       const hasIframe = !!el.querySelector("iframe");
       const hasChildren = el.children.length > 0;
       if ((!text || text.length < 20) && !hasIframe && !hasChildren) {
@@ -100,31 +105,33 @@ export default function Testimony() {
 
     insertScriptIfNeeded();
 
-    // quand l'utilisateur revient sur la page (après édition sur Trustpilot), on ré-init le widget
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
-        // réinitialiser le TrustBox sans faire un reload complet
-        if (
-          window.Trustpilot &&
-          typeof window.Trustpilot.loadFromElement === "function"
-        ) {
-          try {
-            window.Trustpilot.loadFromElement(trustboxRef.current);
-          } catch (e) {
-            // noop
+        try {
+          if (
+            window.Trustpilot &&
+            typeof window.Trustpilot.loadFromElement === "function"
+          ) {
+            if (reviewRef.current)
+              window.Trustpilot.loadFromElement(reviewRef.current);
+            if (collectorRef.current)
+              window.Trustpilot.loadFromElement(collectorRef.current);
+          } else {
+            setTimeout(() => {
+              if (
+                window.Trustpilot &&
+                typeof window.Trustpilot.loadFromElement === "function"
+              ) {
+                if (reviewRef.current)
+                  window.Trustpilot.loadFromElement(reviewRef.current);
+                if (collectorRef.current)
+                  window.Trustpilot.loadFromElement(collectorRef.current);
+              }
+            }, 500);
           }
-        } else {
-          // si la lib n'est pas prête, on réessaye après un court délai
-          setTimeout(() => {
-            if (
-              window.Trustpilot &&
-              typeof window.Trustpilot.loadFromElement === "function"
-            ) {
-              window.Trustpilot.loadFromElement(trustboxRef.current);
-            }
-          }, 500);
+        } catch (e) {
+          // noop
         }
-        // re-vérifier le rendu après un court délai
         setTimeout(checkRendered, 1000);
       }
     };
@@ -138,14 +145,12 @@ export default function Testimony() {
   }, []);
 
   const openTrustpilot = () => {
-    // Ouvre Trustpilot dans un nouvel onglet — l'utilisateur peut éditer là-bas.
-    // Quand il revient, notre listener visibilitychange ré-initialisera le widget.
     window.open(TRUSTPILOT_REVIEW_URL, "_blank", "noopener,noreferrer");
   };
 
   return (
     <section className="bg-[#f0f9f5] py-16 px-4">
-      <div className="text-center mb-8">
+      <div className="text-center mb-6">
         <h2 className="text-4xl font-bold text-slate-800">Ils ont adoré</h2>
         <p className="text-slate-500 mt-2">Avis vérifiés via Trustpilot</p>
       </div>
@@ -165,7 +170,8 @@ export default function Testimony() {
               typeof window.Trustpilot.loadFromElement === "function"
             ) {
               try {
-                window.Trustpilot.loadFromElement(trustboxRef.current);
+                if (reviewRef.current)
+                  window.Trustpilot.loadFromElement(reviewRef.current);
               } catch {
                 window.location.reload();
               }
@@ -179,7 +185,6 @@ export default function Testimony() {
         </button>
       </div>
 
-      {/* Message pendant le chargement ou si pas d'avis */}
       {loadingWidget && (
         <div className="text-center text-slate-600 mb-4">
           Chargement des avis…
@@ -192,8 +197,8 @@ export default function Testimony() {
             Aucun avis disponible pour le moment.
           </p>
           <p className="text-sm text-slate-500 mb-4">
-            Soyez le premier à laisser un avis ! Cliquez sur « Laisser / éditer
-            sur Trustpilot » pour écrire votre avis.
+            Soyez le premier à laisser un avis ! Cliquez sur « Donner votre avis
+            ».
           </p>
           <button
             onClick={openTrustpilot}
@@ -204,14 +209,14 @@ export default function Testimony() {
         </div>
       )}
 
-      {/* TrustBox widget */}
-      <div className="max-w-6xl mx-auto">
+      {/* Reviews display widget */}
+      <div className="max-w-6xl mx-auto mb-8">
         <div
-          ref={trustboxRef}
+          ref={reviewRef}
           className="trustpilot-widget"
           style={{ width: "100%", height: STYLE_HEIGHT }}
           data-locale="fr-FR"
-          data-template-id={TEMPLATE_ID}
+          data-template-id={TEMPLATE_ID_REVIEW}
           data-businessunit-id={BUSINESS_UNIT_ID}
           data-style-height={STYLE_HEIGHT}
           data-style-width="100%"
@@ -226,11 +231,33 @@ export default function Testimony() {
         </div>
       </div>
 
+      {/* Review Collector: montre un petit collecteur / bouton (optionnel) */}
+      <div className="max-w-6xl mx-auto">
+        <div
+          ref={collectorRef}
+          className="trustpilot-widget"
+          data-locale="fr-FR"
+          data-template-id={TEMPLATE_ID_COLLECTOR}
+          data-businessunit-id={BUSINESS_UNIT_ID}
+          data-style-height="52px"
+          data-style-width="100%"
+          data-token={DATA_TOKEN_COLLECTOR}
+        >
+          <a
+            href={TRUSTPILOT_REVIEW_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Laisser un avis sur Trustpilot
+          </a>
+        </div>
+      </div>
+
       <p className="text-center text-sm text-slate-500 mt-6 max-w-3xl mx-auto">
         Les avis sont gérés par Trustpilot. Pour modifier un avis existant,
-        cliquez sur « Laisser / éditer sur Trustpilot », connectez-vous sur
-        Trustpilot, modifiez votre avis, puis revenez ici — le widget se mettra
-        à jour automatiquement lorsque vous reviendrez sur la page.
+        cliquez sur « Donner votre avis », connectez-vous sur Trustpilot,
+        modifiez votre avis, puis revenez ici — le widget se mettra à jour
+        automatiquement.
       </p>
     </section>
   );
