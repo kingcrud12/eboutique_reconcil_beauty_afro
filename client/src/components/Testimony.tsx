@@ -155,12 +155,11 @@ export default function Testimony() {
           onClick={openTrustpilot}
           className="bg-white border border-slate-300 px-4 py-2 rounded-lg shadow hover:shadow-md"
         >
-          éditer sur Trustpilot
+          Donner votre avis
         </button>
 
         <button
           onClick={() => {
-            // si la lib est présente, on recharge juste l'élément
             if (
               window.Trustpilot &&
               typeof window.Trustpilot.loadFromElement === "function"
@@ -168,7 +167,6 @@ export default function Testimony() {
               try {
                 window.Trustpilot.loadFromElement(trustboxRef.current);
               } catch {
-                // fallback: full reload
                 window.location.reload();
               }
             } else {

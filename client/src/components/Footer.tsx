@@ -21,9 +21,9 @@ function Footer() {
           <div className="min-w-[130px]">
             <h4 className="text-green-500 font-semibold mb-4">Nos produits</h4>
             <ul className="space-y-2">
-              <li>New season</li>
-              <li>Most searched</li>
-              <li>Most selled</li>
+              <li>Nouveau produit</li>
+              <li>Nos produits populaires</li>
+              <li>Nos best sellers</li>
             </ul>
           </div>
           <div className="min-w-[130px]">
@@ -31,17 +31,24 @@ function Footer() {
               A propos de nous
             </h4>
             <ul className="space-y-2">
-              <li>Help</li>
-              <li>Shipping</li>
-              <li>Affiliate</li>
+              <li>Aide</li>
+              <li>Livraisons</li>
+              <li>Affiliation</li>
             </ul>
           </div>
           <div className="min-w-[130px]">
             <h4 className="text-green-500 font-semibold mb-4">Info</h4>
             <ul className="space-y-2">
-              <li>Contact us</li>
-              <li>Privacy Policies</li>
-              <li>Terms & Conditions</li>
+              <li>
+                <a
+                  href="/contact"
+                  className="hover:text-green-500 transition-colors"
+                >
+                  Contactez nous
+                </a>
+              </li>
+              <li>Politique de confidentialité</li>
+              <li>Termes & Conditions</li>
             </ul>
           </div>
         </div>
