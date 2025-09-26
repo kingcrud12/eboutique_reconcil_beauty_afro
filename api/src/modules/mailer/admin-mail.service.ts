@@ -7,8 +7,8 @@ type DeliveryMode = 'EXPRESS' | 'HOME' | 'RELAY';
 interface OrderItemCtx {
   name: string;
   quantity: number;
-  unitPrice: number; // sera formaté en "xx.xx"
-  lineTotal: number; // sera formaté en "xx.xx"
+  unitPrice: number | string; // peut être number, sera formaté en "xx.xx"
+  lineTotal: number | string; // peut être number, sera formaté en "xx.xx"
 }
 
 interface AdminOrderMailContext {
@@ -22,9 +22,9 @@ interface AdminOrderMailContext {
   etaDays?: number;
 
   items: OrderItemCtx[];
-  itemsSubtotal: number;
-  shippingFee: number;
-  total: number;
+  itemsSubtotal: number | string;
+  shippingFee: number | string;
+  total: number | string;
 }
 
 @Injectable()
@@ -57,7 +57,7 @@ export class AdminMailService {
     const adminEmails = admins.map((a) => a.email).filter(Boolean);
     if (adminEmails.length === 0) return;
 
-    // formater les montants en "xx.xx"
+    // formater les montants en string "xx.xx"
     const items = ctx.items.map((it) => ({
       ...it,
       unitPrice: Number(it.unitPrice).toFixed(2),

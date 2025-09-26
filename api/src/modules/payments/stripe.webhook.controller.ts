@@ -168,49 +168,55 @@ export class StripeWebhookController {
           );
 
           if (fullOrder?.user?.email) {
+            // formatage des items
             const items = fullOrder.items.map((it) => {
               const unit = Number(it.unitPrice);
               const qty = it.quantity;
+              const lineTotalNum = Number.isFinite(unit) ? unit * qty : 0;
               return {
                 name: it.product?.name ?? `Produit #${it.productId}`,
                 quantity: qty,
-                unitPrice: Number.isFinite(unit) ? unit : 0,
-                lineTotal: Number.isFinite(unit) ? +(unit * qty).toFixed(2) : 0,
+                unitPrice: Number.isFinite(unit) ? unit.toFixed(2) : '0.00', // string
+                lineTotal: lineTotalNum.toFixed(2), // string
               };
             });
 
-            const itemsSubtotal = +items
-              .reduce((s, i) => s + i.lineTotal, 0)
-              .toFixed(2);
+            // calcul du sous-total des articles
+            const itemsSubtotalNum = items.reduce(
+              (s, i) => s + Number(i.lineTotal),
+              0,
+            );
+            const itemsSubtotal = itemsSubtotalNum.toFixed(2); // string
 
             // shippingFee peut être Decimal | number | string | null
             const shippingFeeRaw = fullOrder.shippingFee as Decimal | number;
-            const shippingFee = Number(shippingFeeRaw ?? 0);
-            const safeShippingFee = Number.isFinite(shippingFee)
-              ? +shippingFee.toFixed(2)
-              : 0;
+            const shippingFeeNum = Number(shippingFeeRaw ?? 0);
+            const shippingFee = shippingFeeNum.toFixed(2); // string
 
+            // total
             const totalRaw =
               typeof fullOrder.total === 'number'
                 ? fullOrder.total
-                : Number(fullOrder.total as any);
-            const total = Number.isFinite(totalRaw)
-              ? +totalRaw.toFixed(2)
-              : +(itemsSubtotal + safeShippingFee).toFixed(2);
+                : Number(fullOrder.total ?? 0);
+            const totalNum = Number.isFinite(totalRaw)
+              ? totalRaw
+              : itemsSubtotalNum + shippingFeeNum;
+            const total = totalNum.toFixed(2); // string
 
+            // envoi mail client
             await this.mailService.sendOrderPaidEmail(fullOrder.user.email, {
               orderId: fullOrder.id,
               customerFirstName: fullOrder.user.firstName ?? undefined,
               customerLastName: fullOrder.user.lastName ?? undefined,
               deliveryMode: fullOrder.deliveryMode as DeliveryMode,
               deliveryAddress: fullOrder.deliveryAddress ?? undefined,
-
               items,
               itemsSubtotal,
-              shippingFee: safeShippingFee,
+              shippingFee,
               total,
-              // etaDays est ajouté par le MailService
             });
+
+            // envoi mail admins
             await this.adminMailService.sendOrderPaidToAdmins({
               orderId: fullOrder.id,
               customerFirstName: fullOrder.user.firstName ?? undefined,
@@ -219,10 +225,11 @@ export class StripeWebhookController {
               deliveryAddress: fullOrder.deliveryAddress ?? undefined,
               items,
               itemsSubtotal,
-              shippingFee: safeShippingFee,
+              shippingFee,
               total,
             });
           }
+
           break;
         }
         case 'payment_intent.payment_failed': {
