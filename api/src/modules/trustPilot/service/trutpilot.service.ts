@@ -75,7 +75,6 @@ export class TrustpilotService {
       } else if (typeof err === 'string') {
         message = err;
       } else {
-        // Convertit proprement un objet en JSON pour le logging
         try {
           message = JSON.stringify(err);
         } catch {
@@ -102,12 +101,9 @@ export class TrustpilotService {
         ];
 
         nodes.forEach((node) => {
+          // ✅ On ne garde que les vrais Review nodes
           if (node['@type'] === 'Review') {
             results.push(this.mapNodeToReview(node));
-          }
-
-          if (node.review && Array.isArray(node.review)) {
-            node.review.forEach((r) => results.push(this.mapNodeToReview(r)));
           }
         });
       } catch {

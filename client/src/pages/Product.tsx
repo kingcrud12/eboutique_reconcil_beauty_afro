@@ -48,6 +48,8 @@ function Product() {
       <div className="p-6 text-red-600 text-center">Produit introuvable</div>
     );
 
+  const isOutOfStock = Number(product.stock) <= 0;
+
   return (
     <div className="font-sans py-16 px-4 sm:px-6 lg:px-8 bg-white min-h-screen mt-[100px] shadow">
       <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-md">
@@ -55,7 +57,7 @@ function Product() {
           Détails du produit
         </h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
           {/* Image */}
           <div className="flex justify-center">
             <img
@@ -65,8 +67,8 @@ function Product() {
             />
           </div>
 
-          {/* Détails texte */}
-          <div className="text-left space-y-4 text-gray-800">
+          {/* Détails texte - scrollable */}
+          <div className="text-left space-y-4 text-gray-800 max-h-[60vh] overflow-y-auto pr-4">
             <p className="text-lg font-semibold">{product.name}</p>
 
             <div>{formatDescription(product.description)}</div>
@@ -77,16 +79,22 @@ function Product() {
                 {Number(product.price).toFixed(2)} €
               </span>
             </p>
-            <p>
-              <strong>Stock :</strong> {product.stock}
-            </p>
 
-            <button
-              onClick={() => navigate("/products")}
-              className="mt-4 bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded transition w-full sm:w-auto"
-            >
-              ⬅️ Retour
-            </button>
+            {/* Stock caché : on n'affiche pas la valeur, seulement une mention si rupture */}
+            {isOutOfStock && (
+              <p className="mt-2 text-red-600 font-semibold">
+                Article indisponible
+              </p>
+            )}
+
+            <div className="mt-4">
+              <button
+                onClick={() => navigate("/products")}
+                className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded transition w-full sm:w-auto"
+              >
+                ⬅️ Retour
+              </button>
+            </div>
           </div>
         </div>
       </div>
