@@ -32,6 +32,12 @@ function Product() {
       return;
     }
 
+    // bloquer si rupture
+    if (Number(product.stock) <= 0) {
+      setPopinMsg("Produit indisponible.");
+      return;
+    }
+
     setAddingToCart(product.id);
 
     try {
@@ -46,7 +52,7 @@ function Product() {
           items: [
             {
               id: Date.now(),
-              productId: product.id, // 👈 important
+              productId: product.id,
               product,
               quantity: 1,
             },
@@ -79,7 +85,7 @@ function Product() {
                         ...cart.items,
                         {
                           id: Date.now(), // fake id temporaire
-                          productId: product.id, // 👈 manquait !
+                          productId: product.id,
                           product,
                           quantity: 1,
                         },
@@ -123,43 +129,59 @@ function Product() {
         </p>
 
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white max-w-xs w-full mx-auto p-4 rounded-xl shadow hover:shadow-md flex flex-col justify-between text-center h-full"
-            >
-              <div className="flex flex-col items-center">
-                <img
-                  src={product.imageUrl}
-                  alt={product.name}
-                  className="h-32 sm:h-40 object-contain mb-4"
-                />
-                <Link to={`/product/${product.id}`} className="w-full">
-                  <h3 className="font-semibold text-gray-800 mb-2 h-[60px]">
-                    {product.name.slice(0, 60)}
-                  </h3>
-                  <p className="text-sm text-slate-600 mt-1 line-clamp-3 min-h-[60px]">
-                    {product.description.slice(0, 120)}…
-                  </p>
-                  <p className="text-green-600 font-bold mt-3">
-                    {Number(product.price).toFixed(2)} €
-                  </p>
-                </Link>
-              </div>
+          {products.map((product) => {
+            const isOutOfStock = Number(product.stock) <= 0;
+            const isAdding = addingToCart === product.id;
+            const disabledButton = isAdding || isOutOfStock;
 
-              <button
-                onClick={() => handleAddToCart(product)}
-                disabled={addingToCart === product.id}
-                className={`mt-4 px-4 py-2 text-white rounded ${
-                  addingToCart === product.id
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-gray-800"
-                }`}
+            return (
+              <div
+                key={product.id}
+                className="bg-white max-w-xs w-full mx-auto p-4 rounded-xl shadow hover:shadow-md flex flex-col justify-between text-center h-full"
               >
-                {addingToCart === product.id ? "Ajout..." : "Ajouter au panier"}
-              </button>
-            </div>
-          ))}
+                <div className="flex flex-col items-center">
+                  <img
+                    src={product.imageUrl}
+                    alt={product.name}
+                    className="h-32 sm:h-40 object-contain mb-4"
+                  />
+                  <Link to={`/product/${product.id}`} className="w-full">
+                    <h3 className="font-semibold text-gray-800 mb-2 h-[60px]">
+                      {product.name.slice(0, 60)}
+                    </h3>
+                    <p className="text-sm text-slate-600 mt-1 line-clamp-3 min-h-[60px]">
+                      {product.description.slice(0, 120)}…
+                    </p>
+
+                    {/* PRICE HIDDEN - nothing shown here */}
+                  </Link>
+
+                  {/* Out of stock badge */}
+                  {isOutOfStock && (
+                    <p className="mt-3 inline-block px-3 py-1 text-sm font-semibold text-red-700 bg-red-100 rounded-full">
+                      Article indisponible
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => handleAddToCart(product)}
+                  disabled={disabledButton}
+                  className={`mt-4 px-4 py-2 text-white rounded ${
+                    disabledButton
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-gray-800 hover:bg-gray-900"
+                  }`}
+                >
+                  {isOutOfStock
+                    ? "Indisponible"
+                    : isAdding
+                    ? "Ajout..."
+                    : "Ajouter au panier"}
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

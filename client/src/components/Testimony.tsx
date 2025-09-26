@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
-import api from "../connect_to_api/api"; // ton intercepteur Axios
+import React, { useEffect, useState } from "react";
+import api from "../connect_to_api/api";
+import { User } from "lucide-react";
 
 declare global {
   interface Window {
@@ -9,116 +10,55 @@ declare global {
   }
 }
 
-const TEMPLATE_ID_REVIEW = "53aa8807dec7e10d38f59f36";
-const TEMPLATE_ID_COLLECTOR = "56278e9abfbbba0bdcd568bc";
-const DATA_TOKEN_COLLECTOR = "4c45da26-04cf-4f60-88e0-2b47f88ca5ee";
-const BUSINESS_UNIT_ID = "68d4f8190cc45584c391486f";
-const TRUSTPILOT_REVIEW_URL =
-  "https://fr.trustpilot.com/review/eboutique-reconcil-beauty-afro.vercel.app";
-const STYLE_HEIGHT = "320px";
-
 export interface ITPReview {
+  id?: string;
   name: string | null;
+  avatar?: string | null;
+  country?: string | null;
+  reviewsCount?: number | null;
   rating: number | null;
   date?: string | null;
+  title?: string | null;
   text?: string | null;
-  id?: string | null;
+  unprompted?: boolean;
 }
+const TRUSTPILOT_REVIEW_URL =
+  "https://fr.trustpilot.com/review/eboutique-reconcil-beauty-afro.vercel.app";
 
 export default function Testimony() {
-  const reviewRef = useRef<HTMLDivElement | null>(null);
-  const collectorRef = useRef<HTMLDivElement | null>(null);
-
-  const [loadingWidget, setLoadingWidget] = useState(true);
-  const [loadingReviews, setLoadingReviews] = useState(true);
-  const [noReviews, setNoReviews] = useState(false);
   const [reviews, setReviews] = useState<ITPReview[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(true);
 
-  // --- Widget Trustpilot ---
-  useEffect(() => {
-    let mounted = true;
-    const SCRIPT_SRC =
-      "//widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js";
-
-    const init = () => {
-      if (
-        window.Trustpilot &&
-        typeof window.Trustpilot.loadFromElement === "function"
-      ) {
-        if (reviewRef.current)
-          window.Trustpilot.loadFromElement(reviewRef.current);
-        if (collectorRef.current)
-          window.Trustpilot.loadFromElement(collectorRef.current);
-      }
-    };
-
-    const insertScriptIfNeeded = () => {
-      if (!document.querySelector(`script[src="${SCRIPT_SRC}"]`)) {
-        const s = document.createElement("script");
-        s.src = SCRIPT_SRC;
-        s.async = true;
-        s.onload = () => {
-          if (!mounted) return;
-          init();
-          setLoadingWidget(false);
-        };
-        document.head.appendChild(s);
-      } else {
-        setTimeout(() => {
-          init();
-          setLoadingWidget(false);
-        }, 50);
-      }
-    };
-
-    insertScriptIfNeeded();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  // --- Récupération des avis via API back ---
   useEffect(() => {
     let mounted = true;
     const fetchReviews = async () => {
-      setLoadingReviews(true);
       try {
-        const { data } = await api.get<ITPReview[]>("/trustpilot/reviews"); // adapte la route si besoin
+        const { data } = await api.get<ITPReview[]>("/trustpilot/reviews");
         if (!mounted) return;
-        if (data && data.length > 0) {
-          setReviews(data);
-          setNoReviews(false);
-        } else {
-          setNoReviews(true);
-        }
+        setReviews(data ?? []);
       } catch (err) {
-        console.error("Erreur récupération avis Trustpilot", err);
-        setNoReviews(true);
+        console.error(err);
       } finally {
         if (mounted) setLoadingReviews(false);
       }
     };
-
     fetchReviews();
-
     return () => {
       mounted = false;
     };
   }, []);
 
-  const openTrustpilot = () => {
+  const openTrustpilot = () =>
     window.open(TRUSTPILOT_REVIEW_URL, "_blank", "noopener,noreferrer");
-  };
 
   return (
-    <section className="bg-[#f0f9f5] py-16 px-4">
-      <div className="text-center mb-6">
+    <section className="py-16 px-4 bg-[#f0f9f5]">
+      <div className="text-center mb-8">
         <h2 className="text-4xl font-bold text-slate-800">Ils ont adoré</h2>
         <p className="text-slate-500 mt-2">Avis vérifiés via Trustpilot</p>
       </div>
 
-      <div className="flex justify-center gap-4 mb-6">
+      <div className="flex justify-center gap-4 mb-8 flex-wrap">
         <button
           onClick={openTrustpilot}
           className="bg-white border border-slate-300 px-4 py-2 rounded-lg shadow hover:shadow-md"
@@ -133,89 +73,68 @@ export default function Testimony() {
         </button>
       </div>
 
-      {(loadingWidget || loadingReviews) && (
-        <div className="text-center text-slate-600 mb-4">
-          Chargement des avis…
-        </div>
-      )}
-
-      {!loadingReviews && noReviews && (
-        <div className="max-w-3xl mx-auto text-center bg-white p-6 rounded-xl shadow mb-6">
-          <p className="text-lg font-medium text-slate-800 mb-2">
-            Aucun avis disponible pour le moment.
-          </p>
-          <p className="text-sm text-slate-500 mb-4">
-            Soyez le premier à laisser un avis !
-          </p>
-          <button
-            onClick={openTrustpilot}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700"
-          >
-            Donner mon avis
-          </button>
-        </div>
-      )}
-
-      {!loadingReviews && reviews.length > 0 && (
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      {loadingReviews ? (
+        <p className="text-center text-slate-600">Chargement des avis…</p>
+      ) : reviews.length === 0 ? (
+        <p className="text-center text-slate-600">
+          Aucun avis disponible pour le moment.
+        </p>
+      ) : (
+        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {reviews.map((r) => (
-            <div
+            <article
               key={r.id ?? `${r.name}-${r.date}`}
-              className="bg-white p-4 rounded-lg shadow"
+              className="bg-white rounded-xl shadow p-4 flex flex-col"
             >
-              <p className="font-semibold">{r.name ?? "Anonyme"}</p>
-              <p className="text-yellow-500 mb-2">
-                {"⭐".repeat(r.rating ?? 0)}
-              </p>
-              <p className="text-sm text-slate-500 mb-2">{r.date}</p>
-              <p>{r.text}</p>
-            </div>
+              <header className="flex items-center mb-4">
+                <User className="w-11 h-11 rounded-full mr-3" />
+                <div>
+                  <p className="font-semibold text-slate-800">
+                    {r.name ?? "Anonyme"}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {r.country ?? "FR"} • {r.reviewsCount ?? 1} avis
+                  </p>
+                </div>
+                <time className="ml-auto text-xs text-slate-400">
+                  {r.date ? new Date(r.date).toLocaleDateString("fr-FR") : ""}
+                </time>
+              </header>
+
+              <div className="mb-3">
+                {r.rating && (
+                  <img
+                    src={`https://cdn.trustpilot.net/brand-assets/4.1.0/stars/stars-${r.rating}.svg`}
+                    alt={`Noté ${r.rating} sur 5`}
+                    className="h-5"
+                  />
+                )}
+              </div>
+
+              {r.title && <h3 className="font-medium mb-2">{r.title}</h3>}
+              {r.text && <p className="text-slate-700 flex-1">{r.text}</p>}
+
+              {r.unprompted && (
+                <span className="mt-2 inline-block bg-gray-100 text-gray-600 px-2 py-1 text-xs rounded">
+                  Avis spontané
+                </span>
+              )}
+
+              <div className="mt-4 flex gap-2">
+                <button className="text-xs text-slate-500 hover:underline">
+                  Utile
+                </button>
+                <button className="text-xs text-slate-500 hover:underline">
+                  Partager
+                </button>
+                <button className="text-xs text-slate-500 hover:underline">
+                  Signaler
+                </button>
+              </div>
+            </article>
           ))}
         </div>
       )}
-
-      {/* Widget Trustpilot */}
-      <div className="max-w-6xl mx-auto mb-8">
-        <div
-          ref={reviewRef}
-          className="trustpilot-widget"
-          style={{ width: "100%", height: STYLE_HEIGHT }}
-          data-locale="fr-FR"
-          data-template-id={TEMPLATE_ID_REVIEW}
-          data-businessunit-id={BUSINESS_UNIT_ID}
-          data-style-height={STYLE_HEIGHT}
-          data-style-width="100%"
-        >
-          <a
-            href={TRUSTPILOT_REVIEW_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Voir les avis sur Trustpilot
-          </a>
-        </div>
-      </div>
-
-      <div className="max-w-6xl mx-auto">
-        <div
-          ref={collectorRef}
-          className="trustpilot-widget"
-          data-locale="fr-FR"
-          data-template-id={TEMPLATE_ID_COLLECTOR}
-          data-businessunit-id={BUSINESS_UNIT_ID}
-          data-style-height="52px"
-          data-style-width="100%"
-          data-token={DATA_TOKEN_COLLECTOR}
-        >
-          <a
-            href={TRUSTPILOT_REVIEW_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Laisser un avis sur Trustpilot
-          </a>
-        </div>
-      </div>
     </section>
   );
 }
