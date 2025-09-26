@@ -7,8 +7,8 @@ type DeliveryMode = 'EXPRESS' | 'HOME' | 'RELAY';
 interface OrderItemCtx {
   name: string;
   quantity: number;
-  unitPrice: number;
-  lineTotal: number;
+  unitPrice: number; // sera formaté en "xx.xx"
+  lineTotal: number; // sera formaté en "xx.xx"
 }
 
 interface AdminOrderMailContext {
@@ -31,7 +31,7 @@ interface AdminOrderMailContext {
 export class AdminMailService {
   constructor(
     private readonly mailerService: MailerService,
-    private readonly prisma: PrismaService, // ✅ injection de Prisma
+    private readonly prisma: PrismaService,
   ) {}
 
   private estimateDays(mode: DeliveryMode): number {
@@ -57,11 +57,29 @@ export class AdminMailService {
     const adminEmails = admins.map((a) => a.email).filter(Boolean);
     if (adminEmails.length === 0) return;
 
+    // formater les montants en "xx.xx"
+    const items = ctx.items.map((it) => ({
+      ...it,
+      unitPrice: Number(it.unitPrice).toFixed(2),
+      lineTotal: Number(it.lineTotal).toFixed(2),
+    }));
+
+    const itemsSubtotal = Number(ctx.itemsSubtotal).toFixed(2);
+    const shippingFee = Number(ctx.shippingFee).toFixed(2);
+    const total = Number(ctx.total).toFixed(2);
+
     await this.mailerService.sendMail({
       to: adminEmails,
       subject: `Nouvelle commande payée #${ctx.orderId}`,
-      template: 'order-paid-admin', // créer un template dédié
-      context: { ...ctx, etaDays },
+      template: 'order-paid-admin',
+      context: {
+        ...ctx,
+        etaDays,
+        items,
+        itemsSubtotal,
+        shippingFee,
+        total,
+      },
     });
   }
 }

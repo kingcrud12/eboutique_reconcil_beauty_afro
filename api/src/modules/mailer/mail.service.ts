@@ -1,30 +1,29 @@
-// src/mailer/mail.service.ts
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 
-type deliveryMode = 'EXPRESS' | 'HOME' | 'RELAY';
+type DeliveryMode = 'EXPRESS' | 'HOME' | 'RELAY';
 
 interface OrderItemCtx {
   name: string;
   quantity: number;
-  unitPrice: number; // €
-  lineTotal: number; // €
+  unitPrice: string; // formaté en "xx.yy"
+  lineTotal: string; // formaté en "xx.yy"
 }
 
 interface OrderMailContext {
   orderId: number | string;
   customerFirstName?: string;
   customerLastName?: string;
-  deliveryMode: deliveryMode;
+  deliveryMode: DeliveryMode;
   deliveryAddress?: string;
   relayLabel?: string;
   relayAddress?: string;
   etaDays?: number;
 
   items: OrderItemCtx[];
-  itemsSubtotal: number; // 👈 NEW: total articles (€)
-  shippingFee: number; // 👈 NEW: frais de livraison (€)
-  total: number; // 👈 total final (€) = itemsSubtotal + shippingFee
+  itemsSubtotal: string; // formaté
+  shippingFee: string; // formaté
+  total: string; // formaté
 }
 
 @Injectable()
@@ -51,7 +50,7 @@ export class MailService {
     });
   }
 
-  private estimateDays(mode: deliveryMode): number {
+  private estimateDays(mode: DeliveryMode): number {
     switch (mode) {
       case 'EXPRESS':
         return 2;
@@ -64,11 +63,41 @@ export class MailService {
 
   async sendOrderPaidEmail(to: string, ctx: Omit<OrderMailContext, 'etaDays'>) {
     const etaDays = this.estimateDays(ctx.deliveryMode);
+
+    // format des montants
+    const itemsFormatted = ctx.items.map((it) => ({
+      ...it,
+      unitPrice: isNaN(Number(it.unitPrice))
+        ? '0.00'
+        : Number(it.unitPrice).toFixed(2),
+      lineTotal: isNaN(Number(it.lineTotal))
+        ? '0.00'
+        : Number(it.lineTotal).toFixed(2),
+    }));
+    const itemsSubtotal = isNaN(Number(ctx.itemsSubtotal))
+      ? '0.00'
+      : Number(ctx.itemsSubtotal).toFixed(2);
+
+    const shippingFee = isNaN(Number(ctx.shippingFee))
+      ? '0.00'
+      : Number(ctx.shippingFee).toFixed(2);
+
+    const total = isNaN(Number(ctx.total))
+      ? '0.00'
+      : Number(ctx.total).toFixed(2);
+
     await this.mailerService.sendMail({
       to,
       subject: `Votre paiement est confirmé – commande #${ctx.orderId}`,
-      template: 'order-paid', // src/templates/order-paid.hbs
-      context: { ...ctx, etaDays },
+      template: 'order-paid',
+      context: {
+        ...ctx,
+        etaDays,
+        items: itemsFormatted,
+        itemsSubtotal,
+        shippingFee,
+        total,
+      },
     });
   }
 
@@ -76,16 +105,16 @@ export class MailService {
     to: string,
     ctx: {
       serviceName: string;
-      startAtLocal: string; // ex: "vendredi 15 août 2025 à 11:30"
-      endAtLocal: string; // ex: "vendredi 15 août 2025 à 12:30"
-      depositAmountEUR: number; // 13.5
+      startAtLocal: string;
+      endAtLocal: string;
+      depositAmountEUR: number;
     },
   ) {
     await this.mailerService.sendMail({
       to,
       subject: `Réservation confirmée – ${ctx.serviceName}`,
-      template: 'slot-booked', // src/templates/slot-booked.hbs
-      context: ctx,
+      template: 'slot-booked',
+      context: { ...ctx, depositAmountEUR: ctx.depositAmountEUR.toFixed(2) },
     });
   }
 }
