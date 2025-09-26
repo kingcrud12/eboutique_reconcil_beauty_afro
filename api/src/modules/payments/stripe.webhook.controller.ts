@@ -16,6 +16,7 @@ import { Request } from 'express';
 import { MailService } from '../../modules/mailer/mail.service'; // ✅ AJOUT
 import { Prisma, SlotStatus } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
+import { AdminMailService } from '../mailer/admin-mail.service';
 
 type StripeRawRequest = Request & { rawBody: Buffer };
 type DeliveryMode = 'EXPRESS' | 'HOME' | 'RELAY';
@@ -26,6 +27,7 @@ export class StripeWebhookController {
     @Inject(STRIPE_CLIENT) private readonly stripe: Stripe,
     private readonly prisma: PrismaService,
     private readonly mailService: MailService,
+    private readonly adminMailService: AdminMailService,
   ) {}
 
   // --- AJOUT: Helpers idempotence ---
@@ -208,6 +210,17 @@ export class StripeWebhookController {
               shippingFee: safeShippingFee,
               total,
               // etaDays est ajouté par le MailService
+            });
+            await this.adminMailService.sendOrderPaidToAdmins({
+              orderId: fullOrder.id,
+              customerFirstName: fullOrder.user.firstName ?? undefined,
+              customerLastName: fullOrder.user.lastName ?? undefined,
+              deliveryMode: fullOrder.deliveryMode as DeliveryMode,
+              deliveryAddress: fullOrder.deliveryAddress ?? undefined,
+              items,
+              itemsSubtotal,
+              shippingFee: safeShippingFee,
+              total,
             });
           }
           break;

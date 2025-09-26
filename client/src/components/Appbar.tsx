@@ -114,7 +114,7 @@ function Appbar() {
           A propos de nous
         </Link>
         <Link to="/appointment" className="hover:text-gray-300">
-          Prenez rendez-vous
+          Nos services
         </Link>
       </div>
 
