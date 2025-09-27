@@ -1,21 +1,36 @@
 import React from "react";
+import { Link } from "react-router-dom";
+import Slider from "react-slick";
 
 function Hero() {
-  return (
-    <div className="w-full relative">
-      {/* Image de fond */}
-      <img
-        src="/Black_hair.gif"
-        alt="hero_picture"
-        className="w-full h-[300px] sm:h-[400px] md:h-[600px] lg:h-[760px] object-cover"
-      />
+  const settings = {
+    dots: true, // petits points en bas
+    infinite: true, // boucle infinie
+    speed: 100,
+    slidesToShow: 1, // une image à la fois
+    slidesToScroll: 1,
+    autoplay: true, // défilement auto
+    autoplaySpeed: 4000, // 4s par image
+    arrows: false, // pas de flèches
+  };
 
-      {/* Texte centré */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-extrabold text-white text-center drop-shadow-lg px-4 lg:mt-[100px]">
-          Révélez la beauté de vos cheveux
-        </h1>
-      </div>
+  const images = ["/banner_1.png", "/banner_6.png"];
+
+  return (
+    <div className="w-full relative mt-[50px]">
+      <Slider {...settings}>
+        {images.map((src, i) => (
+          <div key={i}>
+            <Link to="/products" aria-label="Voir les produits">
+              <img
+                src={src}
+                alt={`banner_${i}`}
+                className="w-full sm:h-[400px] md:h-[600px] lg:h-full object-cover cursor-pointer"
+              />
+            </Link>
+          </div>
+        ))}
+      </Slider>
     </div>
   );
 }
