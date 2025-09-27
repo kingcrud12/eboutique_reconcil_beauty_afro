@@ -80,8 +80,6 @@ export default function Appointment() {
 
   // --- Infos utilisateur si authentifié ---
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
     (async () => {
       try {
         const me = await api.get<{
@@ -96,7 +94,6 @@ export default function Appointment() {
           if (me.data.email) setEmail(me.data.email);
         }
       } catch (e) {
-        // si le token est invalide on n’empêche pas la réservation anonyme
         setIsAuthed(false);
       }
     })();
@@ -304,7 +301,19 @@ export default function Appointment() {
               }}
               tileDisabled={({ date }) => {
                 const key = localDateKeyFromDate(date);
-                return (openCountByDay[key] ?? 0) === 0;
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                const noOpenSlots = (openCountByDay[key] ?? 0) === 0;
+                const pastDate = date < today;
+
+                return noOpenSlots || pastDate;
+              }}
+              tileClassName={({ date }) => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                if (date < today) return "text-gray-400"; // jours passés grisés
+                return "";
               }}
             />
           </div>
