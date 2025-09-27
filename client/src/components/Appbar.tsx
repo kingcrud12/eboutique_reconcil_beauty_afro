@@ -110,11 +110,11 @@ function Appbar() {
         <Link to="/products" className="hover:text-gray-300">
           Nos produits
         </Link>
-        <Link to="/about" className="hover:text-gray-300">
-          A propos de nous
-        </Link>
         <Link to="/appointment" className="hover:text-gray-300">
-          Prenez rendez-vous
+          Nos services
+        </Link>
+        <Link to="/contact" className="hover:text-gray-300">
+          Contact
         </Link>
       </div>
 
@@ -123,11 +123,11 @@ function Appbar() {
           <Link to="/products" className="hover:text-gray-300">
             Nos produits
           </Link>
-          <Link to="/about" className="hover:text-gray-300">
-            A propos de nous
-          </Link>
           <Link to="/appointment" className="hover:text-gray-300">
-            Prenez rendez-vous
+            Nos services
+          </Link>
+          <Link to="/contact" className="hover:text-gray-300">
+            Contact
           </Link>
         </div>
       )}

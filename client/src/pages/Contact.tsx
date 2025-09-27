@@ -1,31 +1,33 @@
-// src/pages/Contact.tsx
 import React, { useState } from "react";
+import api from "../connect_to_api/api";
 
 export default function Contact() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
-  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation basique
     if (!name || !email || !message) {
       alert("Merci de remplir tous les champs");
       return;
     }
 
+    setStatus("loading");
+
     try {
-      // Ici, tu peux envoyer le formulaire à ton API backend
-      // const res = await fetch("/api/contact", { method: "POST", body: JSON.stringify({ name, email, message }) });
+      await api.post("/contact", { name, email, message });
 
       setStatus("success");
       setName("");
       setEmail("");
       setMessage("");
     } catch (err) {
-      console.error(err);
+      console.error("Erreur envoi contact :", err);
       setStatus("error");
     }
   };
@@ -95,19 +97,20 @@ export default function Contact() {
 
         <button
           type="submit"
-          className="bg-green-600 text-white px-6 py-2 rounded-lg shadow hover:bg-green-700 transition-colors"
+          disabled={status === "loading"}
+          className="bg-green-600 text-white px-6 py-2 rounded-lg shadow hover:bg-green-700 transition-colors disabled:opacity-50"
         >
-          Envoyer
+          {status === "loading" ? "Envoi..." : "Envoyer"}
         </button>
 
         {status === "success" && (
           <p className="text-green-600 font-medium mt-2">
-            Votre message a été envoyé !
+            ✅ Votre message a été envoyé !
           </p>
         )}
         {status === "error" && (
           <p className="text-red-600 font-medium mt-2">
-            Une erreur est survenue, veuillez réessayer.
+            ❌ Une erreur est survenue, veuillez réessayer.
           </p>
         )}
       </form>
