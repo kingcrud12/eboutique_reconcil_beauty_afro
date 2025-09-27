@@ -51,46 +51,47 @@ function Product() {
   const isOutOfStock = Number(product.stock) <= 0;
 
   return (
-    <div className="font-sans py-16 px-4 sm:px-6 lg:px-8 bg-white min-h-screen mt-[100px] shadow">
-      <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-md">
-        <h1 className="text-2xl font-bold text-center mb-8">
-          Détails du produit
-        </h1>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
-          {/* Image */}
-          <div className="flex justify-center">
+    <div className="font-sans py-16 px-4 sm:px-6 lg:px-8 bg-white min-h-screen mt-[100px]">
+      <div className="max-w-4xl mx-auto">
+        {/* CARD */}
+        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden transition-transform hover:-translate-y-1">
+          {/* IMAGE */}
+          <div className="w-full h-96 flex items-center justify-center bg-[#fef5e7]">
             <img
               src={product.imageUrl}
               alt={product.name}
-              className="max-h-96 w-auto object-contain rounded"
+              className="max-h-80 object-contain"
+              style={{ mixBlendMode: "multiply", background: "transparent" }}
             />
           </div>
 
-          {/* Détails texte - scrollable */}
-          <div className="text-left space-y-4 text-gray-800 max-h-[60vh] overflow-y-auto pr-4">
-            <p className="text-lg font-semibold">{product.name}</p>
+          {/* DETAILS */}
+          <div className="p-6 sm:p-8 flex flex-col space-y-4">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 text-center">
+              {product.name}
+            </h1>
 
-            <div>{formatDescription(product.description)}</div>
+            <div className="text-gray-700 max-h-[50vh] overflow-y-auto pr-2">
+              {formatDescription(product.description)}
+            </div>
 
-            <p>
-              <strong>Prix :</strong>{" "}
-              <span className="text-green-600 font-semibold">
+            <p className="text-lg font-semibold text-center">
+              Prix :{" "}
+              <span className="text-green-600">
                 {Number(product.price).toFixed(2)} €
               </span>
             </p>
 
-            {/* Stock caché : on n'affiche pas la valeur, seulement une mention si rupture */}
             {isOutOfStock && (
-              <p className="mt-2 text-red-600 font-semibold">
+              <p className="text-red-600 font-semibold text-center">
                 Article indisponible
               </p>
             )}
 
-            <div className="mt-4">
+            <div className="flex justify-center mt-4">
               <button
                 onClick={() => navigate("/products")}
-                className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded transition w-full sm:w-auto"
+                className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-full font-semibold transition"
               >
                 ⬅️ Retour
               </button>

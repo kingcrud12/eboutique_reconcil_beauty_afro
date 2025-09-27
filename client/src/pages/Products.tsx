@@ -8,6 +8,14 @@ import { useAuth } from "../contexts/AuthContext";
 
 const categories = ["Tous", "hair", "body"];
 
+const bgVariants = [
+  "bg-[#fef5e7]", // beige clair
+  "bg-[#fbe8d3]", // pêche clair
+  "bg-[#f5e0dc]", // rose poudré
+  "bg-[#f3e7d3]", // sable doux
+  "bg-[#f6ede2]", // crème
+];
+
 const Products = () => {
   const [products, setProducts] = useState<IProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +29,7 @@ const Products = () => {
   useEffect(() => {
     api
       .get("/products")
-      .then((res) => setProducts(res.data))
+      .then((res) => setProducts(res.data ?? []))
       .catch((err) => {
         console.error(err);
         setPopinMsg("Échec du chargement des produits");
@@ -32,9 +40,7 @@ const Products = () => {
   const truncated = (text: string, max = 120) =>
     text?.length > max ? text.slice(0, max).trim() + "…" : text;
 
-  // 👇 Pour boutons classiques
   const handleAdd = async (productId: number) => {
-    // find product to check stock before anything
     const product = products.find((p) => p.id === productId);
     if (!product) {
       setPopinMsg("Produit introuvable.");
@@ -112,58 +118,72 @@ const Products = () => {
         </select>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-        {filtered.map((p) => {
+      {/* CARROUSEL */}
+      {/* CARROUSEL */}
+      <div className="flex gap-4 sm:gap-6 overflow-x-auto px-2 py-4 scroll-smooth snap-x snap-mandatory">
+        {filtered.map((p, idx) => {
           const isOutOfStock = Number(p.stock) <= 0;
           const isAdding = addingId === p.id;
           const disabled = isAdding || isOutOfStock;
+          const bg = bgVariants[idx % bgVariants.length];
 
           return (
-            <div
+            <article
               key={p.id}
-              className="bg-white p-4 rounded-xl shadow hover:shadow-md transition flex flex-col justify-between text-center max-w-xs mx-auto h-full"
+              className="snap-start flex-shrink-0 w-[80%] sm:w-[320px] md:w-[360px] lg:w-[400px] flex flex-col bg-white rounded-3xl border border-gray-200 shadow-2xl overflow-hidden transition-transform duration-300 hover:-translate-y-1"
             >
-              <div className="flex flex-col items-center">
-                <img
-                  src={p.imageUrl}
-                  alt={p.name}
-                  className="h-32 sm:h-40 object-contain mb-4"
-                />
-                <Link to={`/product/${p.id}`} className="w-full">
-                  <h3 className="font-semibold text-gray-800 mb-2">
-                    {p.name.slice(0, 60)}
-                  </h3>
-                  <p className="text-sm text-slate-600 line-clamp-3 min-h-[60px]">
-                    {truncated(p.description)}
-                  </p>
-
-                  {/* PRICE HIDDEN - intentionally removed */}
+              {/* IMAGE BLOCK */}
+              <div
+                className={`w-full h-60 sm:h-72 flex items-center justify-center ${bg}`}
+              >
+                <Link
+                  to={`/product/${p.id}`}
+                  className="w-full h-full flex items-center justify-center"
+                >
+                  <img
+                    src={p.imageUrl}
+                    alt={p.name}
+                    className="max-h-48 sm:max-h-56 object-contain block"
+                    style={{
+                      mixBlendMode: "multiply",
+                      background: "transparent",
+                    }}
+                  />
                 </Link>
-
-                {/* Out of stock badge */}
-                {isOutOfStock && (
-                  <p className="mt-3 inline-block px-3 py-1 text-sm font-semibold text-red-700 bg-red-100 rounded-full">
-                    Article indisponible
-                  </p>
-                )}
               </div>
 
-              <button
-                onClick={() => handleAdd(p.id)}
-                disabled={disabled}
-                className={`mt-4 px-4 py-2 text-white rounded ${
-                  disabled
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-gray-800 hover:bg-gray-900"
-                }`}
-              >
-                {isOutOfStock
-                  ? "Indisponible"
-                  : isAdding
-                  ? "Ajout..."
-                  : "Ajouter au panier"}
-              </button>
-            </div>
+              {/* CARD BODY */}
+              <div className="p-4 sm:p-6 flex-1 flex flex-col justify-between text-center">
+                <div>
+                  <Link to={`/product/${p.id}`}>
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 line-clamp-2">
+                      {p.name}
+                    </h3>
+                    <p className="text-sm text-slate-600 mt-1 min-h-[3.6rem] line-clamp-3">
+                      {truncated(p.description)}
+                    </p>
+                  </Link>
+                </div>
+
+                <div className="mt-4 flex flex-col items-center">
+                  <button
+                    onClick={() => handleAdd(p.id)}
+                    disabled={disabled}
+                    className={`px-6 sm:px-8 py-3 rounded-full text-white font-semibold ${
+                      disabled
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-gray-900 hover:opacity-95 transition"
+                    }`}
+                  >
+                    {isOutOfStock
+                      ? "Indisponible"
+                      : isAdding
+                      ? "Ajout..."
+                      : "Ajouter au panier"}
+                  </button>
+                </div>
+              </div>
+            </article>
           );
         })}
       </div>
