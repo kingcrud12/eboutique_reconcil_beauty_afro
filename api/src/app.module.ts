@@ -17,6 +17,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { PrestationsModule } from './modules/prestations/prestations.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TrustpilotModule } from './modules/trustPilot/trustpilot.module';
+import { ContactModule } from './modules/contact/contact.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { TrustpilotModule } from './modules/trustPilot/trustpilot.module';
     PaymentsModule,
     PrestationsModule,
     TrustpilotModule,
+    ContactModule,
   ],
   controllers: [AppController],
   providers: [AppService],
