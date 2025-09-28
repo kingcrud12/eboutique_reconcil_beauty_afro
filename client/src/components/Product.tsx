@@ -6,9 +6,6 @@ import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
 import Popin from "../components/Popin";
 
-/* Product component — descriptions truncated for nicer cards
-   + animated cosmetic-themed icons (flower, flasks, brush, leaf) */
-
 function AnimatedIcon({
   title,
   children,
@@ -149,45 +146,28 @@ function Product() {
 
   const displayed = products.slice(0, 3);
 
-  // pastel backgrounds used for image block
   const bgVariants = [
-    "bg-[#fef5e7]", // beige clair
-    "bg-[#fbe8d3]", // pêche clair
-    "bg-[#f5e0dc]", // rose poudré
-    "bg-[#f3e7d3]", // sable doux
-    "bg-[#f6ede2]", // crème
+    "bg-[#fef5e7]",
+    "bg-[#fbe8d3]",
+    "bg-[#f5e0dc]",
+    "bg-[#f3e7d3]",
+    "bg-[#f6ede2]",
   ];
 
   return (
     <div className="py-16 px-1 sm:px-2 lg:px-3 bg-white font-sans">
-      {/* Inline keyframes + prefers-reduced-motion support */}
       <style>{`
-        @keyframes floatY {
-          0% { transform: translateY(0); }
-          50% { transform: translateY(-8px); }
-          100% { transform: translateY(0); }
-        }
-        @keyframes slowRotate {
-          0% { transform: rotate(0deg); }
-          50% { transform: rotate(8deg); }
-          100% { transform: rotate(0deg); }
-        }
-        @keyframes popScale {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.06); }
-          100% { transform: scale(1); }
-        }
+        @keyframes floatY { 0% { transform: translateY(0); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0); } }
+        @keyframes slowRotate { 0% { transform: rotate(0deg); } 50% { transform: rotate(8deg); } 100% { transform: rotate(0deg); } }
+        @keyframes popScale { 0% { transform: scale(1); } 50% { transform: scale(1.06); } 100% { transform: scale(1); } }
 
-        /* utility classes for animations */
         .anim-float { animation: floatY 3.6s ease-in-out infinite; }
         .anim-rotate { animation: slowRotate 4.2s ease-in-out infinite; }
         .anim-pop { animation: popScale 2.8s ease-in-out infinite; }
 
-        /* slight stagger via inline style animationDelay */
         .anim-slow { animation-duration: 5s; }
         .anim-fast { animation-duration: 2.6s; }
 
-        /* respect user preference */
         @media (prefers-reduced-motion: reduce) {
           .anim-float, .anim-rotate, .anim-pop { animation: none !important; transform: none !important; }
         }
@@ -198,14 +178,12 @@ function Product() {
       )}
 
       <div className="w-full mx-auto">
-        {/* Features row with stronger animations and cosmetic icons */}
         <div className="flex flex-wrap justify-center gap-6 mb-10">
           <AnimatedIcon
             title="Fleur"
             className="anim-float anim-slow"
             delay="0s"
           >
-            {/* flower */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="28"
@@ -232,7 +210,6 @@ function Product() {
             className="anim-rotate anim-slow"
             delay="0.15s"
           >
-            {/* flasks / chemistry */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="26"
@@ -257,7 +234,6 @@ function Product() {
             className="anim-pop anim-fast"
             delay="0.28s"
           >
-            {/* brush */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="26"
@@ -278,7 +254,6 @@ function Product() {
             className="anim-float anim-fast"
             delay="0.42s"
           >
-            {/* leaf */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="26"
@@ -296,7 +271,6 @@ function Product() {
           </AnimatedIcon>
         </div>
 
-        {/* Title */}
         <div className="text-center mb-8">
           <h2 className="text-3xl font-extrabold text-gray-900">
             Nos Produits
@@ -306,7 +280,6 @@ function Product() {
           </p>
         </div>
 
-        {/* Cards grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {displayed.map((product, idx) => {
             const isOutOfStock = Number(product.stock) <= 0;
@@ -315,21 +288,25 @@ function Product() {
             return (
               <article
                 key={product.id}
-                className="w-full flex flex-col bg-white rounded-3xl border border-gray-200 shadow-2xl overflow-hidden transition-transform duration-300 hover:-translate-y-1"
+                // groupe pour targeter hover sur l'image + lift + z-index
+                className="group relative w-full flex flex-col bg-white rounded-3xl border border-gray-200 shadow-2xl overflow-visible transition-transform duration-300 hover:-translate-y-2 hover:shadow-3xl hover:z-10"
               >
-                {/* IMAGE BLOCK */}
+                {/* IMAGE BLOCK - allow overflow so image can get much bigger */}
                 <div
-                  className={`w-full h-72 flex items-center justify-center ${bg}`}
+                  className={`w-full h-[420px] sm:h-[460px] md:h-96 flex items-center justify-center ${bg} overflow-visible`}
                 >
                   <Link
                     to={`/product/${product.id}`}
-                    className="w-full h-full flex items-center justify-center"
+                    className="w-full h-full flex items-center justify-center px-4"
                   >
                     <img
                       src={product.imageUrl}
                       alt={product.name}
                       loading="lazy"
-                      className="max-h-56 object-contain block"
+                      /* largeur normale mais en hover on l'agrandit fortement (scale 1.5)
+                         et on la recentre. max-w-none permet au scale de s'exprimer pleinement. */
+                      className="w-11/12 sm:w-10/12 md:w-9/12 lg:w-8/12 max-w-none h-auto object-contain block transform transition-all duration-500 ease-out
+                                 group-hover:scale-150 group-hover:-translate-y-4"
                       style={{
                         mixBlendMode: "multiply",
                         background: "transparent",
@@ -338,26 +315,25 @@ function Product() {
                   </Link>
                 </div>
 
-                {/* CARD BODY (thicker padding) */}
+                {/* CARD BODY (padding) */}
                 <div className="p-8 flex-1 flex flex-col justify-between">
                   <div>
                     <Link to={`/product/${product.id}`}>
-                      <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 line-clamp-2">
+                      <h3 className="text-xl sm:text-2xl font-extrabold text-gray-800 mb-3 line-clamp-2">
                         {product.name}
                       </h3>
 
-                      {/* CSS clamp with JS fallback */}
                       <p
-                        className="text-sm text-slate-600 mt-1 min-h-[3.6rem] line-clamp-3"
+                        className="text-sm sm:text-base text-slate-600 mt-1 min-h-[4rem] line-clamp-3"
                         aria-label={product.description}
                       >
-                        {truncateText(product.description, 140)}
+                        {truncateText(product.description, 160)}
                       </p>
                     </Link>
                   </div>
 
                   <div className="mt-6">
-                    <div className="mb-4">
+                    <div className="mb-4 flex items-center justify-center">
                       {isOutOfStock && (
                         <span className="inline-block px-3 py-1 text-sm font-semibold text-red-700 bg-red-100 rounded-full">
                           Indisponible
@@ -367,14 +343,14 @@ function Product() {
 
                     <div className="flex items-center justify-center">
                       {!isOutOfStock ? (
-                        <Link
-                          to={`/product/${product.id}`}
-                          className="inline-block px-8 py-3 rounded-full bg-gray-900 text-white text-sm font-semibold hover:opacity-95 transition"
+                        <button
+                          onClick={() => handleAddToCart(product)}
+                          className="inline-block px-10 py-3 rounded-full bg-gray-900 text-white text-base sm:text-lg font-semibold hover:opacity-95 transition"
                         >
-                          Découvrir
-                        </Link>
+                          Ajouter au panier
+                        </button>
                       ) : (
-                        <div style={{ height: 44 }} />
+                        <div style={{ height: 52 }} />
                       )}
                     </div>
                   </div>
