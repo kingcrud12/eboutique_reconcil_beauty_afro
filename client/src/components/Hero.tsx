@@ -14,14 +14,14 @@ function Hero() {
     arrows: false,
   };
 
-  const images = ["/Black_hair.jpg"];
+  const images = ["/Black_hair2.jpg"];
 
   return (
     <div className="w-full relative mt-[50px]">
       <Slider {...settings}>
         {images.map((src, i) => (
           <div key={i} className="relative">
-            {i === 2 ? (
+            {i === 0 ? (
               <section
                 className="relative bg-gradient-to-r from-amber-50 to-orange-50 h-full flex items-center"
                 style={{
