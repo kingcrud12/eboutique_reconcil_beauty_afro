@@ -54,7 +54,7 @@ export default function Testimony() {
   return (
     <section className="py-16 px-4 bg-[#f0f9f5]">
       <div className="text-center mb-8">
-        <h2 className="text-4xl font-bold text-slate-800">Ils ont adoré</h2>
+        <h2 className="text-4xl font-bold text-slate-800">Ils ont apprécié</h2>
         <p className="text-slate-500 mt-2">Avis vérifiés via Trustpilot</p>
       </div>
 
