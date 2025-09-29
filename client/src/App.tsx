@@ -20,6 +20,7 @@ import SuccessPageSlot from "./pages/SuccessPageSlot";
 import SuccessPageOrder from "./pages/SucessPageOrder";
 import TestPage from "./TestPage";
 import Contact from "./pages/Contact";
+import AboutUs from "./pages/AboutUs";
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
           <Route path="checkout/cancel" element={<CancelPage />} />
           <Route path="TestPage" element={<TestPage />} />
           <Route path="contact" element={<Contact />} />
+          <Route path="aboutUs" element={<AboutUs />} />
 
           <Route
             path="account"

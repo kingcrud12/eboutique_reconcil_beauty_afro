@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const About = () => {
   return (
@@ -17,19 +18,21 @@ const About = () => {
         <div className="md:w-3/5 lg:mt-[-90px]">
           <h1 className="text-4xl font-bold mb-6">À propos de nous</h1>
           <p className="text-lg leading-relaxed text-gray-700 mb-4">
-            Paulette Siewe Emassi, fondatrice de{" "}
-            <strong>Arcenciel Mawema</strong>, est une femme passionnée par la
-            beauté naturelle et le bien-être des femmes afrodescendantes. Son
-            aventure commence dans un petit salon familial, motivée par l’envie
-            de proposer des produits capillaires et corporels adaptés, naturels
-            et inspirants.
+            Reconcil' Afro Beauty By <strong>Arcenciel Mawema</strong>, Est un
+            repère qui encourage et aide les afro et afro-descendants à
+            réconcilier avec leur identité capillaire et beauté Chez Arcenciel
+            Manwema, nous croyons que vos cheveux ne sont pas seulement une
+            texture, mais un héritage, une force et une fierté. Notre mission :
+            vous accompagner sur le chemin de la réconciliation avec votre
+            identité capillaire.
           </p>
           <p className="text-lg leading-relaxed text-gray-700">
-            Au fil des années, elle bâtit un univers coloré, engagé et humain,
-            devenu aujourd’hui une véritable boutique de référence pour les
-            soins afro. Arc en Ciel Mawema est bien plus qu’une marque : c’est
-            un hommage à la diversité, une maison de beauté où chaque femme peut
-            se sentir vue, écoutée et valorisée.
+            <strong>Notre engagement</strong> <br />
+            Arcenciel Manwema est bien plus qu&#39;une simple boutique en ligne.
+            C’est un espace dédié à l’éveil, au soin et à la valorisation des
+            cheveux crépus, bouclés et frisés. Nous vous aidons à comprendre,
+            aimer et sublimer vos cheveux au naturel{" "}
+            <Link to="/aboutUs">...</Link>
           </p>
         </div>
       </div>
