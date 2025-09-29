@@ -21,8 +21,8 @@ function Hero() {
       <Slider {...settings}>
         {images.map((src, i) => (
           <div key={i} className="relative">
-            {i === 0 ? (
-              // Première image avec overlay et texte (ratio 16:9 / hauteur min)
+            {i === 2 ? (
+              // Image avec overlay + texte
               <section
                 className="relative bg-gradient-to-r from-amber-50 to-orange-50 flex items-center"
                 style={{
@@ -31,11 +31,8 @@ function Hero() {
                   backgroundPosition: "center",
                 }}
               >
-                {/* make sure the section keeps a 16:9 / responsive height */}
                 <div className="w-full aspect-[16/9] min-h-[600px]"></div>
-
                 <div className="absolute inset-0 bg-black/30 pointer-events-none"></div>
-
                 <div className="absolute inset-0 flex items-center">
                   <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
                     <div className="grid md:grid-cols-2 gap-12 items-center min-h-[600px]">
@@ -67,19 +64,27 @@ function Hero() {
                 </div>
               </section>
             ) : (
-              // Autres images : on applique le même ratio / dimensions (16:9, équivalent à 1920x1080)
+              // Autres images
               <Link to="/products" aria-label="Voir les produits">
-                {/* wrapper permet d'imposer aspect ratio + hauteur responsive */}
                 <div className="w-full aspect-[16/9] min-h-[600px] bg-gray-50 overflow-hidden">
-                  {/* on laisse aussi les attributs width/height pour aider le browser */}
-                  <img
-                    src={src}
-                    alt={`banner_${i}`}
-                    width={1920}
-                    height={1080}
-                    className="w-full h-full object-cover cursor-pointer block"
-                    loading="lazy"
-                  />
+                  <picture>
+                    {/* version mobile si largeur < 768px */}
+                    {src === "/banner_1.png" && (
+                      <source
+                        media="(max-width: 768px)"
+                        srcSet="/banner_1_mobile.png"
+                      />
+                    )}
+                    {/* fallback desktop */}
+                    <img
+                      src={src}
+                      alt={`banner_${i}`}
+                      width={1920}
+                      height={1080}
+                      className="w-full h-full object-cover cursor-pointer block"
+                      loading="lazy"
+                    />
+                  </picture>
                 </div>
               </Link>
             )}
