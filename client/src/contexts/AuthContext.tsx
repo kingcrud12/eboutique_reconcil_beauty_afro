@@ -10,33 +10,29 @@ import api from "../connect_to_api/api";
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  login: () => Promise<void>;
+  login: () => void;
   logout: () => Promise<void>;
   authLoading: boolean;
-  user: { id: number } | null;
+  user: { id: number; email?: string } | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_BASE = process.env.REACT_APP_API_URL!;
+const API_BASE = process.env.REACT_APP_BASE_URL!;
 const REDIRECT_URI = `${window.location.origin}/callback`;
 
-// Génère un code_verifier PKCE
+// --- PKCE helpers ---
 async function generateCodeVerifier(length = 128): Promise<string> {
   const chars =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
   let random = "";
   const array = new Uint8Array(length);
   crypto.getRandomValues(array);
-
-  for (let i = 0; i < array.length; i++) {
+  for (let i = 0; i < array.length; i++)
     random += chars[array[i] % chars.length];
-  }
-
   return random;
 }
 
-// Transforme en code_challenge
 async function generateCodeChallenge(codeVerifier: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(codeVerifier);
@@ -48,16 +44,17 @@ async function generateCodeChallenge(codeVerifier: string): Promise<string> {
   return base64Digest;
 }
 
+// --- Provider ---
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
-  const [user, setUser] = useState<{ id: number } | null>(null);
+  const [user, setUser] = useState<{ id: number; email?: string } | null>(null);
 
   // Vérifie session existante au montage
   useEffect(() => {
     const init = async () => {
       try {
-        const res = await api.get<{ id: number }>("/users/me", {
+        const res = await api.get<{ id: number; email?: string }>("/users/me", {
           withCredentials: true,
         });
         setUser(res.data);
@@ -72,7 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     init();
   }, []);
 
-  // Déclenche login → redirige vers Auth0 via backend
+  // --- Login via Auth0 PKCE ---
   const login = async () => {
     const codeVerifier = await generateCodeVerifier();
     const codeChallenge = await generateCodeChallenge(codeVerifier);
@@ -83,7 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     )}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
   };
 
-  // Déclenche logout
+  // --- Logout ---
   const logout = async () => {
     try {
       await api.post("/auth/logout", {}, { withCredentials: true });
