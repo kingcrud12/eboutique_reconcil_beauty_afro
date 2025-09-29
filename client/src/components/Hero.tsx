@@ -14,11 +14,7 @@ function Hero() {
     arrows: false,
   };
 
-  const images = [
-    "/Black_hair2.jpg", // première image stylisée
-    "/banner_5.png",
-    "/banner_1.png",
-  ];
+  const images = ["/banner_5.png", "/banner_1.png", "/Black_hair2.jpg"];
 
   return (
     <div className="w-full relative mt-[50px]">
