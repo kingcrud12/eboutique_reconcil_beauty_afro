@@ -25,10 +25,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     try {
       setAuthLoading(true);
-      // Appel login → serveur met le cookie
       await api.post("/login", { email, password });
-
-      // Ensuite seulement on récupère l’utilisateur
       const { data } = await api.get<User>("/me");
       setUser(data);
       setIsAuthenticated(true);
