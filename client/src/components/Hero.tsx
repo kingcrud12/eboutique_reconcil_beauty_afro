@@ -10,11 +10,11 @@ function Hero() {
     slidesToShow: 1,
     slidesToScroll: 1,
     autoplay: true,
-    autoplaySpeed: 800,
+    autoplaySpeed: 1200,
     arrows: false,
   };
 
-  const images = ["/banner_5.png", "/banner_1.png", "/Black_hair2.jpg"];
+  const images = ["/banner_5_new.png", "/banner_1_new.png", "/Black_hair2.jpg"];
 
   return (
     <div className="w-full relative mt-[50px]">
@@ -24,7 +24,7 @@ function Hero() {
             {i === 2 ? (
               // Première image avec overlay et texte
               <section
-                className="relative bg-gradient-to-r from-amber-50 to-orange-50 min-h-[600px] flex items-center"
+                className="relative bg-gradient-to-r from-amber-50 to-orange-50 h-full flex items-center"
                 style={{
                   backgroundImage: `url('${src}')`,
                   backgroundSize: "cover",
@@ -66,7 +66,7 @@ function Hero() {
                 <img
                   src={src}
                   alt={`banner_${i}`}
-                  className="w-full sm:h-[400px] md:h-[600px] lg:h-full object-cover cursor-pointer"
+                  className="w-full sm:h-[400px] lg:h-full object-cover cursor-pointer"
                 />
               </Link>
             )}
