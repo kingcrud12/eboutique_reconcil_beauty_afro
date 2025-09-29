@@ -14,7 +14,7 @@ function Hero() {
     arrows: false,
   };
 
-  const images = ["/banner_5_new_test.png"];
+  const images = ["/Black_hair.jpg"];
 
   return (
     <div className="w-full relative mt-[50px]">
