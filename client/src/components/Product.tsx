@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import api from "../connect_to_api/api";
 import { IProduct } from "../connect_to_api/product.interface";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
 import Popin from "../components/Popin";
@@ -48,6 +48,19 @@ function Product() {
   const { fetchCart, firstCart, setCarts } = useCart();
   const { isAuthenticated, user } = useAuth();
 
+  const navigate = useNavigate();
+  const [activeProductId, setActiveProductId] = useState<number | null>(null);
+  const [isTouch, setIsTouch] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    // détecte support tactile
+    const touch =
+      typeof window !== "undefined" &&
+      ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+    setIsTouch(Boolean(touch));
+  }, []);
+
   useEffect(() => {
     api
       .get("/products")
@@ -57,6 +70,30 @@ function Product() {
         setPopinMsg("Erreur chargement produits");
       })
       .finally(() => setLoading(false));
+  }, []);
+
+  // close active zoom when tapping outside or on scroll/resize
+  useEffect(() => {
+    function onDocTouch(e: TouchEvent | Event) {
+      if (!containerRef.current) return;
+      if (!(e.target instanceof Node)) return;
+      if (!containerRef.current.contains(e.target)) {
+        setActiveProductId(null);
+      }
+    }
+    function onScroll() {
+      setActiveProductId(null);
+    }
+    window.addEventListener("touchstart", onDocTouch, { passive: true });
+    window.addEventListener("mousedown", onDocTouch);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("touchstart", onDocTouch);
+      window.removeEventListener("mousedown", onDocTouch);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
   }, []);
 
   const handleAddToCart = async (product: IProduct) => {
@@ -154,8 +191,29 @@ function Product() {
     "bg-[#f6ede2]",
   ];
 
+  // click handler for touch: first tap zooms, second tap navigates
+  const handleImageClickOnTouch = (
+    e: React.MouseEvent | React.TouchEvent,
+    productId: number,
+    productPath: string
+  ) => {
+    if (!isTouch) return; // let default on desktop
+    // If already active -> navigate
+    if (activeProductId === productId) {
+      setActiveProductId(null);
+      navigate(productPath);
+      return;
+    }
+    // otherwise activate zoom and prevent navigation
+    e.preventDefault();
+    setActiveProductId(productId);
+  };
+
   return (
-    <div className="py-16 px-1 sm:px-2 lg:px-3 bg-white font-sans">
+    <div
+      ref={containerRef}
+      className="py-16 px-1 sm:px-2 lg:px-3 bg-white font-sans"
+    >
       <style>{`
         @keyframes floatY { 0% { transform: translateY(0); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0); } }
         @keyframes slowRotate { 0% { transform: rotate(0deg); } 50% { transform: rotate(8deg); } 100% { transform: rotate(0deg); } }
@@ -168,8 +226,19 @@ function Product() {
         .anim-slow { animation-duration: 5s; }
         .anim-fast { animation-duration: 2.6s; }
 
+        /* Desktop hover: moderate zoom */
+        .desktop-img { transition: transform 500ms ease-out; }
+        .group:hover .desktop-img { transform: scale(1.15) translateY(-6px); }
+
+        /* Mobile active: strong zoom */
+        .mobile-active { transition: transform 300ms ease-out; transform-origin: center center; }
+        /* make sure the scaled image can overflow */
+        @media (max-width: 767px) {
+          .mobile-active { transform: scale(1.6) translateY(-8px); z-index: 40; }
+        }
+
         @media (prefers-reduced-motion: reduce) {
-          .anim-float, .anim-rotate, .anim-pop { animation: none !important; transform: none !important; }
+          .anim-float, .anim-rotate, .anim-pop, .desktop-img, .mobile-active { animation: none !important; transition: none !important; transform: none !important; }
         }
       `}</style>
 
@@ -284,29 +353,50 @@ function Product() {
           {displayed.map((product, idx) => {
             const isOutOfStock = Number(product.stock) <= 0;
             const bg = bgVariants[idx % bgVariants.length];
+            const isActive = activeProductId === product.id;
 
             return (
               <article
                 key={product.id}
-                // groupe pour targeter hover sur l'image + lift + z-index
-                className="group relative w-full flex flex-col bg-white rounded-3xl border border-gray-200 shadow-2xl overflow-visible transition-transform duration-300 hover:-translate-y-2 hover:shadow-3xl hover:z-10"
+                className={`group relative w-full flex flex-col bg-white rounded-3xl border border-gray-200 shadow-2xl transition-transform duration-300 ${
+                  isActive
+                    ? "z-50 -translate-y-2 shadow-2xl"
+                    : "hover:-translate-y-2 hover:z-10"
+                }`}
+                // prevent default on touchstart to avoid immediate click navigation
               >
-                {/* IMAGE BLOCK - allow overflow so image can get much bigger */}
+                {/* IMAGE BLOCK */}
                 <div
                   className={`w-full h-[420px] sm:h-[460px] md:h-96 flex items-center justify-center ${bg} overflow-visible`}
                 >
+                  {/* We keep Link for SEO / semantics but intercept click on touch */}
                   <Link
                     to={`/product/${product.id}`}
+                    onClick={(e) => {
+                      // handle touch navigation: first tap zooms, second tap navigates
+                      if (isTouch) {
+                        handleImageClickOnTouch(
+                          e as any,
+                          product.id,
+                          `/product/${product.id}`
+                        );
+                      }
+                      // otherwise default Link navigation works
+                    }}
+                    onTouchStart={(e) => {
+                      // stop propagation so our document touch listener doesn't immediately close
+                      e.stopPropagation();
+                    }}
                     className="w-full h-full flex items-center justify-center px-4"
+                    aria-label={`Voir ${product.name}`}
                   >
                     <img
                       src={product.imageUrl}
                       alt={product.name}
                       loading="lazy"
-                      /* largeur normale mais en hover on l'agrandit fortement (scale 1.5)
-                         et on la recentre. max-w-none permet au scale de s'exprimer pleinement. */
-                      className="w-11/12 sm:w-10/12 md:w-9/12 lg:w-8/12 max-w-none h-auto object-contain block transform transition-all duration-500 ease-out
-                                 group-hover:scale-150 group-hover:-translate-y-4"
+                      className={`w-11/12 sm:w-10/12 md:w-9/12 lg:w-8/12 max-w-none h-auto object-contain block desktop-img ${
+                        isActive ? "mobile-active" : ""
+                      }`}
                       style={{
                         mixBlendMode: "multiply",
                         background: "transparent",
@@ -315,7 +405,7 @@ function Product() {
                   </Link>
                 </div>
 
-                {/* CARD BODY (padding) */}
+                {/* CARD BODY */}
                 <div className="p-8 flex-1 flex flex-col justify-between">
                   <div>
                     <Link to={`/product/${product.id}`}>
