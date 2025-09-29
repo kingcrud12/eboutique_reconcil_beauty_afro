@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState, useRef } from "react";
 import api from "../connect_to_api/api";
 import { IProduct } from "../connect_to_api/product.interface";
@@ -433,12 +434,11 @@ function Product() {
 
                     <div className="flex items-center justify-center">
                       {!isOutOfStock ? (
-                        <button
-                          onClick={() => handleAddToCart(product)}
-                          className="inline-block px-10 py-3 rounded-full bg-gray-900 text-white text-base sm:text-lg font-semibold hover:opacity-95 transition"
-                        >
-                          Ajouter au panier
-                        </button>
+                        <Link to="/products">
+                          <button className="inline-block px-10 py-3 rounded-full bg-gray-900 text-white text-base sm:text-lg font-semibold hover:opacity-95 transition">
+                            Découvrir
+                          </button>
+                        </Link>
                       ) : (
                         <div style={{ height: 52 }} />
                       )}
