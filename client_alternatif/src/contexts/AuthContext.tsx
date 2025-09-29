@@ -1,54 +1,63 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
-import api from "../api/api";
-
-interface User {
-  id: number;
-  email: string;
-  role: string;
-}
+// AuthContext.tsx
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
+import api from "../connect_to_api/api";
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: () => Promise<void>;
   logout: () => Promise<void>;
   authLoading: boolean;
-  user: User | null;
+  user: { id: number } | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authLoading, setAuthLoading] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [user, setUser] = useState<{ id: number } | null>(null);
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const res = await api.get<{ id: number }>("/users/me");
+        setUser(res.data);
+        setIsAuthenticated(true);
+      } catch {
+        setUser(null);
+        setIsAuthenticated(false);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+    init();
+  }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async () => {
     try {
-      setAuthLoading(true);
-      await api.post("/login", { email, password });
-      const { data } = await api.get<User>("/me");
-      setUser(data);
+      const res = await api.get<{ id: number }>("/users/me");
+      setUser(res.data);
       setIsAuthenticated(true);
     } catch (err) {
       console.error("Erreur login :", err);
       setUser(null);
       setIsAuthenticated(false);
-      throw err;
-    } finally {
-      setAuthLoading(false);
     }
   };
 
   const logout = async () => {
     try {
-      setAuthLoading(true);
-      await api.post("/logout");
+      await api.post("/auth/logout");
     } catch (err) {
       console.error("Erreur logout :", err);
     } finally {
       setUser(null);
       setIsAuthenticated(false);
-      setAuthLoading(false);
     }
   };
 
