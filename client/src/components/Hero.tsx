@@ -14,7 +14,7 @@ function Hero() {
     arrows: false,
   };
 
-  const images = ["/banner_5_new.png", "/banner_1_new.png", "/Black_hair2.jpg"];
+  const images = ["/banner_5_new_test.png"];
 
   return (
     <div className="w-full relative mt-[50px]">
@@ -22,7 +22,6 @@ function Hero() {
         {images.map((src, i) => (
           <div key={i} className="relative">
             {i === 2 ? (
-              // Première image avec overlay et texte
               <section
                 className="relative bg-gradient-to-r from-amber-50 to-orange-50 h-full flex items-center"
                 style={{
