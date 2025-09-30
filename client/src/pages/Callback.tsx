@@ -5,7 +5,7 @@ import api from "../connect_to_api/api";
 
 const Callback = () => {
   const navigate = useNavigate();
-  const { setUser, setIsAuthenticated, authLoading, isAuthenticated } =
+  const { setUser, isAuthenticated, setIsAuthenticated, authLoading } =
     useAuth();
 
   useEffect(() => {
@@ -41,10 +41,11 @@ const Callback = () => {
         // Supprime le verifier après usage
         sessionStorage.removeItem("pkce_code_verifier");
 
-        if (postRes.data?.user) {
+        if (postRes.status === 200 && postRes.data?.user) {
           console.log("Utilisateur trouvé, mise à jour du contexte.");
           setUser(postRes.data.user); // Met à jour l'utilisateur dans le contexte
           setIsAuthenticated(true); // Met à jour l'état d'authentification
+          navigate("/", { replace: true }); // Redirige vers la page d'accueil après l'authentification
         } else {
           console.error("Utilisateur non trouvé après callback.");
           navigate("/login", { replace: true }); // Redirige vers login
@@ -59,11 +60,7 @@ const Callback = () => {
   }, [navigate, setUser, setIsAuthenticated]);
 
   useEffect(() => {
-    // Si l'authentification est réussie et le chargement est terminé, rediriger vers la page d'accueil
-    if (!authLoading && isAuthenticated) {
-      navigate("/", { replace: true });
-    }
-    // Si l'utilisateur n'est pas authentifié, le rediriger vers la page de login
+    // Vérifie si l'authentification a été chargée avec succès
     if (!authLoading && !isAuthenticated) {
       navigate("/login", { replace: true });
     }
