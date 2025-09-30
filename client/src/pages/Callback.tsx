@@ -5,8 +5,7 @@ import api from "../connect_to_api/api";
 
 const Callback = () => {
   const navigate = useNavigate();
-  const { setUser, setIsAuthenticated, isAuthenticated, authLoading } =
-    useAuth();
+  const { setUser, setIsAuthenticated, authLoading } = useAuth();
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -14,12 +13,14 @@ const Callback = () => {
       const code = params.get("code");
 
       if (!code) {
+        console.error("Aucun code d'authentification trouvé dans l'URL.");
         navigate("/login", { replace: true });
         return;
       }
 
       const codeVerifier = sessionStorage.getItem("pkce_code_verifier");
       if (!codeVerifier) {
+        console.error("Aucun code_verifier trouvé dans la session.");
         navigate("/login", { replace: true });
         return;
       }
@@ -39,8 +40,8 @@ const Callback = () => {
         // Supprime le verifier après usage
         sessionStorage.removeItem("pkce_code_verifier");
 
-        // Si le backend retourne l'utilisateur, on met à jour le contexte
         if (postRes.data?.user) {
+          console.log("Utilisateur trouvé, mise à jour du contexte.");
           setUser(postRes.data.user); // Met à jour l'utilisateur dans le contexte
           setIsAuthenticated(true); // Met à jour l'état d'authentification
         } else {
@@ -48,7 +49,7 @@ const Callback = () => {
           navigate("/login", { replace: true }); // Redirige vers login
         }
       } catch (err) {
-        console.error("Erreur callback Auth0 :", err);
+        console.error("Erreur lors du callback Auth0 :", err);
         navigate("/login", { replace: true }); // Redirige vers la page de login en cas d'erreur
       }
     };
@@ -57,12 +58,12 @@ const Callback = () => {
   }, [navigate, setUser, setIsAuthenticated]);
 
   useEffect(() => {
-    if (!authLoading && isAuthenticated) {
+    if (!authLoading && !authLoading && !setIsAuthenticated) {
       navigate("/", { replace: true });
     }
-  }, [authLoading, isAuthenticated, navigate]);
+  }, [authLoading, setIsAuthenticated, navigate]);
 
-  return <p>Connexion en cours…</p>;
+  return <p>Connexion en cours…</p>; // Message visible pendant le processus
 };
 
 export default Callback;
