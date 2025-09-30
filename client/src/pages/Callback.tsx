@@ -5,7 +5,8 @@ import api from "../connect_to_api/api";
 
 const Callback = () => {
   const navigate = useNavigate();
-  const { setUser, setIsAuthenticated, authLoading } = useAuth();
+  const { setUser, setIsAuthenticated, authLoading, isAuthenticated } =
+    useAuth();
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -58,10 +59,15 @@ const Callback = () => {
   }, [navigate, setUser, setIsAuthenticated]);
 
   useEffect(() => {
-    if (!authLoading && !authLoading && !setIsAuthenticated) {
+    // Si l'authentification est réussie et le chargement est terminé, rediriger vers la page d'accueil
+    if (!authLoading && isAuthenticated) {
       navigate("/", { replace: true });
     }
-  }, [authLoading, setIsAuthenticated, navigate]);
+    // Si l'utilisateur n'est pas authentifié, le rediriger vers la page de login
+    if (!authLoading && !isAuthenticated) {
+      navigate("/login", { replace: true });
+    }
+  }, [authLoading, isAuthenticated, navigate]);
 
   return <p>Connexion en cours…</p>; // Message visible pendant le processus
 };
