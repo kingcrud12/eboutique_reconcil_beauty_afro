@@ -54,6 +54,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const init = async () => {
+      // If we are on the callback route or if a code param exists, skip initial fetch.
+      // Callback.tsx will perform the fetch after the backend sets the cookie.
+      const params = new URLSearchParams(window.location.search);
+      const isOnCallback =
+        window.location.pathname === "/callback" || params.has("code");
+
+      if (isOnCallback) {
+        // Keep authLoading true — the callback page will call setUser / setIsAuthenticated.
+        return;
+      }
+
       try {
         const res = await api.get<{ id: number; email?: string }>("/users/me", {
           withCredentials: true,
@@ -67,6 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setAuthLoading(false);
       }
     };
+
     void init();
   }, []);
 

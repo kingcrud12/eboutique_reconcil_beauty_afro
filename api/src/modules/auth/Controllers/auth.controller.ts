@@ -7,6 +7,7 @@ import {
   Query,
   Res,
   Get,
+  Body,
 } from '@nestjs/common';
 import { AuthService } from '../Services/auth.service';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -14,6 +15,7 @@ import { UserService } from 'src/modules/user/Services/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
 import axios from 'axios';
+import { PrismaService } from 'src/prisma';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -22,6 +24,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private readonly prismaService: PrismaService,
   ) {}
 
   AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
@@ -54,22 +57,19 @@ export class AuthController {
     );
   }
 
-  // --- CALLBACK (PKCE) ---
-  @Get('callback')
+  @Post('callback')
   async callback(
-    @Query('code') code: string,
-    @Query('state') state: string, // ici tu peux stocker le code_verifier côté front dans sessionStorage et le récupérer
-    @Query('redirect_uri') redirectUri: string,
-    @Res() res: Response,
+    @Body() body: { code: string; code_verifier: string; redirect_uri: string },
+    @Res({ passthrough: true }) res: Response,
   ) {
-    if (!code || !redirectUri) {
-      throw new HttpException(
-        'Missing code or redirect_uri',
-        HttpStatus.BAD_REQUEST,
-      );
+    const { code, code_verifier, redirect_uri } = body;
+
+    if (!code || !code_verifier || !redirect_uri) {
+      throw new HttpException('Missing parameters', HttpStatus.BAD_REQUEST);
     }
 
     try {
+      // 1️⃣ Échange code PKCE contre tokens Auth0
       interface Auth0TokenResponse {
         access_token: string;
         id_token: string;
@@ -85,24 +85,70 @@ export class AuthController {
           client_id: this.CLIENT_ID,
           client_secret: this.CLIENT_SECRET,
           code,
-          redirect_uri: redirectUri,
-          code_verifier: state,
+          redirect_uri,
+          code_verifier,
         },
       );
 
-      const { access_token } = tokenRes.data;
+      const access_token = tokenRes.data.access_token;
 
-      res.cookie('token', access_token, {
+      // 2️⃣ Récupération du profil utilisateur depuis Auth0
+      interface Auth0User {
+        sub: string;
+        email: string;
+        name?: string;
+        firstName?: string;
+        lastName?: string;
+      }
+
+      const userRes = await axios.get<Auth0User>(
+        `https://${this.AUTH0_DOMAIN}/userinfo`,
+        { headers: { Authorization: `Bearer ${access_token}` } },
+      );
+
+      const auth0User = userRes.data;
+
+      // 3️⃣ Vérifie si l’utilisateur existe en DB, sinon crée-le
+      let user = await this.userService.getByEmail(auth0User.email);
+      if (!user) {
+        user = await this.prismaService.user.create({
+          data: {
+            email: auth0User.email,
+            firstName: auth0User.firstName || auth0User.name || 'User',
+            lastName: auth0User.lastName || '',
+            password: Math.random().toString(36).slice(-8), // mot de passe aléatoire pour social login
+            isConfirmed: true,
+          },
+        });
+      }
+
+      // 4️⃣ Génère un JWT interne pour ton app avec l'id user
+      const jwtPayload = { userId: user.id };
+      const jwtToken = this.jwtService.sign(jwtPayload, { expiresIn: '1d' });
+
+      // 5️⃣ Crée un cookie httpOnly pour la session
+      res.cookie('token', jwtToken, {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
         path: '/',
-        maxAge: 24 * 60 * 60 * 1000,
+        maxAge: 24 * 60 * 60 * 1000, // 1 jour
       });
 
-      return res.redirect(redirectUri);
-    } catch (err) {
-      console.error(err);
+      // 6️⃣ Retourne un status 200 avec l’utilisateur
+      return { message: 'Authentification réussie', user };
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        console.error(
+          'Auth0 callback error:',
+          err.response?.data || err.message,
+        );
+      } else if (err instanceof Error) {
+        console.error('Auth0 callback error:', err.message);
+      } else {
+        console.error('Auth0 callback error: unknown error', err);
+      }
+
       throw new HttpException(
         'OAuth token exchange failed',
         HttpStatus.INTERNAL_SERVER_ERROR,
