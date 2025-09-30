@@ -9,8 +9,8 @@ import api from "../connect_to_api/api";
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
   user: { id: number; email?: string } | null;
+  setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
   setUser: React.Dispatch<
     React.SetStateAction<{ id: number; email?: string } | null>
   >;
@@ -24,7 +24,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const API_BASE = process.env.REACT_APP_BASE_URL!;
 const REDIRECT_URI = `${window.location.origin}/callback`;
 
-// --- PKCE helpers ---
 async function generateCodeVerifier(length = 128): Promise<string> {
   const chars =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
@@ -46,7 +45,6 @@ async function generateCodeChallenge(codeVerifier: string): Promise<string> {
     .replace(/=+$/, "");
 }
 
-// --- Provider ---
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
@@ -54,15 +52,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const init = async () => {
-      // If we are on the callback route or if a code param exists, skip initial fetch.
-      // Callback.tsx will perform the fetch after the backend sets the cookie.
       const params = new URLSearchParams(window.location.search);
       const isOnCallback =
         window.location.pathname === "/callback" || params.has("code");
 
       if (isOnCallback) {
-        // Keep authLoading true — the callback page will call setUser / setIsAuthenticated.
-        return;
+        return; // Callback handler will do the state update
       }
 
       try {
@@ -86,7 +81,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const codeVerifier = await generateCodeVerifier();
     const codeChallenge = await generateCodeChallenge(codeVerifier);
     sessionStorage.setItem("pkce_code_verifier", codeVerifier);
-
     window.location.href = `${API_BASE}/auth/login?code_challenge=${encodeURIComponent(
       codeChallenge
     )}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
@@ -107,8 +101,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     <AuthContext.Provider
       value={{
         isAuthenticated,
-        setIsAuthenticated,
         user,
+        setIsAuthenticated,
         setUser,
         login,
         logout,
