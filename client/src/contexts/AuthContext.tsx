@@ -54,34 +54,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const init = async () => {
-      // Vérifie si un token est présent dans les cookies
-      const token = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("token="));
-
-      // Si un token existe, on considère l'utilisateur comme authentifié
-      if (token) {
-        try {
-          const res = await api.get<{ id: number }>("/users/me", {
-            withCredentials: true,
-          });
-          setUser(res.data);
-          setIsAuthenticated(true);
-        } catch {
-          setUser(null);
-          setIsAuthenticated(false);
-        }
-      } else {
-        setIsAuthenticated(false);
+      // Essaye de récupérer l'utilisateur depuis l'API
+      try {
+        const res = await api.get<{ id: number }>("/users/me", {
+          withCredentials: true, // Envoie le cookie HttpOnly automatiquement
+        });
+        setUser(res.data);
+        setIsAuthenticated(true);
+      } catch (err) {
+        // Si la requête échoue, l'utilisateur n'est pas authentifié
+        console.error("Erreur lors de la récupération de l'utilisateur :", err);
         setUser(null);
+        setIsAuthenticated(false);
+      } finally {
+        setAuthLoading(false);
       }
-
-      setAuthLoading(false);
     };
 
     void init();
   }, []);
 
+  // Redirige l'utilisateur vers Auth0 pour l'authentification
   const login = async () => {
     const codeVerifier = await generateCodeVerifier();
     const codeChallenge = await generateCodeChallenge(codeVerifier);
@@ -91,6 +84,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     )}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
   };
 
+  // Déconnecte l'utilisateur, invalide le cookie et réinitialise l'état
   const logout = async () => {
     try {
       await api.post("/auth/logout", {}, { withCredentials: true });
