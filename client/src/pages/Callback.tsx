@@ -5,7 +5,7 @@ import api from "../connect_to_api/api";
 
 const Callback = () => {
   const navigate = useNavigate();
-  const { setUser, setIsAuthenticated } = useAuth();
+  const { setUser, setIsAuthenticated, authLoading } = useAuth();
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -24,7 +24,7 @@ const Callback = () => {
       }
 
       try {
-        // 1) Échange code contre token côté backend
+        // 1) Échange du code contre un token côté backend
         const postRes = await api.post(
           "/auth/callback",
           {
@@ -42,9 +42,7 @@ const Callback = () => {
         if (postRes.data?.user) {
           setUser(postRes.data.user); // Met à jour l'utilisateur dans le contexte
           setIsAuthenticated(true); // Met à jour l'état d'authentification
-          navigate("/", { replace: true }); // Redirige vers la page d'accueil
         } else {
-          // Cas où l'utilisateur ne serait pas trouvé dans la réponse
           console.error("Utilisateur non trouvé après callback.");
           navigate("/login", { replace: true }); // Redirige vers login
         }
@@ -57,7 +55,13 @@ const Callback = () => {
     void handleCallback();
   }, [navigate, setUser, setIsAuthenticated]);
 
-  return <p>Connexion en cours…</p>; // Affiche "Connexion en cours..."
+  useEffect(() => {
+    if (!authLoading && !setIsAuthenticated) {
+      navigate("/", { replace: true });
+    }
+  }, [authLoading, setIsAuthenticated, navigate]);
+
+  return <p>Connexion en cours…</p>;
 };
 
 export default Callback;

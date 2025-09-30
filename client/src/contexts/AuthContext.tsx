@@ -54,16 +54,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const init = async () => {
-      // Essaye de récupérer l'utilisateur depuis l'API
+      // Vérifie si le paramètre `code` est présent (indiquant que l'on est sur la page de callback)
+      const params = new URLSearchParams(window.location.search);
+      const isOnCallback =
+        window.location.pathname === "/callback" || params.has("code");
+
+      // Si nous sommes sur la page de callback, on attend que le callback se termine
+      if (isOnCallback) {
+        return; // Callback handler mettra à jour l'état de l'utilisateur
+      }
+
       try {
         const res = await api.get<{ id: number }>("/users/me", {
-          withCredentials: true, // Envoie le cookie HttpOnly automatiquement
+          withCredentials: true,
         });
         setUser(res.data);
         setIsAuthenticated(true);
-      } catch (err) {
-        // Si la requête échoue, l'utilisateur n'est pas authentifié
-        console.error("Erreur lors de la récupération de l'utilisateur :", err);
+      } catch {
         setUser(null);
         setIsAuthenticated(false);
       } finally {
@@ -72,9 +79,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     void init();
-  }, []);
+  }, []); // Une seule fois au chargement du composant
 
-  // Redirige l'utilisateur vers Auth0 pour l'authentification
+  // --- Login ---
   const login = async () => {
     const codeVerifier = await generateCodeVerifier();
     const codeChallenge = await generateCodeChallenge(codeVerifier);
@@ -84,7 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     )}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
   };
 
-  // Déconnecte l'utilisateur, invalide le cookie et réinitialise l'état
+  // --- Logout ---
   const logout = async () => {
     try {
       await api.post("/auth/logout", {}, { withCredentials: true });
