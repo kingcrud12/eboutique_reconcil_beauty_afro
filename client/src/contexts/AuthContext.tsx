@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(null);
         setIsAuthenticated(false);
       } finally {
-        setAuthLoading(false);
+        setAuthLoading(false); // Met à jour l'état de chargement à false une fois l'opération terminée
       }
     };
 

@@ -5,7 +5,8 @@ import api from "../connect_to_api/api";
 
 const Callback = () => {
   const navigate = useNavigate();
-  const { setUser, setIsAuthenticated, authLoading } = useAuth();
+  const { setUser, setIsAuthenticated, isAuthenticated, authLoading } =
+    useAuth();
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -56,10 +57,10 @@ const Callback = () => {
   }, [navigate, setUser, setIsAuthenticated]);
 
   useEffect(() => {
-    if (!authLoading && !setIsAuthenticated) {
+    if (!authLoading && isAuthenticated) {
       navigate("/", { replace: true });
     }
-  }, [authLoading, setIsAuthenticated, navigate]);
+  }, [authLoading, isAuthenticated, navigate]);
 
   return <p>Connexion en cours…</p>;
 };
