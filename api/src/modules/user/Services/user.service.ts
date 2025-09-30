@@ -98,14 +98,22 @@ export class UserService {
       adress: user.adress,
     };
   }
+  // src/modules/user/Services/user.service.ts (ou fichier équivalent)
   async verifyUser(params: {
     id?: number;
     email?: string;
   }): Promise<PrismaUser | null> {
     const { id, email } = params;
 
+    if (!id && !email) {
+      // Aucun identifiant -> pas d'appel à Prisma
+      return null;
+    }
+
+    const where = id ? { id } : { email };
+
     return this.prisma.user.findUnique({
-      where: id ? { id } : { email },
+      where,
       select: {
         id: true,
         email: true,
