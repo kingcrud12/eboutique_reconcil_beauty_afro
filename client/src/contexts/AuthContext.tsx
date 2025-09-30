@@ -24,29 +24,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const API_BASE = process.env.REACT_APP_BASE_URL!;
 const REDIRECT_URI = `${window.location.origin}/callback`;
 
-// --- PKCE helpers ---
-async function generateCodeVerifier(length = 128): Promise<string> {
-  const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
-  let random = "";
-  const array = new Uint8Array(length);
-  crypto.getRandomValues(array);
-  for (let i = 0; i < array.length; i++)
-    random += chars[array[i] % chars.length];
-  return random;
-}
-
-async function generateCodeChallenge(codeVerifier: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(codeVerifier);
-  const digest = await crypto.subtle.digest("SHA-256", data);
-  return btoa(String.fromCharCode(...new Uint8Array(digest)))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-}
-
-// --- Provider ---
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
@@ -54,14 +31,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const init = async () => {
-      // Vérifie si le paramètre `code` est présent (indiquant que l'on est sur la page de callback)
       const params = new URLSearchParams(window.location.search);
       const isOnCallback =
         window.location.pathname === "/callback" || params.has("code");
 
       // Si nous sommes sur la page de callback, on attend que le callback se termine
       if (isOnCallback) {
-        return; // Callback handler mettra à jour l'état de l'utilisateur
+        return; // Attends le callback pour récupérer l'utilisateur
       }
 
       try {
@@ -74,12 +50,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(null);
         setIsAuthenticated(false);
       } finally {
-        setAuthLoading(false); // Met à jour l'état de chargement à false une fois l'opération terminée
+        setAuthLoading(false); // Fin du chargement
       }
     };
 
-    void init();
-  }, []); // Une seule fois au chargement du composant
+    void init(); // Appel d'initialisation
+  }, []); // Uniquement au démarrage de l'application
+
+  // --- PKCE helpers ---
+  async function generateCodeVerifier(length = 128): Promise<string> {
+    const chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
+    let random = "";
+    const array = new Uint8Array(length);
+    crypto.getRandomValues(array);
+    for (let i = 0; i < array.length; i++) {
+      random += chars[array[i] % chars.length];
+    }
+    return random;
+  }
+
+  async function generateCodeChallenge(codeVerifier: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(codeVerifier);
+    const digest = await crypto.subtle.digest("SHA-256", data);
+    return btoa(String.fromCharCode(...new Uint8Array(digest)))
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+  }
 
   // --- Login ---
   const login = async () => {
@@ -96,10 +95,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       await api.post("/auth/logout", {}, { withCredentials: true });
     } catch (err) {
-      console.error("Erreur logout :", err);
+      console.error("Erreur lors de la déconnexion", err);
     } finally {
       setUser(null);
-      setIsAuthenticated(false);
+      setIsAuthenticated(false); // Réinitialise l'authentification
     }
   };
 
