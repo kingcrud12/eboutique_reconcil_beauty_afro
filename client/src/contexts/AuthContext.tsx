@@ -31,8 +31,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const init = async () => {
-      // On vérifie si l'utilisateur est déjà authentifié
+      console.log("Vérification de l'authentification...");
       const token = sessionStorage.getItem("auth_token");
+      console.log("Token dans sessionStorage: ", token);
 
       if (token) {
         try {
@@ -42,6 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             },
             withCredentials: true,
           });
+          console.log("Utilisateur récupéré:", res.data);
           setUser(res.data);
           setIsAuthenticated(true);
         } catch (error) {
@@ -58,7 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     void init();
-  }, []); // Un seul appel au chargement initial
+  }, []);
 
   // --- PKCE helpers ---
   async function generateCodeVerifier(length = 128): Promise<string> {

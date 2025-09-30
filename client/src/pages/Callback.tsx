@@ -46,6 +46,7 @@ const Callback = () => {
           sessionStorage.setItem("auth_token", postRes.data.token); // Stocke le token dans sessionStorage
           setUser(postRes.data.user); // Met à jour l'utilisateur dans le contexte
           setIsAuthenticated(true); // Met à jour l'état d'authentification
+          console.log("isAuthenticated après mise à jour: ", true);
           navigate("/", { replace: true }); // Redirige vers la page d'accueil
         } else {
           console.error("Utilisateur non trouvé après callback.");
@@ -62,6 +63,8 @@ const Callback = () => {
 
   // Affiche le message de connexion en attendant que l'authentification soit terminée
   if (authLoading || !isAuthenticated) {
+    console.log("authLoading: ", authLoading);
+    console.log("isAuthenticated dans Callback: ", isAuthenticated);
     return <p>Connexion en cours…</p>;
   }
 
