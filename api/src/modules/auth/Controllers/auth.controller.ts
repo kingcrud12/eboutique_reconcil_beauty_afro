@@ -97,8 +97,8 @@ export class AuthController {
         sub: string;
         email: string;
         name?: string;
-        firsName: string;
-        lastName: string;
+        firstName?: string;
+        lastName?: string;
       }
 
       const userRes = await axios.get<Auth0User>(
@@ -114,16 +114,20 @@ export class AuthController {
         user = await this.prismaService.user.create({
           data: {
             email: auth0User.email,
-            firstName: auth0User.firsName || auth0User.name || 'User',
+            firstName: auth0User.firstName || auth0User.name || 'User',
             lastName: auth0User.lastName || '',
-            password: Math.random().toString(36).slice(-8),
+            password: Math.random().toString(36).slice(-8), // mot de passe aléatoire pour social login
             isConfirmed: true,
           },
         });
       }
 
-      // 4️⃣ Crée un cookie httpOnly pour la session
-      res.cookie('token', access_token, {
+      // 4️⃣ Génère un JWT interne pour ton app avec l'id user
+      const jwtPayload = { userId: user.id };
+      const jwtToken = this.jwtService.sign(jwtPayload, { expiresIn: '1d' });
+
+      // 5️⃣ Crée un cookie httpOnly pour la session
+      res.cookie('token', jwtToken, {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
@@ -131,11 +135,10 @@ export class AuthController {
         maxAge: 24 * 60 * 60 * 1000, // 1 jour
       });
 
-      // 5️⃣ Retourne un status 200 avec l’utilisateur
+      // 6️⃣ Retourne un status 200 avec l’utilisateur
       return { message: 'Authentification réussie', user };
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
-        // err est bien un AxiosError
         console.error(
           'Auth0 callback error:',
           err.response?.data || err.message,
