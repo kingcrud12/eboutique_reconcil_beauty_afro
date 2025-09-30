@@ -1,3 +1,4 @@
+// src/pages/Callback.tsx
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import React from "react";
@@ -13,22 +14,19 @@ const Callback = () => {
       const params = new URLSearchParams(window.location.search);
       const code = params.get("code");
       if (!code) {
-        console.error("Pas de code reçu !");
-        // If no code present, redirect to login page
         navigate("/login", { replace: true });
         return;
       }
 
       const codeVerifier = sessionStorage.getItem("pkce_code_verifier");
       if (!codeVerifier) {
-        console.error("Pas de code verifier en session !");
         navigate("/login", { replace: true });
         return;
       }
 
       try {
-        // Exchange code + code_verifier on backend -> backend sets HttpOnly cookie (JWT)
-        await api.post(
+        // 1) Échange code contre token côté backend. Backend met le cookie HttpOnly et retourne l'user.
+        const postRes = await api.post(
           "/auth/callback",
           {
             code,
@@ -38,23 +36,24 @@ const Callback = () => {
           { withCredentials: true }
         );
 
-        // remove verifier from storage (no longer needed)
+        // Supprime le verifier, déjà utilisé
         sessionStorage.removeItem("pkce_code_verifier");
 
-        // Now backend cookie should be present; fetch profile
-        const res = await api.get<{ id: number; email?: string }>("/users/me", {
-          withCredentials: true,
-        });
+        // 2) Si backend retourne l'user, on l'utilise directement (évite la course)
+        if (postRes.data?.user) {
+          setUser(postRes.data.user);
+          setIsAuthenticated(true);
+        } else {
+          // sinon fallback : attendre et appeler /users/me
+          const res = await api.get("/users/me", { withCredentials: true });
+          setUser(res.data);
+          setIsAuthenticated(true);
+        }
 
-        // Update auth context
-        setUser(res.data);
-        setIsAuthenticated(true);
-
-        // Navigate to home and replace history to clean URL
+        // 3) Clean URL and navigate
         navigate("/", { replace: true });
       } catch (err) {
         console.error("Erreur callback Auth0 :", err);
-        // Optionally show an error page or go back to login
         navigate("/login", { replace: true });
       }
     };
@@ -62,7 +61,7 @@ const Callback = () => {
     void handleCallback();
   }, [navigate, setUser, setIsAuthenticated]);
 
-  return <p>Connexion en cours...</p>;
+  return <p>Connexion en cours…</p>;
 };
 
 export default Callback;

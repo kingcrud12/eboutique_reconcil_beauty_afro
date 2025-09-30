@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       try {
-        const res = await api.get<{ id: number; email?: string }>("/users/me", {
+        const res = await api.get<{ id: number }>("/users/me", {
           withCredentials: true,
         });
         setUser(res.data);
