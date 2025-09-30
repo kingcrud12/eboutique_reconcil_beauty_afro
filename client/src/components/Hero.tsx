@@ -15,8 +15,8 @@ function Hero() {
   };
 
   const images = [
-    "Banner_5_new_test.png",
-    "Banner_1_new.png",
+    "banner_5_new_test.png",
+    "banner_1_new.png",
     "/Black_hair2.jpg",
   ];
 
