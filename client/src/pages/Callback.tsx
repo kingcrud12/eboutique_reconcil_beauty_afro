@@ -40,14 +40,17 @@ const Callback = () => {
         sessionStorage.removeItem("pkce_code_verifier");
 
         // 2) Si backend retourne l'user, on l'utilise directement (évite la course)
+        // ...
         if (postRes.data?.user) {
           setUser(postRes.data.user);
           setIsAuthenticated(true);
+          navigate("/", { replace: true });
         } else {
-          // sinon fallback : attendre et appeler /users/me
           const res = await api.get("/users/me", { withCredentials: true });
           setUser(res.data);
           setIsAuthenticated(true);
+          // 🚨 On navigue seulement après que /users/me ait fini
+          navigate("/", { replace: true });
         }
 
         // 3) Clean URL and navigate
