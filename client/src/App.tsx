@@ -21,6 +21,7 @@ import SuccessPageOrder from "./pages/SucessPageOrder";
 import TestPage from "./TestPage";
 import Contact from "./pages/Contact";
 import AboutUs from "./pages/AboutUs";
+import Callback from "./pages/Callback";
 
 function App() {
   return (
@@ -46,6 +47,7 @@ function App() {
           <Route path="TestPage" element={<TestPage />} />
           <Route path="contact" element={<Contact />} />
           <Route path="aboutUs" element={<AboutUs />} />
+          <Route path="callback" element={<Callback />} />
 
           <Route
             path="account"

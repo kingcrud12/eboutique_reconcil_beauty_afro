@@ -1,4 +1,3 @@
-// src/contexts/AuthContext.tsx
 import React, {
   createContext,
   useContext,
@@ -10,10 +9,14 @@ import api from "../connect_to_api/api";
 
 interface AuthContextType {
   isAuthenticated: boolean;
+  setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
+  user: { id: number; email?: string } | null;
+  setUser: React.Dispatch<
+    React.SetStateAction<{ id: number; email?: string } | null>
+  >;
   login: () => void;
   logout: () => Promise<void>;
   authLoading: boolean;
-  user: { id: number; email?: string } | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,11 +40,10 @@ async function generateCodeChallenge(codeVerifier: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(codeVerifier);
   const digest = await crypto.subtle.digest("SHA-256", data);
-  const base64Digest = btoa(String.fromCharCode(...new Uint8Array(digest)))
+  return btoa(String.fromCharCode(...new Uint8Array(digest)))
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=+$/, "");
-  return base64Digest;
 }
 
 // --- Provider ---
@@ -50,7 +52,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authLoading, setAuthLoading] = useState(true);
   const [user, setUser] = useState<{ id: number; email?: string } | null>(null);
 
-  // Vérifie session existante au montage
   useEffect(() => {
     const init = async () => {
       try {
@@ -66,10 +67,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setAuthLoading(false);
       }
     };
-    init();
+    void init();
   }, []);
 
-  // --- Login via Auth0 PKCE ---
   const login = async () => {
     const codeVerifier = await generateCodeVerifier();
     const codeChallenge = await generateCodeChallenge(codeVerifier);
@@ -80,7 +80,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     )}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
   };
 
-  // --- Logout ---
   const logout = async () => {
     try {
       await api.post("/auth/logout", {}, { withCredentials: true });
@@ -94,7 +93,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, login, logout, authLoading, user }}
+      value={{
+        isAuthenticated,
+        setIsAuthenticated,
+        user,
+        setUser,
+        login,
+        logout,
+        authLoading,
+      }}
     >
       {children}
     </AuthContext.Provider>
