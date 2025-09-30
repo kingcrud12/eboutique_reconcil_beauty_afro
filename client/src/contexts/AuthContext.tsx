@@ -26,36 +26,35 @@ const REDIRECT_URI = `${window.location.origin}/callback`;
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authLoading, setAuthLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true); // À true au début, pour éviter les appels prématurés
   const [user, setUser] = useState<{ id: number; email?: string } | null>(null);
 
   useEffect(() => {
     const init = async () => {
-      const params = new URLSearchParams(window.location.search);
-      const isOnCallback =
-        window.location.pathname === "/callback" || params.has("code");
-
-      // Si nous sommes sur la page de callback, on attend que le callback se termine
-      if (isOnCallback) {
-        return; // Attends le callback pour récupérer l'utilisateur
-      }
-
-      try {
-        const res = await api.get<{ id: number }>("/users/me", {
-          withCredentials: true,
-        });
-        setUser(res.data);
-        setIsAuthenticated(true);
-      } catch {
-        setUser(null);
+      // On vérifie si l'utilisateur est déjà authentifié
+      const isAuthenticated = sessionStorage.getItem("auth_token") !== null; // Exemple de vérification
+      if (isAuthenticated) {
+        try {
+          const res = await api.get<{ id: number }>("/users/me", {
+            withCredentials: true,
+          });
+          setUser(res.data);
+          setIsAuthenticated(true);
+        } catch (error) {
+          console.error(
+            "Erreur lors de la récupération des infos utilisateur",
+            error
+          );
+          setIsAuthenticated(false);
+        }
+      } else {
         setIsAuthenticated(false);
-      } finally {
-        setAuthLoading(false); // Fin du chargement
       }
+      setAuthLoading(false); // Fin du chargement
     };
 
-    void init(); // Appel d'initialisation
-  }, []); // Uniquement au démarrage de l'application
+    void init(); // Initialisation au démarrage de l'app
+  }, []); // Un seul appel au chargement initial
 
   // --- PKCE helpers ---
   async function generateCodeVerifier(length = 128): Promise<string> {
@@ -94,6 +93,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     try {
       await api.post("/auth/logout", {}, { withCredentials: true });
+      sessionStorage.removeItem("auth_token"); // Supprimer le token au logout
     } catch (err) {
       console.error("Erreur lors de la déconnexion", err);
     } finally {
