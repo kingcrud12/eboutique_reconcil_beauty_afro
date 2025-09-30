@@ -13,6 +13,8 @@ const Callback = () => {
       const params = new URLSearchParams(window.location.search);
       const code = params.get("code");
 
+      // Vérification si le code est présent dans l'URL
+      console.log("Code d'authentification trouvé dans l'URL :", code);
       if (!code) {
         console.error("Aucun code d'authentification trouvé dans l'URL.");
         navigate("/login", { replace: true });
@@ -20,6 +22,7 @@ const Callback = () => {
       }
 
       const codeVerifier = sessionStorage.getItem("pkce_code_verifier");
+      console.log("Code Verifier trouvé dans la session :", codeVerifier);
       if (!codeVerifier) {
         console.error("Aucun code_verifier trouvé dans la session.");
         navigate("/login", { replace: true });
@@ -37,6 +40,9 @@ const Callback = () => {
           },
           { withCredentials: true }
         );
+
+        // Affichage de la réponse du backend
+        console.log("Réponse du serveur après appel /auth/callback :", postRes);
 
         // Supprime le verifier après usage
         sessionStorage.removeItem("pkce_code_verifier");
@@ -61,7 +67,14 @@ const Callback = () => {
 
   useEffect(() => {
     // Vérifie si l'authentification a été chargée avec succès
+    console.log(
+      "authLoading :",
+      authLoading,
+      "isAuthenticated :",
+      isAuthenticated
+    );
     if (!authLoading && !isAuthenticated) {
+      console.log("Utilisateur non authentifié, redirection vers login");
       navigate("/login", { replace: true });
     }
   }, [authLoading, isAuthenticated, navigate]);
