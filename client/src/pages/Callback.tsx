@@ -38,27 +38,26 @@ const Callback = () => {
         // Supprime le verifier après usage
         sessionStorage.removeItem("pkce_code_verifier");
 
-        // Si backend retourne l'utilisateur, on met à jour le contexte
+        // Si le backend retourne l'utilisateur, on met à jour le contexte
         if (postRes.data?.user) {
-          setUser(postRes.data.user);
-          setIsAuthenticated(true);
-          navigate("/", { replace: true });
+          setUser(postRes.data.user); // Met à jour l'utilisateur dans le contexte
+          setIsAuthenticated(true); // Met à jour l'état d'authentification
+          navigate("/", { replace: true }); // Redirige vers la page d'accueil
         } else {
-          const res = await api.get("/users/me", { withCredentials: true });
-          setUser(res.data);
-          setIsAuthenticated(true);
-          navigate("/", { replace: true });
+          // Cas où l'utilisateur ne serait pas trouvé dans la réponse
+          console.error("Utilisateur non trouvé après callback.");
+          navigate("/login", { replace: true }); // Redirige vers login
         }
       } catch (err) {
         console.error("Erreur callback Auth0 :", err);
-        navigate("/login", { replace: true });
+        navigate("/login", { replace: true }); // Redirige vers la page de login en cas d'erreur
       }
     };
 
     void handleCallback();
   }, [navigate, setUser, setIsAuthenticated]);
 
-  return <p>Connexion en cours…</p>;
+  return <p>Connexion en cours…</p>; // Affiche "Connexion en cours..."
 };
 
 export default Callback;

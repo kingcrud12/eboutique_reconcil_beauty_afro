@@ -24,6 +24,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const API_BASE = process.env.REACT_APP_BASE_URL!;
 const REDIRECT_URI = `${window.location.origin}/callback`;
 
+// --- PKCE helpers ---
 async function generateCodeVerifier(length = 128): Promise<string> {
   const chars =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
@@ -45,6 +46,7 @@ async function generateCodeChallenge(codeVerifier: string): Promise<string> {
     .replace(/=+$/, "");
 }
 
+// --- Provider ---
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
@@ -52,26 +54,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const init = async () => {
-      const params = new URLSearchParams(window.location.search);
-      const isOnCallback =
-        window.location.pathname === "/callback" || params.has("code");
+      // Vérifie si un token est présent dans les cookies
+      const token = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("token="));
 
-      if (isOnCallback) {
-        return; // Callback handler will do the state update
-      }
-
-      try {
-        const res = await api.get<{ id: number }>("/users/me", {
-          withCredentials: true,
-        });
-        setUser(res.data);
-        setIsAuthenticated(true);
-      } catch {
-        setUser(null);
+      // Si un token existe, on considère l'utilisateur comme authentifié
+      if (token) {
+        try {
+          const res = await api.get<{ id: number }>("/users/me", {
+            withCredentials: true,
+          });
+          setUser(res.data);
+          setIsAuthenticated(true);
+        } catch {
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+      } else {
         setIsAuthenticated(false);
-      } finally {
-        setAuthLoading(false);
+        setUser(null);
       }
+
+      setAuthLoading(false);
     };
 
     void init();
@@ -114,6 +119,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+// Hook pour utiliser l'AuthContext
 export const useAuth = (): AuthContextType => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth doit être utilisé dans un AuthProvider");
