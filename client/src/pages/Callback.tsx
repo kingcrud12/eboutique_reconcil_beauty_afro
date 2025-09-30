@@ -6,7 +6,7 @@ import api from "../connect_to_api/api";
 
 const Callback = () => {
   const navigate = useNavigate();
-  const { setUser, setIsAuthenticated } = useAuth(); // Assure-toi de les exposer depuis AuthContext
+  const { setUser, setIsAuthenticated } = useAuth();
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -14,17 +14,20 @@ const Callback = () => {
       const code = params.get("code");
       if (!code) {
         console.error("Pas de code reçu !");
+        // If no code present, redirect to login page
+        navigate("/login", { replace: true });
         return;
       }
 
       const codeVerifier = sessionStorage.getItem("pkce_code_verifier");
       if (!codeVerifier) {
         console.error("Pas de code verifier en session !");
+        navigate("/login", { replace: true });
         return;
       }
 
       try {
-        // Échange code PKCE contre token et cookie httpOnly côté backend
+        // Exchange code + code_verifier on backend -> backend sets HttpOnly cookie (JWT)
         await api.post(
           "/auth/callback",
           {
@@ -35,19 +38,24 @@ const Callback = () => {
           { withCredentials: true }
         );
 
-        // Récupère le profil utilisateur après login
+        // remove verifier from storage (no longer needed)
+        sessionStorage.removeItem("pkce_code_verifier");
+
+        // Now backend cookie should be present; fetch profile
         const res = await api.get<{ id: number; email?: string }>("/users/me", {
           withCredentials: true,
         });
 
-        // Met à jour le contexte Auth
+        // Update auth context
         setUser(res.data);
         setIsAuthenticated(true);
 
-        // Redirection finale vers la home
-        navigate("/");
+        // Navigate to home and replace history to clean URL
+        navigate("/", { replace: true });
       } catch (err) {
         console.error("Erreur callback Auth0 :", err);
+        // Optionally show an error page or go back to login
+        navigate("/login", { replace: true });
       }
     };
 
