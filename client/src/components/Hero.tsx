@@ -10,18 +10,22 @@ function Hero() {
     slidesToShow: 1,
     slidesToScroll: 1,
     autoplay: true,
-    autoplaySpeed: 1200,
+    autoplaySpeed: 9000,
     arrows: false,
   };
 
-  const images = ["/Black_hair2.jpg"];
+  const images = [
+    "Banner_5_new_test.png",
+    "Banner_1_new.png",
+    "/Black_hair2.jpg",
+  ];
 
   return (
     <div className="w-full relative mt-[50px]">
       <Slider {...settings}>
         {images.map((src, i) => (
           <div key={i} className="relative">
-            {i === 0 ? (
+            {i === 3 ? (
               <section
                 className="relative bg-gradient-to-r from-amber-50 to-orange-50 h-full flex items-center"
                 style={{

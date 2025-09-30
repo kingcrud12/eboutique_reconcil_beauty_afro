@@ -5,7 +5,7 @@ import api from "../connect_to_api/api";
 
 const Callback = () => {
   const navigate = useNavigate();
-  const { setUser, isAuthenticated, setIsAuthenticated, authLoading } =
+  const { setUser, setIsAuthenticated, authLoading, isAuthenticated } =
     useAuth();
 
   useEffect(() => {
@@ -13,8 +13,6 @@ const Callback = () => {
       const params = new URLSearchParams(window.location.search);
       const code = params.get("code");
 
-      // Vérification si le code est présent dans l'URL
-      console.log("Code d'authentification trouvé dans l'URL :", code);
       if (!code) {
         console.error("Aucun code d'authentification trouvé dans l'URL.");
         navigate("/login", { replace: true });
@@ -22,7 +20,6 @@ const Callback = () => {
       }
 
       const codeVerifier = sessionStorage.getItem("pkce_code_verifier");
-      console.log("Code Verifier trouvé dans la session :", codeVerifier);
       if (!codeVerifier) {
         console.error("Aucun code_verifier trouvé dans la session.");
         navigate("/login", { replace: true });
@@ -41,17 +38,15 @@ const Callback = () => {
           { withCredentials: true }
         );
 
-        // Affichage de la réponse du backend
-        console.log("Réponse du serveur après appel /auth/callback :", postRes);
-
         // Supprime le verifier après usage
         sessionStorage.removeItem("pkce_code_verifier");
 
-        if (postRes.status === 200 && postRes.data?.user) {
+        if (postRes.data?.user) {
           console.log("Utilisateur trouvé, mise à jour du contexte.");
+          sessionStorage.setItem("auth_token", postRes.data.token); // Stocke le token dans sessionStorage
           setUser(postRes.data.user); // Met à jour l'utilisateur dans le contexte
           setIsAuthenticated(true); // Met à jour l'état d'authentification
-          navigate("/", { replace: true }); // Redirige vers la page d'accueil après l'authentification
+          navigate("/", { replace: true }); // Redirige vers la page d'accueil
         } else {
           console.error("Utilisateur non trouvé après callback.");
           navigate("/login", { replace: true }); // Redirige vers login
@@ -65,21 +60,12 @@ const Callback = () => {
     void handleCallback();
   }, [navigate, setUser, setIsAuthenticated]);
 
-  useEffect(() => {
-    // Vérifie si l'authentification a été chargée avec succès
-    console.log(
-      "authLoading :",
-      authLoading,
-      "isAuthenticated :",
-      isAuthenticated
-    );
-    if (!authLoading && !isAuthenticated) {
-      console.log("Utilisateur non authentifié, redirection vers login");
-      navigate("/login", { replace: true });
-    }
-  }, [authLoading, isAuthenticated, navigate]);
+  // Affiche le message de connexion en attendant que l'authentification soit terminée
+  if (authLoading || !isAuthenticated) {
+    return <p>Connexion en cours…</p>;
+  }
 
-  return <p>Connexion en cours…</p>; // Message visible pendant le processus
+  return null;
 };
 
 export default Callback;

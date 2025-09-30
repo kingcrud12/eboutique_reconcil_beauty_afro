@@ -32,10 +32,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const init = async () => {
       // On vérifie si l'utilisateur est déjà authentifié
-      const isAuthenticated = sessionStorage.getItem("auth_token") !== null; // Exemple de vérification
-      if (isAuthenticated) {
+      const token = sessionStorage.getItem("auth_token");
+
+      if (token) {
         try {
           const res = await api.get<{ id: number }>("/users/me", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
             withCredentials: true,
           });
           setUser(res.data);
@@ -50,10 +54,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } else {
         setIsAuthenticated(false);
       }
-      setAuthLoading(false); // Fin du chargement
+      setAuthLoading(false);
     };
 
-    void init(); // Initialisation au démarrage de l'app
+    void init();
   }, []); // Un seul appel au chargement initial
 
   // --- PKCE helpers ---
