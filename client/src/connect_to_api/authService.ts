@@ -17,7 +17,7 @@ export const login = async () => {
 export const logout = async () => {
   try {
     // Appel à la déconnexion côté serveur, si nécessaire
-    await api.post("/auth/logout", {}, { withCredentials: true });
+    await api.post("/auth/logout");
 
     // Déconnexion d'Auth0 (cela met fin à la session Auth0)
     const auth0LogoutUrl = `https://${
