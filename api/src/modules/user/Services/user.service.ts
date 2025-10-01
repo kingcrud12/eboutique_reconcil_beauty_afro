@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // src/user/user.service.ts
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
@@ -16,7 +15,12 @@ export class UserService {
   constructor(private prisma: PrismaService) {}
 
   async get(id: number): Promise<IUser | null> {
-    const user = await this.verifyUser({ id });
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: id,
+      },
+    });
+
     return user ? this.exportToUserInterface(user) : null;
   }
 
