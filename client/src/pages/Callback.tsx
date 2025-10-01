@@ -5,8 +5,7 @@ import api from "../connect_to_api/api";
 
 const Callback = () => {
   const navigate = useNavigate();
-  const { setUser, setIsAuthenticated, authLoading, isAuthenticated } =
-    useAuth();
+  const { setUser, setIsAuthenticated, authLoading } = useAuth();
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -27,7 +26,7 @@ const Callback = () => {
       }
 
       try {
-        // 1) Échange du code contre un token côté backend
+        // Échange du code d'authentification contre un jeton
         const postRes = await api.post(
           "/auth/callback",
           {
@@ -46,7 +45,9 @@ const Callback = () => {
           sessionStorage.setItem("auth_token", postRes.data.token); // Stocke le token dans sessionStorage
           setUser(postRes.data.user); // Met à jour l'utilisateur dans le contexte
           setIsAuthenticated(true); // Met à jour l'état d'authentification
-          console.log("isAuthenticated après mise à jour: ", true);
+          console.log(
+            "Authentification réussie, redirection vers la page d'accueil."
+          );
           navigate("/", { replace: true }); // Redirige vers la page d'accueil
         } else {
           console.error("Utilisateur non trouvé après callback.");
@@ -61,17 +62,9 @@ const Callback = () => {
     void handleCallback();
   }, [navigate, setUser, setIsAuthenticated]);
 
-  // Ajoutez un effet pour forcer une mise à jour immédiate après la connexion
-  useEffect(() => {
-    if (!authLoading && isAuthenticated) {
-      console.log("AuthContext a été mis à jour avec isAuthenticated = true");
-    }
-  }, [authLoading, isAuthenticated]);
-
   // Affiche le message de connexion en attendant que l'authentification soit terminée
-  if (authLoading || !isAuthenticated) {
+  if (authLoading) {
     console.log("authLoading: ", authLoading);
-    console.log("isAuthenticated dans Callback: ", isAuthenticated);
     return <p>Connexion en cours…</p>;
   }
 
