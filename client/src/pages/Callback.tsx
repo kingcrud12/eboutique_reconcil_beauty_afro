@@ -1,3 +1,4 @@
+// src/pages/Callback.tsx
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -26,7 +27,6 @@ const Callback = () => {
       }
 
       try {
-        // Échange du code d'authentification contre un jeton
         const postRes = await api.post(
           "/auth/callback",
           {
@@ -37,34 +37,26 @@ const Callback = () => {
           { withCredentials: true }
         );
 
-        // Supprime le verifier après usage
         sessionStorage.removeItem("pkce_code_verifier");
 
         if (postRes.data?.user) {
-          console.log("Utilisateur trouvé, mise à jour du contexte.");
-          sessionStorage.setItem("auth_token", postRes.data.token); // Stocke le token dans sessionStorage
-          setUser(postRes.data.user); // Met à jour l'utilisateur dans le contexte
-          setIsAuthenticated(true); // Met à jour l'état d'authentification
-          console.log(
-            "Authentification réussie, redirection vers la page d'accueil."
-          );
-          navigate("/", { replace: true }); // Redirige vers la page d'accueil
+          sessionStorage.setItem("auth_token", postRes.data.token);
+          setUser(postRes.data.user);
+          setIsAuthenticated(true);
+          navigate("/", { replace: true });
         } else {
-          console.error("Utilisateur non trouvé après callback.");
-          navigate("/login", { replace: true }); // Redirige vers login
+          navigate("/login", { replace: true });
         }
       } catch (err) {
         console.error("Erreur lors du callback Auth0 :", err);
-        navigate("/login", { replace: true }); // Redirige vers la page de login en cas d'erreur
+        navigate("/login", { replace: true });
       }
     };
 
     void handleCallback();
   }, [navigate, setUser, setIsAuthenticated]);
 
-  // Affiche le message de connexion en attendant que l'authentification soit terminée
   if (authLoading) {
-    console.log("authLoading: ", authLoading);
     return <p>Connexion en cours…</p>;
   }
 
