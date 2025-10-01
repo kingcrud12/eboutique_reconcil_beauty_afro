@@ -1,4 +1,3 @@
-// src/pages/Callback.tsx
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -40,9 +39,25 @@ const Callback = () => {
         sessionStorage.removeItem("pkce_code_verifier");
 
         if (postRes.data?.user) {
-          sessionStorage.setItem("auth_token", postRes.data.token);
-          setUser(postRes.data.user);
+          // Lorsqu'un utilisateur Auth0 est authentifié, vérifiez ou créez un utilisateur dans votre base de données
+          const user = postRes.data.user;
+
+          // Si l'utilisateur existe dans votre base de données, vous pouvez le récupérer
+          const existingUserRes = await api.get(`/users/${user.id}`);
+
+          if (!existingUserRes.data) {
+            // Si l'utilisateur n'existe pas, créez-le dans votre base de données interne
+            await api.post("/users", {
+              email: user.email,
+              userId: user.id,
+              // Ajouter d'autres informations nécessaires
+            });
+          }
+
+          // Assurez-vous que l'utilisateur est ajouté dans votre contexte et redirigez-le
+          setUser(user);
           setIsAuthenticated(true);
+          sessionStorage.setItem("auth_token", postRes.data.token);
           navigate("/", { replace: true });
         } else {
           navigate("/login", { replace: true });
