@@ -31,7 +31,7 @@ export const logout = async () => {
     sessionStorage.removeItem("pkce_code_verifier"); // Supprimer le verifier
 
     // Redirection vers Auth0 pour se déconnecter proprement
-    window.location.href = auth0LogoutUrl;
+    window.location.href = auth0LogoutUrl; // Important : assurez-vous que ce redirige correctement
   } catch (err) {
     console.error("Erreur lors de la déconnexion", err);
   }
