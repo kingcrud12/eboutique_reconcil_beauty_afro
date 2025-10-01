@@ -43,7 +43,7 @@ const Callback = () => {
           const user = postRes.data.user;
 
           // Si l'utilisateur existe dans votre base de données, vous pouvez le récupérer
-          const existingUserRes = await api.get(`/users/${user.id}`);
+          const existingUserRes = await api.get(`/users/me`);
 
           if (!existingUserRes.data) {
             // Si l'utilisateur n'existe pas, créez-le dans votre base de données interne

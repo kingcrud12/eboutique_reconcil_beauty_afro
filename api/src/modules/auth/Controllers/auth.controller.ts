@@ -165,6 +165,7 @@ export class AuthController {
       secure: true,
       sameSite: 'none',
     });
+    res.redirect(`${process.env.AUTH0_LOGOUT_URL}`);
     return { message: 'Logged out' };
   }
 
