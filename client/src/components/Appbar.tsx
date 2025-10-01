@@ -34,6 +34,10 @@ function Appbar() {
     setCarts([]);
     window.dispatchEvent(new Event("cart:clear"));
     setUserModalOpen(false);
+
+    if (!isAuthenticated) {
+      return;
+    }
   };
 
   const handleLoginRedirect = () => {
