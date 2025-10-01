@@ -61,6 +61,13 @@ const Callback = () => {
     void handleCallback();
   }, [navigate, setUser, setIsAuthenticated]);
 
+  // Ajoutez un effet pour forcer une mise à jour immédiate après la connexion
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      console.log("AuthContext a été mis à jour avec isAuthenticated = true");
+    }
+  }, [authLoading, isAuthenticated]);
+
   // Affiche le message de connexion en attendant que l'authentification soit terminée
   if (authLoading || !isAuthenticated) {
     console.log("authLoading: ", authLoading);
