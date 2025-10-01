@@ -165,7 +165,11 @@ export class AuthController {
       secure: true,
       sameSite: 'none',
     });
-    res.redirect(`${process.env.AUTH0_LOGOUT_URL}`);
+
+    const auth0LogoutUrl = `${process.env.AUTH0_LOGOUT_URL}?client_id=${process.env.AUTH0_CLIENT_ID}&returnTo=${encodeURIComponent(process.env.REDIRECT_URL_AFTER_LOGOUT)}`;
+
+    res.redirect(auth0LogoutUrl);
+
     return { message: 'Logged out' };
   }
 
