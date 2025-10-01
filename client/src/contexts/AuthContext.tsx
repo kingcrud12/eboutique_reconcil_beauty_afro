@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           });
           console.log("Utilisateur récupéré:", res.data);
           setUser(res.data);
-          setIsAuthenticated(true);
+          setIsAuthenticated(true); // Assurez-vous que cela est bien appelé
         } catch (error) {
           console.error(
             "Erreur lors de la récupération des infos utilisateur",
@@ -56,11 +56,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } else {
         setIsAuthenticated(false);
       }
-      setAuthLoading(false);
+      setAuthLoading(false); // Fin du chargement
     };
 
     void init();
-  }, []);
+  }, []); // Un seul appel au chargement initial
 
   // --- PKCE helpers ---
   async function generateCodeVerifier(length = 128): Promise<string> {
