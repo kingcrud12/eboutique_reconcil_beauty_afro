@@ -58,6 +58,7 @@ const Callback = () => {
           setUser(user);
           setIsAuthenticated(true);
           sessionStorage.setItem("auth_token", postRes.data.token);
+          console.log("auth_token:", sessionStorage.getItem("auth_token"));
           navigate("/", { replace: true });
         } else {
           navigate("/login", { replace: true });
