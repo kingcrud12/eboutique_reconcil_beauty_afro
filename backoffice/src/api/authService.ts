@@ -2,7 +2,7 @@
 
 import api from "../api/api";
 
-const API_BASE = process.env.REACT_APP_BASE_URL!;
+const API_BASE = process.env.REACT_APP_BASE_URL_Login!;
 const REDIRECT_URI = `${window.location.origin}/callback`;
 
 export const login = async () => {
