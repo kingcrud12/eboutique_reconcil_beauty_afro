@@ -1,87 +1,52 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
-function Login() {
-  const navigate = useNavigate();
+const Login = () => {
+  const [authLoading, setAuthLoading] = useState(false);
   const { login } = useAuth();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
-
+    setAuthLoading(true);
     try {
-      await login(email, password);
-      navigate("/");
-    } catch (err: any) {
-      console.error("Erreur lors de la connexion :", err);
-      const backendMsg =
-        err?.response?.data?.message || err?.response?.data || null;
-      setError(
-        typeof backendMsg === "string"
-          ? backendMsg
-          : "Email ou mot de passe incorrect"
-      );
+      await login(); // redirige vers Auth0
+    } catch (err) {
+      console.error("Erreur login :", err);
     } finally {
-      setLoading(false);
+      setAuthLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
-      <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Connexion</h2>
+    <div className="mt-[90px] flex items-center justify-center min-h-screen bg-gray-50 px-4">
+      <div className="bg-white shadow-md rounded-lg w-full max-w-md p-8">
+        <h2 className="text-2xl font-bold mb-6 text-center text-slate-800">
+          Connexion
+        </h2>
 
-        {error && (
-          <div className="mb-4 text-red-600 bg-red-100 p-2 rounded">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block mb-1">Email</label>
-            <input
-              type="email"
-              className="w-full border border-gray-300 rounded px-3 py-2"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-            />
-          </div>
-
-          <div className="mb-6">
-            <label className="block mb-1">Mot de passe</label>
-            <input
-              type="password"
-              className="w-full border border-gray-300 rounded px-3 py-2"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-            />
-          </div>
-
+        <form onSubmit={handleLogin} className="space-y-5">
           <button
             type="submit"
-            disabled={loading}
-            className={`w-full bg-gray-800 text-white py-2 rounded ${
-              loading ? "opacity-60 cursor-not-allowed" : "hover:bg-gray-700"
-            }`}
+            disabled={authLoading}
+            className="w-full bg-slate-800 text-white py-2 rounded-md hover:bg-slate-700 transition duration-200 font-semibold"
           >
-            {loading ? "Connexion..." : "Se connecter"}
+            {authLoading ? "Connexion en cours..." : "Se connecter avec Auth0"}
           </button>
         </form>
+
+        <p className="text-sm text-center mt-6 text-gray-600">
+          Pas encore de compte ?{" "}
+          <Link
+            to="/register"
+            className="text-slate-800 font-medium hover:underline"
+          >
+            Créer un compte
+          </Link>
+        </p>
       </div>
     </div>
   );
-}
+};
 
 export default Login;

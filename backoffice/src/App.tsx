@@ -17,6 +17,7 @@ import CreatePrestation from "./pages/CreatePrestation";
 import ServiceDetail from "./pages/ServiceDetail";
 import SlotDetail from "./pages/SlotDetail";
 import CreateAvailability from "./pages/CreateAvailability";
+import Callback from "./pages/Callback";
 
 function App() {
   return (
@@ -50,7 +51,7 @@ function App() {
           <Route path="/services/:id" element={<ServiceDetail />} />
           <Route path="/slots/:id" element={<SlotDetail />} />
           <Route path="/create-availibility" element={<CreateAvailability />} />
-
+          <Route path="callback" element={<Callback />} />
         </Route>
       </Routes>
     </Router>
