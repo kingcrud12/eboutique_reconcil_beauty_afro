@@ -1,82 +1,83 @@
-// src/contexts/AuthContext.tsx
 import React, {
   createContext,
   useContext,
-  useEffect,
   useState,
   ReactNode,
+  useEffect,
 } from "react";
 import api from "../api/api";
-import { login, logout } from "../api/authService";
+
+interface User {
+  id: number;
+  email: string;
+  role: string;
+}
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  user: { id: number; email?: string } | null;
-  setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
-  setUser: React.Dispatch<
-    React.SetStateAction<{ id: number; email?: string } | null>
-  >;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
   authLoading: boolean;
-  login: () => void; // Ajout de la fonction login
-  logout: () => void; // Ajout de la fonction logout
+  user: User | null;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authLoading, setAuthLoading] = useState(true);
-  const [user, setUser] = useState<{ id: number; email?: string } | null>(null);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  const refreshUser = async () => {
+    try {
+      setAuthLoading(true);
+      const { data } = await api.get<User>("/me");
+      setUser(data);
+      setIsAuthenticated(true);
+    } catch (err) {
+      setUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const login = async (email: string, password: string) => {
+    try {
+      setAuthLoading(true);
+      await api.post("/login", { email, password });
+      await refreshUser();
+    } catch (err) {
+      console.error("Erreur login :", err);
+      setUser(null);
+      setIsAuthenticated(false);
+      throw err;
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      setAuthLoading(true);
+      await api.post("/logout");
+    } catch (err) {
+      console.error("Erreur logout :", err);
+    } finally {
+      setUser(null);
+      setIsAuthenticated(false);
+      setAuthLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const init = async () => {
-      setAuthLoading(true);
-      try {
-        const token = sessionStorage.getItem("auth_token");
-        if (token) {
-          const res = await api.get<{ id: number }>("/users/me", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            withCredentials: true,
-          });
-          setUser(res.data);
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-        }
-      } catch (error) {
-        console.error(
-          "Erreur lors de la récupération des infos utilisateur",
-          error
-        );
-        setIsAuthenticated(false);
-      }
-      setAuthLoading(false);
-    };
-
-    void init();
+    refreshUser();
   }, []);
-
-  // Gestion du login et du logout
-  const handleLogin = () => login();
-  const handleLogout = async () => {
-    await logout();
-    setUser(null);
-    setIsAuthenticated(false);
-  };
 
   return (
     <AuthContext.Provider
-      value={{
-        isAuthenticated,
-        user,
-        setIsAuthenticated,
-        setUser,
-        authLoading,
-        login: handleLogin,
-        logout: handleLogout,
-      }}
+      value={{ isAuthenticated, login, logout, authLoading, user, refreshUser }}
     >
       {children}
     </AuthContext.Provider>
