@@ -7,8 +7,8 @@ type DeliveryMode = 'EXPRESS' | 'HOME' | 'RELAY';
 interface OrderItemCtx {
   name: string;
   quantity: number;
-  unitPrice: number | string; // peut être number, sera formaté en "xx.xx"
-  lineTotal: number | string; // peut être number, sera formaté en "xx.xx"
+  unitPrice: number | string;
+  lineTotal: number | string;
 }
 
 interface AdminOrderMailContext {
@@ -25,6 +25,10 @@ interface AdminOrderMailContext {
   itemsSubtotal: number | string;
   shippingFee: number | string;
   total: number | string;
+
+  // possibilité de passer directement phone / adress depuis le webhook
+  phone?: string | null;
+  adress?: string | null;
 }
 
 @Injectable()
@@ -57,30 +61,32 @@ export class AdminMailService {
     const adminEmails = admins.map((a) => a.email).filter(Boolean);
     if (adminEmails.length === 0) return;
 
-    // --- NOUVEAU : récupérer phone + adress du user lié à la commande (via order.userId) ---
-    let resolvedPhone: string | null = null;
-    let resolvedAdress: string | null = null;
+    // --- Résolution phone/adress : préférer ctx, sinon lire en DB ---
+    let resolvedPhone: string | null = ctx.phone ?? null;
+    let resolvedAdress: string | null = ctx.adress ?? null;
 
-    const orderIdNum = Number(ctx.orderId);
-    if (!Number.isNaN(orderIdNum)) {
-      const order = await this.prisma.order.findUnique({
-        where: { id: orderIdNum },
-        select: { userId: true },
-      });
-
-      if (order && order.userId) {
-        const user = await this.prisma.user.findUnique({
-          where: { id: order.userId },
-          select: { phone: true, adress: true }, // on récupère les champs tels qu'ils sont nommés dans ta DB
+    if ((resolvedPhone === null || resolvedAdress === null) && ctx.orderId) {
+      const orderIdNum = Number(ctx.orderId);
+      if (!Number.isNaN(orderIdNum)) {
+        const order = await this.prisma.order.findUnique({
+          where: { id: orderIdNum },
+          select: { userId: true },
         });
 
-        if (user) {
-          resolvedPhone = (user.phone as string) ?? null;
-          resolvedAdress = user.adress ?? null;
+        if (order?.userId) {
+          const user = await this.prisma.user.findUnique({
+            where: { id: order.userId },
+            select: { phone: true, adress: true },
+          });
+          if (user) {
+            if (resolvedPhone === null)
+              resolvedPhone = (user.phone as string) ?? null;
+            if (resolvedAdress === null) resolvedAdress = user.adress ?? null;
+          }
         }
       }
     }
-    // ------------------------------------------------------------------------------
+    // ---------------------------------------------------------------
 
     // formater les montants en string "xx.xx"
     const items = ctx.items.map((it) => ({
@@ -99,7 +105,6 @@ export class AdminMailService {
       template: 'order-paid-admin',
       context: {
         ...ctx,
-        // on passe les valeurs récupérées (si null, template doit gérer l'absence)
         phone: resolvedPhone,
         adress: resolvedAdress,
         etaDays,
