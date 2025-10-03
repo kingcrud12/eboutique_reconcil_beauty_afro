@@ -7,6 +7,7 @@ interface IUser {
   lastName: string;
   email: string;
   adress?: string;
+  phone?: string;
 }
 interface IOrderItem {
   id: number;
@@ -274,6 +275,21 @@ function Account() {
                         </button>
                       </strong>{" "}
                       {user?.adress || "Non renseignée"}
+                    </li>
+                    <li>
+                      <strong className="inline-flex items-center gap-2">
+                        Phone :{/* ℹ️ icône info (dans le récap compte) */}
+                        <button
+                          type="button"
+                          className="text-gray-500 hover:text-gray-800"
+                          title="Exemple : 0744576854"
+                          onClick={openAddressInfo}
+                          aria-label="Aide sur le format d'adresse"
+                        >
+                          ℹ️
+                        </button>
+                      </strong>{" "}
+                      {user?.phone || "Non renseignée"}
                     </li>
                   </ul>
                   <button
