@@ -591,7 +591,7 @@ function Orders() {
                       setProfileForm((s) => ({ ...s, phone: e.target.value }))
                     }
                     className="w-full border rounded p-2 text-sm"
-                    placeholder="+33 6 12 34 56 78"
+                    placeholder="0744576854"
                     disabled={profileSubmitting}
                   />
                 </div>
