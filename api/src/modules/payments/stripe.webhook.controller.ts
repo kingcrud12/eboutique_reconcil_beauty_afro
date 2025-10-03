@@ -119,6 +119,8 @@ export class StripeWebhookController {
                   email: string | null;
                   firstName?: string | null;
                   lastName?: string | null;
+                  adress?: string | null;
+                  phone?: string | null;
                 } | null;
               })
             | null = null;
@@ -227,6 +229,8 @@ export class StripeWebhookController {
               itemsSubtotal,
               shippingFee,
               total,
+              adress: fullOrder.user.adress ?? undefined,
+              phone: fullOrder.user.phone ?? undefined,
             });
           }
 

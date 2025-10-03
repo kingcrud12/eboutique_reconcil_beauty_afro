@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 const Login = () => {
@@ -34,16 +33,6 @@ const Login = () => {
             {authLoading ? "Connexion en cours..." : "Se connecter avec Auth0"}
           </button>
         </form>
-
-        <p className="text-sm text-center mt-6 text-gray-600">
-          Pas encore de compte ?{" "}
-          <Link
-            to="/register"
-            className="text-slate-800 font-medium hover:underline"
-          >
-            Créer un compte
-          </Link>
-        </p>
       </div>
     </div>
   );

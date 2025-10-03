@@ -96,4 +96,9 @@ export class UpdateUserDto implements IUserUpdate {
   @IsOptional()
   @IsString()
   adress?: string | null;
+
+  @ApiPropertyOptional({ example: '0744576854' })
+  @IsOptional()
+  @IsString()
+  phone?: string | null;
 }
