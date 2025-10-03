@@ -7,7 +7,7 @@ interface Product {
   name?: string;
   imageUrl?: string;
   price?: number | string;
-  weight?: number | string; // 👈 EN GRAMMES (int ou string)
+  weight?: number | string; // EN GRAMMES (int ou string)
 }
 interface OrderItem {
   id: number;
@@ -19,7 +19,7 @@ interface OrderItem {
 interface Order {
   id: number;
   total: number | string;
-  shippingFee?: number | string; // 👈 si dispo via API
+  shippingFee?: number | string;
   status: "pending" | "paid" | string;
   deliveryAddress: string;
   deliveryMode: "RELAY" | "HOME" | "EXPRESS" | string;
@@ -27,6 +27,11 @@ interface Order {
 }
 interface User {
   id: number;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string | null;
+  adress?: string | null; // on garde "adress" comme dans ta DB
 }
 
 // ===== Helpers FRAIS DE LIVRAISON (mêmes barèmes que le back) =====
@@ -74,7 +79,6 @@ function computeItemsSubtotal(order: Order): number {
   }, 0);
 }
 
-// 👇 conversion robuste grammes -> kilogrammes
 const gramsToKg = (v: unknown): number => {
   const n = Number(v);
   return Number.isFinite(n) ? Math.max(0, n) / 1000 : 0;
@@ -82,34 +86,28 @@ const gramsToKg = (v: unknown): number => {
 
 function computeTotalWeightKg(order: Order): number {
   return order.items.reduce((sum, it) => {
-    const weightKg = gramsToKg(it.product?.weight); // 👈 conversion g -> kg
+    const weightKg = gramsToKg(it.product?.weight);
     return sum + weightKg * it.quantity;
   }, 0);
 }
 
 function computeShippingFee(order: Order): number {
-  // si le back fournit shippingFee, on l'utilise
   const provided = order.shippingFee;
   if (provided !== undefined && provided !== null && !isNaN(Number(provided))) {
     return Number(provided);
   }
-
-  // sinon on recalcule côté front
   const modeKey = String(order.deliveryMode || "RELAY").toUpperCase() as
     | "RELAY"
     | "HOME"
     | "EXPRESS";
   const table = SHIPPING_TABLES[modeKey] ?? SHIPPING_TABLES.RELAY;
   const weight = computeTotalWeightKg(order);
-
   for (const [maxKg, price] of table) {
     if (weight <= maxKg) return price;
   }
-  // au-delà de la dernière tranche : 0 (le back tranchera)
   return 0;
 }
 
-// Traduction statut
 const translateStatus = (status: string) => {
   switch (status.toLowerCase()) {
     case "paid":
@@ -121,7 +119,6 @@ const translateStatus = (status: string) => {
   }
 };
 
-// Traduction mode de livraison
 const translateDeliveryMode = (mode: string) => {
   switch (mode.toLowerCase()) {
     case "home":
@@ -138,18 +135,29 @@ const translateDeliveryMode = (mode: string) => {
 function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [meId, setMeId] = useState<number | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [payingOrderId, setPayingOrderId] = useState<number | null>(null);
   const navigate = useNavigate();
 
-  // 🔽 état modal Produits
+  // modal produits
   const [productsModalOpen, setProductsModalOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [addingProductId, setAddingProductId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchOrders = useCallback(async (_uid: number) => {
+  // modal profile (smart)
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [profileForm, setProfileForm] = useState<{
+    adress?: string;
+    phone?: string;
+  }>({});
+  const [profileSubmitting, setProfileSubmitting] = useState(false);
+  const [pendingPaymentAfterProfile, setPendingPaymentAfterProfile] = useState<
+    number | null
+  >(null);
+
+  const fetchOrders = useCallback(async () => {
     const res = await api.get<Order[]>(`/orders/users/me`);
     setOrders(res.data ?? []);
   }, []);
@@ -159,11 +167,13 @@ function Orders() {
       try {
         setLoading(true);
         setError(null);
-        const me = await api.get<User>("/users/me");
-        setMeId(me.data.id);
-        await fetchOrders(me.data.id);
+        // On récupère l'utilisateur complet
+        const meRes = await api.get<User>("/users/me");
+        setUser(meRes.data ?? null);
+
+        await fetchOrders();
       } catch (e) {
-        console.error("Erreur récupération commandes :", e);
+        console.error("Erreur récupération commandes / user :", e);
         navigate("/login");
       } finally {
         setLoading(false);
@@ -171,24 +181,19 @@ function Orders() {
     })();
   }, [navigate, fetchOrders]);
 
-  const handlePay = async (orderId: number, status: string) => {
-    if (status !== "pending" || payingOrderId) return;
-
+  const proceedToPayment = async (orderId: number) => {
     try {
       setPayingOrderId(orderId);
-
-      await api.post("/payments/intent", { orderId, userId: meId ?? 1 });
+      await api.post("/payments/intent", { orderId, userId: user?.id ?? 1 });
 
       const checkoutRes = await api.post(`/payments/checkout/${orderId}`);
       const checkoutUrl =
         typeof checkoutRes.data === "string"
           ? checkoutRes.data
           : checkoutRes.data?.url;
-
       if (!checkoutUrl || typeof checkoutUrl !== "string") {
         throw new Error("URL de paiement introuvable.");
       }
-
       window.location.href = checkoutUrl;
     } catch (err) {
       console.error("Erreur paiement :", err);
@@ -199,9 +204,89 @@ function Orders() {
     }
   };
 
-  // 👉 ouvre la modal Produits pour une commande NON payée
+  // handlePay : vérifie profile, ouvre modal si besoin, sinon proceed
+  const handlePay = async (orderId: number, status: string) => {
+    if (status !== "pending" || payingOrderId) return;
+
+    // si user non chargé, on récupère (sécurité)
+    if (!user) {
+      try {
+        const meRes = await api.get<User>("/users/me");
+        setUser(meRes.data ?? null);
+      } catch (e) {
+        console.error("Impossible de récupérer le user :", e);
+        navigate("/login");
+        return;
+      }
+    }
+
+    // Vérifier les champs manquants
+    const missingAdress = !user?.adress;
+    const missingPhone = !user?.phone;
+
+    if (missingAdress || missingPhone) {
+      // ouvrir la modal "mettre à jour le profile" avec les champs manquants
+      setProfileForm({
+        adress: user?.adress ?? "",
+        phone: user?.phone ?? "",
+      });
+      setPendingPaymentAfterProfile(orderId);
+      setProfileModalOpen(true);
+      return;
+    }
+
+    // tout bon -> procéder au paiement
+    await proceedToPayment(orderId);
+  };
+
+  // soumission modal profile -> PATCH /users/me
+  const handleSubmitProfile = async () => {
+    // Valider au moins les champs affichés
+    const showAdress =
+      profileForm.adress !== undefined && profileForm.adress !== null;
+    const showPhone =
+      profileForm.phone !== undefined && profileForm.phone !== null;
+
+    // build body only with fields that were shown (smart)
+    const body: any = {};
+    if (showAdress) body.adress = profileForm.adress?.trim();
+    if (showPhone) body.phone = profileForm.phone?.trim();
+
+    // simple validation : si champ visible et vide => erreur
+    if ((showAdress && !body.adress) || (showPhone && !body.phone)) {
+      alert("Merci de remplir les champs requis avant de valider.");
+      return;
+    }
+
+    try {
+      setProfileSubmitting(true);
+      await api.patch("/users/me", body);
+      // refresh user
+      const meRes = await api.get<User>("/users/me");
+      setUser(meRes.data ?? null);
+
+      setProfileModalOpen(false);
+      setProfileSubmitting(false);
+
+      // si on avait un paiement en attente, on le relance
+      if (pendingPaymentAfterProfile) {
+        const orderIdToPay = pendingPaymentAfterProfile;
+        setPendingPaymentAfterProfile(null);
+        // small delay to let UI settle
+        setTimeout(() => {
+          proceedToPayment(orderIdToPay);
+        }, 200);
+      }
+    } catch (e) {
+      console.error("Erreur mise à jour profil :", e);
+      alert("Impossible de mettre à jour votre profil pour le moment.");
+      setProfileSubmitting(false);
+    }
+  };
+
+  // ouvre modal produits
   const handleEdit = async (orderId: number, status: string) => {
-    if (String(status).toLowerCase() === "paid") return; // prot UI
+    if (String(status).toLowerCase() === "paid") return;
     try {
       setError(null);
       const res = await api.get<Product[]>("/products");
@@ -214,19 +299,16 @@ function Orders() {
     }
   };
 
-  // ✅ aligne sur PATCH /orders/:id?userId=ME  body: { items: [{ productId, quantity: 1 }] }
   const handleAddProductToOrder = async (productId: number) => {
-    if (!selectedOrderId || !meId) return;
+    if (!selectedOrderId || !user?.id) return;
     try {
       setAddingProductId(productId);
-
       await api.patch(
         `/orders/users/me/${selectedOrderId}`,
         { items: [{ productId, quantity: 1 }] },
-        { params: { userId: meId } }
+        { params: { userId: user.id } }
       );
-
-      await fetchOrders(meId);
+      await fetchOrders();
       setProductsModalOpen(false);
       setSelectedOrderId(null);
     } catch (e) {
@@ -380,16 +462,11 @@ function Orders() {
                 Total (avec livraison) : {grandTotal.toFixed(2)} €
               </div>
 
-              {/* Contrôle vs serveur */}
               {Number(order.total) !== grandTotal && (
                 <div className="text-xs text-amber-600">
                   (Total serveur : {Number(order.total).toFixed(2)} €)
                 </div>
               )}
-              {/* Optionnel debug poids :
-              <div className="text-xs text-gray-500">
-                Poids total : {computeTotalWeightKg(order).toFixed(2)} kg
-              </div> */}
             </div>
           </div>
         );
@@ -454,6 +531,92 @@ function Orders() {
                 className="px-4 py-2 rounded border"
               >
                 Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Profile (smart) */}
+      {profileModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 relative">
+            <button
+              className="absolute top-2 right-2 text-gray-600 hover:text-black"
+              onClick={() => {
+                setProfileModalOpen(false);
+                setPendingPaymentAfterProfile(null);
+              }}
+            >
+              ✕
+            </button>
+
+            <h3 className="text-lg font-bold mb-2">
+              Complétez vos informations
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Avant de payer, merci de renseigner les informations manquantes de
+              votre profil.
+            </p>
+
+            {/* On affiche uniquement les champs manquants : si user.adress absent => champ adresse, idem pour phone */}
+            <div className="space-y-3">
+              {!user?.adress && (
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Adresse
+                  </label>
+                  <textarea
+                    value={profileForm.adress ?? ""}
+                    onChange={(e) =>
+                      setProfileForm((s) => ({ ...s, adress: e.target.value }))
+                    }
+                    rows={3}
+                    className="w-full border rounded p-2 text-sm"
+                    placeholder="Votre adresse complète"
+                    disabled={profileSubmitting}
+                  />
+                </div>
+              )}
+
+              {!user?.phone && (
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Téléphone
+                  </label>
+                  <input
+                    type="tel"
+                    value={profileForm.phone ?? ""}
+                    onChange={(e) =>
+                      setProfileForm((s) => ({ ...s, phone: e.target.value }))
+                    }
+                    className="w-full border rounded p-2 text-sm"
+                    placeholder="+33 6 12 34 56 78"
+                    disabled={profileSubmitting}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setProfileModalOpen(false);
+                  setPendingPaymentAfterProfile(null);
+                }}
+                className="px-4 py-2 rounded border"
+                disabled={profileSubmitting}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSubmitProfile}
+                className="px-4 py-2 rounded bg-black text-white disabled:opacity-60"
+                disabled={profileSubmitting}
+              >
+                {profileSubmitting
+                  ? "Enregistrement..."
+                  : "Enregistrer et continuer"}
               </button>
             </div>
           </div>
