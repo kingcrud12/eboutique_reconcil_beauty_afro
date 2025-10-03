@@ -126,6 +126,7 @@ export class UserService {
         firstName: true,
         lastName: true,
         adress: true,
+        phone: true,
         role: true,
       },
     });
