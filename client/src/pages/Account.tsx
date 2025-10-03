@@ -277,19 +277,7 @@ function Account() {
                       {user?.adress || "Non renseignée"}
                     </li>
                     <li>
-                      <strong className="inline-flex items-center gap-2">
-                        Phone :{/* ℹ️ icône info (dans le récap compte) */}
-                        <button
-                          type="button"
-                          className="text-gray-500 hover:text-gray-800"
-                          title="Exemple : 0744576854"
-                          onClick={openAddressInfo}
-                          aria-label="Aide sur le format d'adresse"
-                        >
-                          ℹ️
-                        </button>
-                      </strong>{" "}
-                      {user?.phone || "Non renseignée"}
+                      <strong>Phone :</strong> {user?.phone}
                     </li>
                   </ul>
                   <button
@@ -339,7 +327,7 @@ function Account() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    placeholder="Adresse"
+                    placeholder="entrez un numereo au format : 0744576854"
                     className="w-full p-2 border rounded"
                   />
                   <div className="flex gap-2">
