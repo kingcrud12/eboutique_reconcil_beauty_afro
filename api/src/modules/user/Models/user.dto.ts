@@ -60,6 +60,10 @@ export class UserDto implements IUser {
   @ApiPropertyOptional({ example: '123 rue de Paris' })
   @IsOptional()
   adress?: string | null;
+
+  @ApiPropertyOptional({ example: '0744576854' })
+  @IsOptional()
+  phone?: string | null;
 }
 
 export class UpdateUserDto implements IUserUpdate {
