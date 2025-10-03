@@ -334,6 +334,14 @@ function Account() {
                     placeholder="Adresse"
                     className="w-full p-2 border rounded"
                   />
+                  <input
+                    type="text"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="Adresse"
+                    className="w-full p-2 border rounded"
+                  />
                   <div className="flex gap-2">
                     <button
                       type="submit"
