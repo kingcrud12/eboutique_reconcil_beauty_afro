@@ -25,6 +25,7 @@ export interface IUserUpdate {
   name?: string;
   password?: string;
   adress?: string | null;
+  phone?: string | null;
   isConfirmed?: boolean;
 }
 
