@@ -5,6 +5,7 @@ export interface IUser {
   lastName: string;
   email: string;
   adress?: string | null;
+  phone?: string | null;
 }
 
 // src/user/interfaces/user.interface.ts
