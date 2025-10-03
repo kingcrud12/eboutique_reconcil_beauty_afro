@@ -57,6 +57,31 @@ export class AdminMailService {
     const adminEmails = admins.map((a) => a.email).filter(Boolean);
     if (adminEmails.length === 0) return;
 
+    // --- NOUVEAU : récupérer phone + adress du user lié à la commande (via order.userId) ---
+    let resolvedPhone: string | null = null;
+    let resolvedAdress: string | null = null;
+
+    const orderIdNum = Number(ctx.orderId);
+    if (!Number.isNaN(orderIdNum)) {
+      const order = await this.prisma.order.findUnique({
+        where: { id: orderIdNum },
+        select: { userId: true },
+      });
+
+      if (order && order.userId) {
+        const user = await this.prisma.user.findUnique({
+          where: { id: order.userId },
+          select: { phone: true, adress: true }, // on récupère les champs tels qu'ils sont nommés dans ta DB
+        });
+
+        if (user) {
+          resolvedPhone = (user.phone as string) ?? null;
+          resolvedAdress = user.adress ?? null;
+        }
+      }
+    }
+    // ------------------------------------------------------------------------------
+
     // formater les montants en string "xx.xx"
     const items = ctx.items.map((it) => ({
       ...it,
@@ -74,6 +99,9 @@ export class AdminMailService {
       template: 'order-paid-admin',
       context: {
         ...ctx,
+        // on passe les valeurs récupérées (si null, template doit gérer l'absence)
+        phone: resolvedPhone,
+        adress: resolvedAdress,
         etaDays,
         items,
         itemsSubtotal,

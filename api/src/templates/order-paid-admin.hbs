@@ -40,12 +40,30 @@
             <p><strong>Mode :</strong> {{deliveryMode}}</p>
 
             {{#if deliveryAddress}}
-            <p><strong>Adresse :</strong><br />{{deliveryAddress}}</p>
+            <p><strong>Adresse de livraison :</strong><br />{{deliveryAddress}}</p>
             {{/if}}
 
             {{#if relayLabel}}
             <p><strong>Point Relais :</strong> {{relayLabel}}<br />{{relayAddress}}</p>
             {{/if}}
+
+            <!-- === Section Infos Client après Relay === -->
+            <h3 style="margin-top:20px;">Informations sur le client</h3>
+
+            {{#if adress}}
+            <p><strong>Adresse (profil) :</strong><br />{{adress}}</p>
+            {{/if}}
+
+            {{#if phone}}
+            <p><strong>Téléphone :</strong> {{phone}}</p>
+            {{/if}}
+
+            {{#unless adress}}
+            {{#unless phone}}
+            <p><em>Aucune information client disponible.</em></p>
+            {{/unless}}
+            {{/unless}}
+            <!-- ========================================= -->
 
             <p><strong>Durée estimée :</strong> {{etaDays}} jours environ.</p>
             <p style="margin-top:24px;">— Reconcil Beauty Afro</p>
