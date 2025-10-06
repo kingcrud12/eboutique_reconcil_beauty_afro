@@ -136,7 +136,7 @@ export class AuthController {
       });
 
       // 6️⃣ Retourne un status 200 avec l’utilisateur
-      return { message: 'Authentification réussie', user, token: jwtToken };
+      return { message: 'Authentification réussie', user };
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         console.error(
