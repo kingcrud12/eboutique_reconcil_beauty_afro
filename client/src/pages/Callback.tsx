@@ -17,7 +17,7 @@ const Callback = () => {
       const redirectUrl =
         typeof rawState === "string" && rawState.startsWith("/")
           ? rawState
-          : "/";
+          : "/products";
 
       if (!code) {
         console.error("Aucun code d'authentification trouvé dans l'URL.");
