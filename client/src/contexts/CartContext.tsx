@@ -37,24 +37,25 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
   const { isAuthenticated } = useAuth();
 
   const fetchCart = useCallback(async () => {
+    if (!isAuthenticated) {
+      setCarts([]);
+      return;
+    }
+
     try {
       const res = await api.get<ICart[]>("/carts/users/me");
       setCarts(res.data || []);
-    } catch {
+    } catch (err) {
+      console.error("Erreur lors du fetch du panier :", err);
       setCarts([]);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      void fetchCart();
-    } else {
-      // 🔑 purge à la déconnexion
-      setCarts([]);
-    }
-  }, [isAuthenticated, fetchCart]);
+    void fetchCart();
+  }, [fetchCart, isAuthenticated]);
 
-  // 👉 dérivé de carts
+  // 👉 dérivés de carts
   const firstCart = carts.length > 0 ? carts[0] : null;
   const totalItems = firstCart?.items?.length ?? 0;
   const totalQuantity =
