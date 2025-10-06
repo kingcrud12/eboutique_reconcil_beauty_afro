@@ -136,7 +136,7 @@ export class AuthController {
       });
 
       // 6️⃣ Retourne un status 200 avec l’utilisateur
-      return { message: 'Authentification réussie', user };
+      return { message: 'Authentification réussie', user, token: jwtToken };
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         console.error(
@@ -185,7 +185,7 @@ export class AuthController {
 
     try {
       const payload = this.jwtService.verify<IJwtPayload>(token);
-      const userId = Number(payload.sub);
+      const userId = Number(payload.userId);
       await this.userService.update(userId, { isConfirmed: true });
       return { message: 'Votre compte a été confirmé avec succès.' };
     } catch {
@@ -196,7 +196,7 @@ export class AuthController {
     }
 
     interface IJwtPayload {
-      sub: string | number;
+      userId: string | number;
       iat?: number;
       exp?: number;
     }
