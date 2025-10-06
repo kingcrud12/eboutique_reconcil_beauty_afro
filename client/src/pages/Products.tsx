@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../connect_to_api/api";
 import { IProduct } from "../connect_to_api/product.interface";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import Popin from "../components/Popin";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
@@ -26,6 +26,7 @@ const Products = () => {
 
   const { fetchCart, firstCart } = useCart();
   const { isAuthenticated, user } = useAuth();
+  const location = useLocation();
 
   useEffect(() => {
     api
@@ -102,9 +103,11 @@ const Products = () => {
               Vous devez être connecté pour ajouter un produit au panier.
             </p>
             <div className="flex justify-center gap-2">
-              {/* Redirige vers /login */}
+              {/* Redirige vers /login avec l'URL courante en state */}
               <Link
-                to="/login"
+                to={`/login?state=${encodeURIComponent(
+                  `${location.pathname}${location.search}${location.hash || ""}`
+                )}`}
                 className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
               >
                 Se connecter

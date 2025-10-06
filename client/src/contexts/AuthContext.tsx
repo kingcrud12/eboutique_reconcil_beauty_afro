@@ -20,7 +20,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
-  login: () => Promise<void>; // Ajout de login dans le contexte
+  login: (state?: string) => Promise<void>; // Ajout de login dans le contexte
   logout: () => Promise<void>; // Ajout de logout dans le contexte
 }
 
@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setIsAuthenticated(true);
         })
         .catch(() => {
-          localStorage.removeItem("token");
+          localStorage.removeItem("auth_token");
           setUser(null);
           setIsAuthenticated(false);
         });
