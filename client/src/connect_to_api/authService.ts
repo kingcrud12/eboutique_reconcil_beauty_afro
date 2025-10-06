@@ -1,17 +1,28 @@
 // src/services/authService.ts
-
 import api from "../connect_to_api/api";
 
 const API_BASE = process.env.REACT_APP_BASE_URL!;
 const REDIRECT_URI = `${window.location.origin}/callback`;
 
-export const login = async () => {
+export const login = async (state?: string) => {
   const codeVerifier = await generateCodeVerifier();
   const codeChallenge = await generateCodeChallenge(codeVerifier);
   sessionStorage.setItem("pkce_code_verifier", codeVerifier);
-  window.location.href = `${API_BASE}/auth/login?code_challenge=${encodeURIComponent(
-    codeChallenge
-  )}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
+
+  // Use provided state or fallback to current in-app URL (path + search + hash)
+  const redirectState =
+    state ??
+    `${window.location.pathname}${window.location.search}${
+      window.location.hash || ""
+    }`;
+
+  const url =
+    `${API_BASE}/auth/login` +
+    `?code_challenge=${encodeURIComponent(codeChallenge)}` +
+    `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+    `&state=${encodeURIComponent(redirectState)}`;
+
+  window.location.href = url;
 };
 
 export const logout = async () => {

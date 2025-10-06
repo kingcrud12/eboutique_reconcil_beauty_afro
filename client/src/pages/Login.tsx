@@ -1,15 +1,23 @@
 import React, { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { useLocation } from "react-router-dom";
 
 const Login = () => {
   const [authLoading, setAuthLoading] = useState(false);
   const { login } = useAuth();
+  const location = useLocation();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthLoading(true);
     try {
-      await login(); // redirige vers Auth0
+      const params = new URLSearchParams(location.search);
+      const rawState = params.get("state");
+      const state =
+        rawState && rawState.startsWith("/") // simple garde-fou
+          ? rawState
+          : "/";
+      await login(state); // redirige vers Auth0 avec state
     } catch (err) {
       console.error("Erreur login :", err);
     } finally {

@@ -12,8 +12,12 @@ const Callback = () => {
       const params = new URLSearchParams(window.location.search);
       const code = params.get("code");
 
-      // Récupérer l'URL de redirection initiale (si présente)
-      const redirectUrl = params.get("state") || "/"; // Par défaut, rediriger vers la page d'accueil
+      // Récupérer et sécuriser l'URL de redirection
+      const rawState = params.get("state") || "/";
+      const redirectUrl =
+        typeof rawState === "string" && rawState.startsWith("/")
+          ? rawState
+          : "/";
 
       if (!code) {
         console.error("Aucun code d'authentification trouvé dans l'URL.");
@@ -29,7 +33,6 @@ const Callback = () => {
       }
 
       try {
-        // 1️⃣ Envoie le code au backend via le proxy pour obtenir le token
         const res = await api.post("/auth/callback", {
           code,
           code_verifier: codeVerifier,
@@ -41,24 +44,17 @@ const Callback = () => {
         const { token } = res.data;
 
         if (token) {
-          // 2️⃣ Stockage du JWT côté client
           localStorage.setItem("auth_token", token);
 
-          // 3️⃣ Récupérer l'utilisateur connecté via /users/me
           const userRes = await api.get("/users/me", {
-            headers: {
-              Authorization: `Bearer ${token}`, // Envoi du token dans l'entête Authorization
-            },
+            headers: { Authorization: `Bearer ${token}` },
           });
 
           const user = userRes.data;
 
           if (user) {
-            // 4️⃣ Mise à jour du contexte avec l'utilisateur et le statut d'authentification
             setUser(user);
             setIsAuthenticated(true);
-
-            // Rediriger l'utilisateur vers la page d'origine ou vers la page d'accueil si aucun état (URL) n'est défini
             navigate(redirectUrl, { replace: true });
           } else {
             console.error("Utilisateur non trouvé après callback");
