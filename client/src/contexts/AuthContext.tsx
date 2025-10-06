@@ -1,4 +1,3 @@
-// src/contexts/AuthContext.tsx
 import React, {
   createContext,
   useContext,
@@ -7,6 +6,10 @@ import React, {
   ReactNode,
 } from "react";
 import api from "../connect_to_api/api";
+import {
+  login as authLogin,
+  logout as authLogout,
+} from "../connect_to_api/authService"; // Importation des méthodes login et logout
 
 interface User {
   id: number;
@@ -17,6 +20,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
+  login: () => Promise<void>; // Ajout de login dans le contexte
+  logout: () => Promise<void>; // Ajout de logout dans le contexte
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -43,9 +48,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  // Fonction de login
+  const login = async () => {
+    try {
+      await authLogin(); // Appel de la méthode login depuis authService
+      setIsAuthenticated(true);
+    } catch (err) {
+      console.error("Erreur lors de la connexion", err);
+      setIsAuthenticated(false);
+    }
+  };
+
+  // Fonction de logout
+  const logout = async () => {
+    try {
+      await authLogout(); // Appel de la méthode logout depuis authService
+      setUser(null);
+      setIsAuthenticated(false);
+      localStorage.removeItem("auth_token");
+    } catch (err) {
+      console.error("Erreur lors de la déconnexion", err);
+    }
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated, setUser, setIsAuthenticated }}
+      value={{
+        user,
+        isAuthenticated,
+        setUser,
+        setIsAuthenticated,
+        login,
+        logout,
+      }} // Passer login et logout dans le contexte
     >
       {children}
     </AuthContext.Provider>
