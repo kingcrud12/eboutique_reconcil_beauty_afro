@@ -57,6 +57,7 @@ const bootstrap = async () => {
       process.env.FRONTEND_TEST_URL,
       process.env.BACKOFFICE_TEST_URL,
       process.env.BACKOFFICE_UP_URL,
+      process.env.PROXY_URL,
     ],
     credentials: true,
   });
