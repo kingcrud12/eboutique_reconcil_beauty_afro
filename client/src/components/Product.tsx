@@ -63,14 +63,23 @@ function Product() {
   }, []);
 
   useEffect(() => {
-    api
-      .get("/products")
-      .then((res) => setProducts(res.data ?? []))
-      .catch((err) => {
-        console.error("Erreur récupération produits :", err);
-        setPopinMsg("Erreur chargement produits");
-      })
-      .finally(() => setLoading(false));
+    // Définir les IDs des produits à récupérer
+    const productIds = [1, 14, 6]; // IDs spécifiés
+
+    // Utiliser Promise.all pour récupérer plusieurs produits par leur ID
+    Promise.all(
+      productIds.map((id) =>
+        api
+          .get(`/products/${id}`)
+          .then((res) => res.data)
+          .catch((err) => {
+            console.error(`Erreur récupération produit ${id} :`, err);
+            setPopinMsg("Erreur chargement produit");
+          })
+      )
+    )
+      .then((productsData) => setProducts(productsData)) // Mettre à jour les produits dans le state
+      .finally(() => setLoading(false)); // Terminer le chargement
   }, []);
 
   // close active zoom when tapping outside or on scroll/resize
@@ -215,130 +224,13 @@ function Product() {
       ref={containerRef}
       className="py-16 px-1 sm:px-2 lg:px-3 bg-white font-sans"
     >
-      <style>{`
-        @keyframes floatY { 0% { transform: translateY(0); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0); } }
-        @keyframes slowRotate { 0% { transform: rotate(0deg); } 50% { transform: rotate(8deg); } 100% { transform: rotate(0deg); } }
-        @keyframes popScale { 0% { transform: scale(1); } 50% { transform: scale(1.06); } 100% { transform: scale(1); } }
-
-        .anim-float { animation: floatY 3.6s ease-in-out infinite; }
-        .anim-rotate { animation: slowRotate 4.2s ease-in-out infinite; }
-        .anim-pop { animation: popScale 2.8s ease-in-out infinite; }
-
-        .anim-slow { animation-duration: 5s; }
-        .anim-fast { animation-duration: 2.6s; }
-
-        /* Desktop hover: moderate zoom */
-        .desktop-img { transition: transform 500ms ease-out; }
-        .group:hover .desktop-img { transform: scale(1.15) translateY(-6px); }
-
-        /* Mobile active: strong zoom */
-        .mobile-active { transition: transform 300ms ease-out; transform-origin: center center; }
-        /* make sure the scaled image can overflow */
-        @media (max-width: 767px) {
-          .mobile-active { transform: scale(1.6) translateY(-8px); z-index: 40; }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .anim-float, .anim-rotate, .anim-pop, .desktop-img, .mobile-active { animation: none !important; transition: none !important; transform: none !important; }
-        }
-      `}</style>
-
       {popinMsg && (
         <Popin message={popinMsg} onClose={() => setPopinMsg(null)} />
       )}
 
       <div className="w-full mx-auto">
         <div className="flex flex-wrap justify-center gap-6 mb-10">
-          <AnimatedIcon
-            title="Fleur"
-            className="anim-float anim-slow"
-            delay="0s"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#16a34a"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M12 2v4" />
-              <path d="M12 18v4" />
-              <path d="M4.9 4.9l2.8 2.8" />
-              <path d="M16.3 16.3l2.8 2.8" />
-              <path d="M2 12h4" />
-              <path d="M18 12h4" />
-              <circle cx="12" cy="12" r="2.6" fill="#fff4" />
-            </svg>
-          </AnimatedIcon>
-
-          <AnimatedIcon
-            title="Fioles"
-            className="anim-rotate anim-slow"
-            delay="0.15s"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="26"
-              height="26"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#db2777"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M8 2h8" />
-              <path d="M10 2v6" />
-              <path d="M14 2v6" />
-              <path d="M7 8v2c0 2.2 1 4 2.5 5.2L12 18l2.5-2.8C16 14 17 12.2 17 10V8" />
-              <path d="M9 22h6" />
-            </svg>
-          </AnimatedIcon>
-
-          <AnimatedIcon
-            title="Pinceau"
-            className="anim-pop anim-fast"
-            delay="0.28s"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="26"
-              height="26"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#0ea5e9"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M2 22s4-1 6-4c.7-.9 1-2 1-3 0-1.2-.5-2.2-1-3C7 10 10 6 14 2l3 3c-4 4-8 7-9 9-.5 1-.9 2-1 3-2 3-6 4-6 4z" />
-            </svg>
-          </AnimatedIcon>
-
-          <AnimatedIcon
-            title="Feuille"
-            className="anim-float anim-fast"
-            delay="0.42s"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="26"
-              height="26"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#84cc16"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 11s-3-7-11-9C7 1 3 6 3 11c0 5 4 9 9 9 5 0 9-4 9-9z" />
-              <path d="M8 13c2-2 6-3 10-3" />
-            </svg>
-          </AnimatedIcon>
+          {/* Animated Icons */}
         </div>
 
         <div className="text-center mb-8">
@@ -353,7 +245,7 @@ function Product() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {displayed.map((product, idx) => {
             const isOutOfStock = Number(product.stock) <= 0;
-            const bg = bgVariants[idx % bgVariants.length];
+            const isMiddle = idx === 1; // Carte du milieu
             const isActive = activeProductId === product.id;
 
             return (
@@ -364,17 +256,16 @@ function Product() {
                     ? "z-50 -translate-y-2 shadow-2xl"
                     : "hover:-translate-y-2 hover:z-10"
                 }`}
-                // prevent default on touchstart to avoid immediate click navigation
               >
                 {/* IMAGE BLOCK */}
                 <div
-                  className={`w-full h-[420px] sm:h-[460px] md:h-96 flex items-center justify-center ${bg} overflow-visible`}
+                  className={`w-full h-[420px] sm:h-[460px] md:h-96 flex items-center justify-center ${
+                    isMiddle ? "bg-white" : ""
+                  } overflow-visible`}
                 >
-                  {/* We keep Link for SEO / semantics but intercept click on touch */}
                   <Link
                     to={`/product/${product.id}`}
                     onClick={(e) => {
-                      // handle touch navigation: first tap zooms, second tap navigates
                       if (isTouch) {
                         handleImageClickOnTouch(
                           e as any,
@@ -382,11 +273,6 @@ function Product() {
                           `/product/${product.id}`
                         );
                       }
-                      // otherwise default Link navigation works
-                    }}
-                    onTouchStart={(e) => {
-                      // stop propagation so our document touch listener doesn't immediately close
-                      e.stopPropagation();
                     }}
                     className="w-full h-full flex items-center justify-center px-4"
                     aria-label={`Voir ${product.name}`}
@@ -399,8 +285,8 @@ function Product() {
                         isActive ? "mobile-active" : ""
                       }`}
                       style={{
-                        mixBlendMode: "multiply",
-                        background: "transparent",
+                        mixBlendMode: "multiply", // Mélange l'image avec le fond
+                        background: "transparent", // Supprime le fond blanc de l'image
                       }}
                     />
                   </Link>
@@ -435,7 +321,7 @@ function Product() {
                     <div className="flex items-center justify-center">
                       {!isOutOfStock ? (
                         <Link to="/products">
-                          <button className="inline-block px-10 py-3 rounded-full bg-gray-900 text-white text-base sm:text-lg font-semibold hover:opacity-95 transition">
+                          <button className="inline-block px-10 py-3 rounded-full bg-green-600 text-white text-base sm:text-lg font-semibold hover:opacity-95 transition">
                             Découvrir
                           </button>
                         </Link>

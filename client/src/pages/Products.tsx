@@ -8,14 +8,6 @@ import { useAuth } from "../contexts/AuthContext";
 
 const categories = ["Tous", "hair", "body"];
 
-const bgVariants = [
-  "bg-[#fef5e7]",
-  "bg-[#fbe8d3]",
-  "bg-[#f5e0dc]",
-  "bg-[#f3e7d3]",
-  "bg-[#f6ede2]",
-];
-
 const Products = () => {
   const [products, setProducts] = useState<IProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -146,16 +138,13 @@ const Products = () => {
           const isOutOfStock = Number(p.stock) <= 0;
           const isAdding = addingId === p.id;
           const disabled = isAdding || isOutOfStock;
-          const bg = bgVariants[idx % bgVariants.length];
 
           return (
             <article
               key={p.id}
               className="snap-start flex-shrink-0 w-[80%] sm:w-[320px] md:w-[360px] lg:w-[400px] flex flex-col bg-white rounded-3xl border border-gray-200 shadow-2xl overflow-hidden transition-transform duration-300 hover:-translate-y-1"
             >
-              <div
-                className={`w-full h-60 sm:h-72 flex items-center justify-center ${bg}`}
-              >
+              <div className="w-full h-60 sm:h-72 flex items-center justify-center bg-white">
                 <Link
                   to={`/product/${p.id}`}
                   className="w-full h-full flex items-center justify-center"
@@ -191,7 +180,7 @@ const Products = () => {
                     className={`px-6 sm:px-8 py-3 rounded-full text-white font-semibold ${
                       disabled
                         ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-gray-900 hover:opacity-95 transition"
+                        : "bg-green-600 hover:opacity-95 transition"
                     }`}
                   >
                     {isOutOfStock

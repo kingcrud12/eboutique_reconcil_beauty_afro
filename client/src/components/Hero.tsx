@@ -14,18 +14,14 @@ function Hero() {
     arrows: false,
   };
 
-  const images = [
-    "banner_5_new_test.png",
-    "banner_1_new.png",
-    "/Black_hair2.jpg",
-  ];
+  const images = ["banner_huile_de_carthame_2.png", "banner_chebe_2.png"];
 
   return (
     <div className="w-full relative mt-[50px]">
       <Slider {...settings}>
         {images.map((src, i) => (
           <div key={i} className="relative">
-            {i === 3 ? (
+            {i === 5 ? (
               <section
                 className="relative bg-gradient-to-r from-amber-50 to-orange-50 h-full flex items-center"
                 style={{
@@ -69,7 +65,7 @@ function Hero() {
                 <img
                   src={src}
                   alt={`banner_${i}`}
-                  className="w-full sm:h-[400px] lg:h-full object-cover cursor-pointer"
+                  className="w-full sm:h-[400px] lg:h-full mt-[16px] object-cover cursor-pointer"
                 />
               </Link>
             )}
