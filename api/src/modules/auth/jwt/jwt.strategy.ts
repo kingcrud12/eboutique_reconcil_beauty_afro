@@ -4,7 +4,6 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/modules/user/Services/user.service';
-import { Request } from 'express';
 
 export interface JwtPayload {
   userId: number;
@@ -23,12 +22,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new Error('JWT_SECRET must be defined');
     }
     super({
-      jwtFromRequest: ExtractJwt.fromExtractors([
-        (req?: Request) => {
-          if (!req || !req.cookies) return null;
-          return req.cookies['token'] as string | undefined;
-        },
-      ]),
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), // Récupère le token depuis l'en-tête Authorization
       ignoreExpiration: false,
       secretOrKey: secret,
     });
