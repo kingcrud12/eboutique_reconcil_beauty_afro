@@ -26,41 +26,28 @@ const Callback = () => {
       }
 
       try {
-        const postRes = await api.post(
+        // 1️⃣ Envoie le code au backend via le proxy
+        await api.post(
           "/auth/callback",
           {
             code,
             code_verifier: codeVerifier,
             redirect_uri: window.location.origin + "/callback",
           },
-          { withCredentials: true }
+          { withCredentials: true } // ✅ Important pour envoyer/recevoir le cookie HttpOnly
         );
 
         sessionStorage.removeItem("pkce_code_verifier");
 
-        if (postRes.data?.user) {
-          // Lorsqu'un utilisateur Auth0 est authentifié, vérifiez ou créez un utilisateur dans votre base de données
-          const user = postRes.data.user;
+        // 2️⃣ Récupère l'utilisateur connecté depuis le backend
+        const userRes = await api.get("/users/me", { withCredentials: true });
 
-          // Si l'utilisateur existe dans votre base de données, vous pouvez le récupérer
-          const existingUserRes = await api.get(`/users/me`);
-
-          if (!existingUserRes.data) {
-            // Si l'utilisateur n'existe pas, créez-le dans votre base de données interne
-            await api.post("/users", {
-              email: user.email,
-              userId: user.id,
-              // Ajouter d'autres informations nécessaires
-            });
-          }
-
-          // Assurez-vous que l'utilisateur est ajouté dans votre contexte et redirigez-le
-          setUser(user);
+        if (userRes.data) {
+          setUser(userRes.data);
           setIsAuthenticated(true);
-          sessionStorage.setItem("auth_token", postRes.data.token);
-          console.log("auth_token:", sessionStorage.getItem("auth_token"));
           navigate("/", { replace: true });
         } else {
+          console.error("Utilisateur non trouvé après callback");
           navigate("/login", { replace: true });
         }
       } catch (err) {
