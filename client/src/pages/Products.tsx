@@ -9,11 +9,11 @@ import { useAuth } from "../contexts/AuthContext";
 const categories = ["Tous", "hair", "body"];
 
 const bgVariants = [
-  "bg-[#fef5e7]", // beige clair
-  "bg-[#fbe8d3]", // pêche clair
-  "bg-[#f5e0dc]", // rose poudré
-  "bg-[#f3e7d3]", // sable doux
-  "bg-[#f6ede2]", // crème
+  "bg-[#fef5e7]",
+  "bg-[#fbe8d3]",
+  "bg-[#f5e0dc]",
+  "bg-[#f3e7d3]",
+  "bg-[#f6ede2]",
 ];
 
 const Products = () => {
@@ -22,6 +22,7 @@ const Products = () => {
   const [addingId, setAddingId] = useState<number | null>(null);
   const [popinMsg, setPopinMsg] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("Tous");
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const { fetchCart, firstCart } = useCart();
   const { isAuthenticated, user } = useAuth();
@@ -42,19 +43,13 @@ const Products = () => {
 
   const handleAdd = async (productId: number) => {
     const product = products.find((p) => p.id === productId);
-    if (!product) {
-      setPopinMsg("Produit introuvable.");
-      return;
-    }
+    if (!product) return setPopinMsg("Produit introuvable.");
 
-    const isOutOfStock = Number(product.stock) <= 0;
-    if (isOutOfStock) {
-      setPopinMsg("Produit indisponible.");
-      return;
-    }
+    if (Number(product.stock) <= 0) return setPopinMsg("Produit indisponible.");
 
     if (!isAuthenticated || !user) {
-      setPopinMsg("Veuillez vous connecter pour ajouter un produit");
+      // Affiche la modal si l'utilisateur n'est pas connecté
+      setShowAuthModal(true);
       return;
     }
 
@@ -76,7 +71,7 @@ const Products = () => {
       }
 
       await fetchCart();
-      setPopinMsg("Produit ajouté au panier!");
+      setPopinMsg("Produit ajouté au panier !");
     } catch (err) {
       console.error("Erreur ajout article :", err);
       setPopinMsg("Impossible d’ajouter l’article");
@@ -90,14 +85,39 @@ const Products = () => {
       ? products
       : products.filter((p) => p.category === selectedCategory);
 
-  if (loading) {
+  if (loading)
     return <div className="py-16 text-center">Chargement des produits...</div>;
-  }
 
   return (
     <div className="py-16 px-4 sm:px-6 lg:px-8 bg-white mt-[80px] font-sans">
       {popinMsg && (
         <Popin message={popinMsg} onClose={() => setPopinMsg(null)} />
+      )}
+
+      {showAuthModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
+          <div className="bg-white p-6 rounded shadow-md w-[320px] text-center">
+            <h2 className="text-lg font-bold mb-4">Connexion requise</h2>
+            <p className="text-sm mb-6">
+              Vous devez être connecté pour ajouter un produit au panier.
+            </p>
+            <div className="flex justify-center gap-2">
+              {/* Redirige vers /login */}
+              <Link
+                to="/login"
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              >
+                Se connecter
+              </Link>
+              <button
+                onClick={() => setShowAuthModal(false)}
+                className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <div className="mb-8 flex justify-center">
@@ -118,8 +138,6 @@ const Products = () => {
         </select>
       </div>
 
-      {/* CARROUSEL */}
-      {/* CARROUSEL */}
       <div className="flex gap-4 sm:gap-6 overflow-x-auto px-2 py-4 scroll-smooth snap-x snap-mandatory">
         {filtered.map((p, idx) => {
           const isOutOfStock = Number(p.stock) <= 0;
@@ -132,7 +150,6 @@ const Products = () => {
               key={p.id}
               className="snap-start flex-shrink-0 w-[80%] sm:w-[320px] md:w-[360px] lg:w-[400px] flex flex-col bg-white rounded-3xl border border-gray-200 shadow-2xl overflow-hidden transition-transform duration-300 hover:-translate-y-1"
             >
-              {/* IMAGE BLOCK */}
               <div
                 className={`w-full h-60 sm:h-72 flex items-center justify-center ${bg}`}
               >
@@ -152,7 +169,6 @@ const Products = () => {
                 </Link>
               </div>
 
-              {/* CARD BODY */}
               <div className="p-4 sm:p-6 flex-1 flex flex-col justify-between text-center">
                 <div>
                   <Link to={`/product/${p.id}`}>

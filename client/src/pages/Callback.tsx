@@ -1,4 +1,3 @@
-// src/pages/Callback.tsx
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -13,6 +12,9 @@ const Callback = () => {
       const params = new URLSearchParams(window.location.search);
       const code = params.get("code");
       const codeVerifier = sessionStorage.getItem("pkce_code_verifier");
+
+      // Récupération de l'URL de redirection initiale (si présente)
+      const redirectUrl = params.get("state") || "/"; // Par défaut, rediriger vers la page d'accueil
 
       if (!code || !codeVerifier) {
         console.error("Code ou code_verifier manquant");
@@ -40,7 +42,8 @@ const Callback = () => {
           setUser(user);
           setIsAuthenticated(true);
 
-          navigate("/", { replace: true });
+          // Rediriger l'utilisateur vers la page d'origine ou vers la page d'accueil si aucun état (URL) n'est défini
+          navigate(redirectUrl, { replace: true });
         } else {
           navigate("/login", { replace: true });
         }

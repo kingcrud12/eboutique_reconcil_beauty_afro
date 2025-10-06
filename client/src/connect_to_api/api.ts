@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: process.env.REACT_BASE_URL,
+  baseURL: process.env.REACT_APP_BASE_URL,
   withCredentials: false, // plus besoin si on envoie le JWT dans l'header
 });
 
