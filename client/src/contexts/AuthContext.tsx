@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("auth_token");
+    const token = localStorage.getItem("token");
     if (token) {
       // Vérifie le token avec le backend
       api
@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setIsAuthenticated(true);
         })
         .catch(() => {
-          localStorage.removeItem("auth_token");
+          localStorage.removeItem("token");
           setUser(null);
           setIsAuthenticated(false);
         });
