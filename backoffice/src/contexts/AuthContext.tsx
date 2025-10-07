@@ -1,84 +1,65 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  ReactNode,
-  useEffect,
-} from "react";
-import api from "../api/api";
-
-interface User {
-  id: number;
-  email: string;
-  role: string;
-}
+// AuthContext.tsx
+import React, { createContext, useContext, useState, ReactNode } from "react";
+import jwtDecode from "jwt-decode";
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-  authLoading: boolean;
-  user: User | null;
-  refreshUser: () => Promise<void>;
+  user: { id: number; email: string; role?: string } | null;
+  token: string | null;
+  login: (token: string) => void;
+  logout: () => void;
+}
+
+interface JwtPayload {
+  sub: number;
+  email: string;
+  role?: string;
+  exp: number; // secondes
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function getInitialAuth() {
+  const token = localStorage.getItem("token");
+  if (!token) return { isAuthenticated: false, user: null, token: null };
+
+  try {
+    const decoded = jwtDecode<JwtPayload>(token);
+    if (decoded.exp * 1000 <= Date.now()) {
+      localStorage.removeItem("token");
+      return { isAuthenticated: false, user: null, token: null };
+    }
+    return {
+      isAuthenticated: true,
+      user: { id: decoded.sub, email: decoded.email, role: decoded.role },
+      token,
+    };
+  } catch {
+    localStorage.removeItem("token");
+    return { isAuthenticated: false, user: null, token: null };
+  }
+}
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authLoading, setAuthLoading] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  const [state, setState] = useState(getInitialAuth);
 
-  const refreshUser = async () => {
-    try {
-      setAuthLoading(true);
-      const { data } = await api.get<User>("/me");
-      setUser(data);
-      setIsAuthenticated(true);
-    } catch (err) {
-      setUser(null);
-      setIsAuthenticated(false);
-    } finally {
-      setAuthLoading(false);
-    }
+  const login = (token: string) => {
+    localStorage.setItem("token", token);
+    const decoded = jwtDecode<JwtPayload>(token);
+    setState({
+      isAuthenticated: true,
+      user: { id: decoded.sub, email: decoded.email, role: decoded.role },
+      token,
+    });
   };
 
-  const login = async (email: string, password: string) => {
-    try {
-      setAuthLoading(true);
-      await api.post("/login", { email, password });
-      await refreshUser();
-    } catch (err) {
-      console.error("Erreur login :", err);
-      setUser(null);
-      setIsAuthenticated(false);
-      throw err;
-    } finally {
-      setAuthLoading(false);
-    }
+  const logout = () => {
+    localStorage.removeItem("token");
+    setState({ isAuthenticated: false, user: null, token: null });
   };
-
-  const logout = async () => {
-    try {
-      setAuthLoading(true);
-      await api.post("/logout");
-    } catch (err) {
-      console.error("Erreur logout :", err);
-    } finally {
-      setUser(null);
-      setIsAuthenticated(false);
-      setAuthLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    refreshUser();
-  }, []);
 
   return (
-    <AuthContext.Provider
-      value={{ isAuthenticated, login, logout, authLoading, user, refreshUser }}
-    >
+    <AuthContext.Provider value={{ ...state, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -86,6 +67,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = (): AuthContextType => {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth doit être utilisé dans un AuthProvider");
+  if (!ctx) throw new Error("useAuth must be used within an AuthProvider");
   return ctx;
 };
