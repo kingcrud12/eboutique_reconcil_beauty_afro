@@ -61,7 +61,7 @@ export class AdminController {
       sameSite: 'none',
       maxAge: 1000 * 60 * 60 * 24,
     });
-    return { message: 'Login successful' };
+    return { message: 'Login successful', token: token };
   }
 
   @Post('logout')
