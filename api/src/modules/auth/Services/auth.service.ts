@@ -24,12 +24,23 @@ export class AuthService {
     return null;
   }
 
-  async login(email: string, password: string) {
+  async login(
+    email: string,
+    password: string,
+  ): Promise<{ token: string } | null> {
     const user = await this.validateUser(email, password);
-    if (!user) return null;
+    if (!user) {
+      return null;
+    }
 
-    const payload = { sub: user.id, email: user.email };
-    return payload;
+    const payload = {
+      sub: user.id,
+      email: user.email,
+    };
+
+    return {
+      token: this.jwtService.sign(payload),
+    };
   }
   logout(): { message: string } {
     return {
