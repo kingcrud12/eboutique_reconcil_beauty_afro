@@ -15,8 +15,8 @@ interface CartContextType {
   carts: ICart[];
   setCarts: React.Dispatch<React.SetStateAction<ICart[]>>;
   fetchCart: () => Promise<void>;
-  totalItems: number;
-  totalQuantity: number;
+  totalItems: number; // Nombre de produits distincts
+  totalQuantity: number; // Quantité totale
   firstCart: ICart | null;
 }
 
@@ -37,25 +37,24 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
   const { isAuthenticated } = useAuth();
 
   const fetchCart = useCallback(async () => {
-    if (!isAuthenticated) {
-      setCarts([]);
-      return;
-    }
-
     try {
       const res = await api.get<ICart[]>("/carts/users/me");
       setCarts(res.data || []);
-    } catch (err) {
-      console.error("Erreur lors du fetch du panier :", err);
+    } catch {
       setCarts([]);
     }
-  }, [isAuthenticated]);
+  }, []);
 
   useEffect(() => {
-    void fetchCart();
-  }, [fetchCart, isAuthenticated]);
+    if (isAuthenticated) {
+      void fetchCart();
+    } else {
+      // 🔑 purge à la déconnexion
+      setCarts([]);
+    }
+  }, [isAuthenticated, fetchCart]);
 
-  // 👉 dérivés de carts
+  // 👉 dérivé de carts
   const firstCart = carts.length > 0 ? carts[0] : null;
   const totalItems = firstCart?.items?.length ?? 0;
   const totalQuantity =

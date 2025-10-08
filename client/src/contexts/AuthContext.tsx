@@ -1,94 +1,82 @@
+// AuthContext.tsx
 import React, {
   createContext,
   useContext,
-  useState,
   useEffect,
+  useState,
   ReactNode,
 } from "react";
+import { jwtDecode } from "jwt-decode";
 import api from "../connect_to_api/api";
-import {
-  login as authLogin,
-  logout as authLogout,
-} from "../connect_to_api/authService"; // Importation des méthodes login et logout
 
-interface User {
-  id: number;
-  email?: string;
-}
 interface AuthContextType {
-  user: User | null;
   isAuthenticated: boolean;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>;
-  setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
-  login: (state?: string) => Promise<void>; // Ajout de login dans le contexte
-  logout: () => Promise<void>; // Ajout de logout dans le contexte
+  login: (token: string) => void;
+  logout: () => void;
+  authLoading: boolean;
+  user: { id: number } | null; // <-- nouveau
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [user, setUser] = useState<{ id: number } | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      // Vérifie le token avec le backend
-      api
-        .get("/users/me")
-        .then((res) => {
-          setUser(res.data);
+    const init = async () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const decoded = jwtDecode<{ exp: number }>(token);
+          const now = Date.now() / 1000;
+          if (decoded.exp < now) throw new Error("expired");
+
           setIsAuthenticated(true);
-        })
-        .catch(() => {
-          localStorage.removeItem("auth_token");
-          setUser(null);
-          setIsAuthenticated(false);
-        });
-    }
+
+          // récupération de l'utilisateur connecté
+          const res = await api.get<{ id: number }>("/users/me");
+          setUser(res.data);
+        } catch {
+          logout();
+        }
+      }
+      setAuthLoading(false);
+    };
+    init();
   }, []);
 
-  // Fonction de login
-  const login = async () => {
+  const login = async (token: string) => {
+    localStorage.setItem("token", token);
+    setIsAuthenticated(true);
+
     try {
-      await authLogin(); // Appel de la méthode login depuis authService
-      setIsAuthenticated(true);
-    } catch (err) {
-      console.error("Erreur lors de la connexion", err);
-      setIsAuthenticated(false);
+      const res = await api.get<{ id: number }>("/users/me");
+      setUser(res.data);
+    } catch (error) {
+      console.error("Erreur récupération user après login :", error);
+      logout();
     }
   };
 
-  // Fonction de logout
-  const logout = async () => {
-    try {
-      await authLogout(); // Appel de la méthode logout depuis authService
-      setUser(null);
-      setIsAuthenticated(false);
-      localStorage.removeItem("auth_token");
-    } catch (err) {
-      console.error("Erreur lors de la déconnexion", err);
-    }
+  const logout = () => {
+    localStorage.removeItem("token");
+    setIsAuthenticated(false);
+    setUser(null);
   };
 
   return (
     <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated,
-        setUser,
-        setIsAuthenticated,
-        login,
-        logout,
-      }} // Passer login et logout dans le contexte
+      value={{ isAuthenticated, login, logout, authLoading, user }}
     >
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  if (!ctx) throw new Error("useAuth doit être utilisé dans un AuthProvider");
   return ctx;
 };
