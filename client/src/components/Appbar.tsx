@@ -111,6 +111,9 @@ function Appbar() {
       </div>
 
       <div className="hidden md:flex justify-center space-x-10 mt-[-20px] text-sm font-medium">
+        <Link to="/" className="hover:text-gray-300">
+          Accueil
+        </Link>
         <Link to="/products" className="hover:text-gray-300">
           Nos produits
         </Link>
@@ -124,6 +127,9 @@ function Appbar() {
 
       {menuOpen && (
         <div className="md:hidden mt-2 flex flex-col space-y-2 text-sm font-medium">
+          <Link to="/" className="hover:text-gray-300">
+            Accueil
+          </Link>
           <Link to="/products" className="hover:text-gray-300">
             Nos produits
           </Link>
