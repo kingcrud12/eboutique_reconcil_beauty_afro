@@ -167,6 +167,9 @@ const Products = () => {
                     <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 line-clamp-2">
                       {p.name}
                     </h3>
+                    <h3 className="text-lg sm:text-xl font-bold text-green-600 mb-2 line-clamp-2">
+                      {Number(p.price).toFixed(2)} €
+                    </h3>
                     <p className="text-sm text-slate-600 mt-1 min-h-[3.6rem] line-clamp-3">
                       {truncated(p.description)}
                     </p>
