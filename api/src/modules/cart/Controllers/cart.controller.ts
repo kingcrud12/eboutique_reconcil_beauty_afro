@@ -44,6 +44,7 @@ export class CartController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('users/me')
   @ApiOperation({
     summary: 'récupérer tous mes paniers',
@@ -138,18 +139,10 @@ export class CartController {
     @Req() req: JwtRequest,
     @Param('id', ParseIntPipe) id: number,
   ): Promise<ICart> {
-    const userId = req.user.userId;
     const cart = await this.cartService.getCartById(id);
 
     if (!cart) {
       throw new HttpException('Panier introuvable', HttpStatus.NOT_FOUND);
-    }
-
-    if (cart.userId !== userId) {
-      throw new HttpException(
-        'Accès interdit à ce panier',
-        HttpStatus.FORBIDDEN,
-      );
     }
 
     return cart;
