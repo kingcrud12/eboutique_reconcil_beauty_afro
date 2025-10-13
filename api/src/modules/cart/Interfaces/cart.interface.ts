@@ -8,6 +8,7 @@ export interface ICart {
   id: number;
   userId?: number;
   guestId?: number;
+  uuid?: string;
   createdAt: Date;
   items: ICartItem[];
 }
@@ -15,6 +16,7 @@ export interface ICart {
 export interface ICarts {
   userId?: number;
   guestId?: number;
+  uuid?: string;
   createdAt: Date;
   items: ICartItem[];
 }
@@ -22,11 +24,13 @@ export interface ICarts {
 export interface ICartCreate {
   userId?: number;
   guestId?: number;
+  uuid?: string;
   items?: ICartItemCreate[];
 }
 
 export interface ICartCreateUpdate {
   userId?: number;
   guestId?: number;
+  uuid?: string;
   items?: ICartItemUpdate[];
 }

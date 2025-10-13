@@ -175,19 +175,18 @@ export class CartController {
   }
 
   @Post(':guestId')
-  @Post(':guestId')
   async createGuestCart(
-    @Param('guestId') guestUuid: string, // UUID côté front
+    @Param('uuid') uuid: string, // UUID côté front
     @Body() data: ICartCreateUpdate,
   ) {
     // Vérifier si le guest existe via uuid
     let guest = await this.prisma.guest.findUnique({
-      where: { uuid: guestUuid },
+      where: { uuid: uuid },
     });
 
     if (!guest) {
       guest = await this.prisma.guest.create({
-        data: { uuid: guestUuid },
+        data: { uuid: uuid },
       });
     }
 
@@ -229,7 +228,7 @@ export class CartController {
     return {
       ...cart,
       userId: cart.userId ?? null,
-      guestId: cart.guestId ?? null,
+      uuid: cart.guestId as number,
     };
   }
 }

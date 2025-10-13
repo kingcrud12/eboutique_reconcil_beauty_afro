@@ -26,13 +26,14 @@ model User {
 
 model Guest {
   id           Int           @id @default(autoincrement())
-  uuid         String        @unique
+  uuid         String?       @unique
   firstName    String?
   lastName     String?
   email        String?
   adress       String?       @db.Text
   appointments Appointment[]
-  carts        Cart[]
+  carts        Cart[]        @relation("Guest_Carts")
+  cartsByUuid  Cart[]        @relation("Guest_Carts_Uuid")
   orders       Order[]       @relation("GuestOrders")
 }
 
@@ -168,15 +169,16 @@ model Appointment {
 }
 
 model Cart {
-  id        Int        @id @default(autoincrement())
-  createdAt DateTime   @default(now())
-  userId    Int?
-  guestId   Int?
-  guest     Guest?     @relation(fields: [guestId], references: [id])
-  user      User?      @relation(fields: [userId], references: [id])
-  items     CartItem[]
+  id          Int        @id @default(autoincrement())
+  createdAt   DateTime   @default(now())
+  userId      Int?
+  guestId     Int?
+  uuid        String?
+  guest       Guest?     @relation("Guest_Carts", fields: [guestId], references: [id], onDelete: Cascade)
+  guestByUuid Guest?     @relation("Guest_Carts_Uuid", fields: [uuid], references: [uuid], onDelete: Cascade)
+  user        User?      @relation(fields: [userId], references: [id])
+  items       CartItem[]
 
-  @@index([guestId], map: "Cart_guestId_fkey")
   @@index([userId], map: "Cart_userId_fkey")
 }
 
