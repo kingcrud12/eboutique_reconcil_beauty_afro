@@ -237,7 +237,7 @@ function Product() {
 
               {/* Category / small meta (stock caché) */}
               <div className="text-sm text-gray-600 mt-2 md:mt-4 text-center md:text-left">
-                <div>Catégorie: {product.category}</div>
+                <div>Catégorie: </div>
               </div>
             </div>
           </aside>

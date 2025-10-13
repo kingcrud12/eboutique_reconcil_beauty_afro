@@ -35,9 +35,9 @@ const SHIPPING_TABLES: Record<
   Array<[maxKg: number, priceEUR: number]>
 > = {
   RELAY: [
-    [0.25, 4.19],
-    [0.5, 4.3],
-    [0.75, 5.4],
+    [0.25, 4.2],
+    [0.5, 4.49],
+    [0.75, 5.69],
     [1.0, 5.4],
     [2.0, 6.6],
     [3.0, 14.99],

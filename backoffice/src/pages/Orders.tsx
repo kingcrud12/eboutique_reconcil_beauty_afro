@@ -51,7 +51,10 @@ function formatDate(input?: string | Date) {
 function formatMoney(val: number | string) {
   const n = typeof val === "number" ? val : Number(val);
   if (!isFinite(n)) return "-";
-  return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(n);
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+  }).format(n);
 }
 
 // Traduction du mode de livraison
@@ -92,7 +95,11 @@ function renderStatus(status: string) {
   const cls = colors[key] || "bg-gray-100 text-gray-800";
   const translated = translations[key] || status;
 
-  return <span className={`px-2 py-1 text-xs font-semibold rounded ${cls}`}>{translated}</span>;
+  return (
+    <span className={`px-2 py-1 text-xs font-semibold rounded ${cls}`}>
+      {translated}
+    </span>
+  );
 }
 
 // Pastille colorée pour les modes de livraison
@@ -102,8 +109,13 @@ function renderDelivery(mode?: DeliveryMode) {
     RELAY: "bg-indigo-100 text-indigo-800",
     EXPRESS: "bg-pink-100 text-pink-800",
   };
-  const cls = map[String(mode || "").toUpperCase()] || "bg-gray-100 text-gray-800";
-  return <span className={`px-2 py-1 text-xs font-semibold rounded ${cls}`}>{labelDelivery(mode)}</span>;
+  const cls =
+    map[String(mode || "").toUpperCase()] || "bg-gray-100 text-gray-800";
+  return (
+    <span className={`px-2 py-1 text-xs font-semibold rounded ${cls}`}>
+      {labelDelivery(mode)}
+    </span>
+  );
 }
 
 export default function Orders() {
@@ -132,7 +144,6 @@ export default function Orders() {
         const mapped = orders.map((o) => {
           const user = o.userId ? userMap.get(o.userId) : undefined;
           return {
-            // 👇 ID cliquable aussi
             id: (
               <Link
                 to={`/orders/${o.id}`}

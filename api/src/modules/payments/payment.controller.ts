@@ -101,12 +101,11 @@ export class PaymentController {
         price_data: {
           currency: 'eur',
           product_data: { name: it.product.name },
-          unit_amount: Math.round(Number(it.unitPrice) * 100), // centimes
+          unit_amount: Math.round(Number(it.unitPrice) * 100),
         },
         quantity: it.quantity,
       }));
 
-    // ➕ Ajouter la ligne des frais de livraison si > 0
     const shippingFee = Number(order.shippingFee ?? 0);
     if (shippingFee > 0) {
       lineItems.push({

@@ -131,7 +131,6 @@ export class CartController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('users/me/:id')
   @ApiOperation({
     summary: 'Récupérer un panier',

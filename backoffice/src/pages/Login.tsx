@@ -19,13 +19,10 @@ function Login() {
       const response = await api.post("/login", { email, password });
       const { token } = response.data;
 
-      // Stocker le token dans localStorage
       localStorage.setItem("token", token);
 
-      // Mettre à jour le contexte
       login(token);
 
-      // Rediriger vers le dashboard admin
       navigate("/");
     } catch (err: any) {
       console.error("Erreur lors de la connexion :", err);
