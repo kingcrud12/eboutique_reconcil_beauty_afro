@@ -174,7 +174,7 @@ export class CartController {
     };
   }
 
-  @Post(':guestId')
+  @Post(':uuid')
   async createGuestCart(
     @Param('uuid') uuid: string, // UUID côté front
     @Body() data: ICartCreateUpdate,
@@ -206,21 +206,21 @@ export class CartController {
     return cart;
   }
 
-  // Récupérer le panier par guestId
-  @Get(':guestId')
-  async getCart(@Param('guestId') guestId: string) {
+  // Récupérer le panier par uuid
+  @Get(':uuid')
+  async getCart(@Param('uuid') uuid: string) {
     const cart = await this.prisma.cart.findFirst({
-      where: { guestId: Number(guestId) },
+      where: { uuid: uuid },
       include: { items: { include: { product: true } } },
     });
 
     return cart || null;
   }
 
-  @Patch(':guestId')
-  async updateGuestCart(@Param('guestId') guestId: string) {
+  @Patch(':uui')
+  async updateGuestCart(@Param('uuid') uuid: string) {
     const cart = await this.prisma.cart.findFirst({
-      where: { guestId: Number(guestId) },
+      where: { uuid: uuid },
       include: { items: { include: { product: true } } },
     });
 
