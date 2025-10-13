@@ -44,7 +44,6 @@ export class CartController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('users/me')
   @ApiOperation({
     summary: 'récupérer tous mes paniers',
