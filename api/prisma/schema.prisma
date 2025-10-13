@@ -26,6 +26,7 @@ model User {
 
 model Guest {
   id           Int           @id @default(autoincrement())
+  uuid         String        @unique
   firstName    String?
   lastName     String?
   email        String?
