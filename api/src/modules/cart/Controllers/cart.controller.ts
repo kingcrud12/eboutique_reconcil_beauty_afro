@@ -22,11 +22,15 @@ import {
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/jwt/jwt-auth.guard';
 import { JwtRequest } from '../../auth/jwt/Jwt-request.interface';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @ApiTags('Cart')
 @Controller('carts')
 export class CartController {
-  constructor(private readonly cartService: CartService) {}
+  constructor(
+    private readonly cartService: CartService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   @Post()
   @ApiOperation({
@@ -167,6 +171,64 @@ export class CartController {
         productId: item.productId,
         quantity: item.quantity,
       })),
+    };
+  }
+
+  @Post(':guestId')
+  async createGuestCart(
+    @Param('guestId') guestId: string,
+    @Body() data: ICartCreateUpdate,
+  ) {
+    // Vérifier si le guest existe
+    let guest = await this.prisma.guest.findUnique({
+      where: { id: Number(guestId) },
+    });
+
+    if (!guest) {
+      guest = await this.prisma.guest.create({
+        data: { id: Number(guestId) },
+      });
+    }
+
+    // Filtrer les items valides
+    const itemsForCreate = (data.items ?? [])
+      .filter((item) => item.productId != null)
+      .map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity ?? 1,
+      }));
+
+    const cart = await this.cartService.create({
+      guestId: guest.id,
+      items: itemsForCreate,
+    });
+
+    return cart;
+  }
+
+  // Récupérer le panier par guestId
+  @Get(':guestId')
+  async getCart(@Param('guestId') guestId: string) {
+    const cart = await this.prisma.cart.findFirst({
+      where: { guestId: Number(guestId) },
+      include: { items: { include: { product: true } } },
+    });
+
+    return cart || null;
+  }
+
+  @Patch(':guestId')
+  async updateGuestCart(@Param('guestId') guestId: string) {
+    const cart = await this.prisma.cart.findFirst({
+      where: { guestId: Number(guestId) },
+      include: { items: { include: { product: true } } },
+    });
+
+    // Normaliser userId/guestId pour TypeScript
+    return {
+      ...cart,
+      userId: cart.userId ?? null,
+      guestId: cart.guestId ?? null,
     };
   }
 }
