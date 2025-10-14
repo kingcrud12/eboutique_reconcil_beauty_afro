@@ -1,7 +1,9 @@
-import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../connect_to_api/api";
 import { useAuth } from "../contexts/AuthContext";
+import { useState } from "react";
+
+const GUEST_STORAGE_KEY = "guest_cart_uuid";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -25,7 +27,14 @@ const Login = () => {
 
       localStorage.setItem("token", token);
       login(token);
-      navigate("/");
+
+      // 🔹 redirection selon présence d'un panier guest
+      const guestCart = localStorage.getItem(GUEST_STORAGE_KEY);
+      if (guestCart) {
+        navigate("/cart");
+      } else {
+        navigate("/");
+      }
     } catch (error: any) {
       console.error("Erreur de connexion :", error.response?.data || error);
       setErrorMessage("Email ou mot de passe incorrect.");
