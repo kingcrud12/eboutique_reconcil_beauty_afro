@@ -96,6 +96,7 @@ export class CartService {
       where: { id },
       data: {
         userId: data.userId ?? undefined,
+        uuid: data.uuid ?? undefined,
         guestId: data.guestId ?? undefined,
       },
     });
@@ -178,7 +179,7 @@ export class CartService {
     return {
       userId: cart.userId ?? undefined,
       guestId: cart.guestId as number,
-      uuid: cart.uuid,
+      uuid: cart.uuid ?? undefined,
       items: cart.items.map((item) => ({
         id: item.id,
         productId: item.productId,
@@ -204,6 +205,7 @@ export class CartService {
       id: cart.id,
       userId: cart.userId ?? undefined,
       guestId: cart.guestId as number,
+      uuid: cart.uuid ?? undefined,
       createdAt: cart.createdAt,
       items: cart.items.map((item) => ({
         id: item.id,

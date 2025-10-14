@@ -206,29 +206,39 @@ export class CartController {
     return cart;
   }
 
-  // Récupérer le panier par uuid
   @Get(':uuid')
   async getCart(@Param('uuid') uuid: string) {
+    const guest = await this.prisma.guest.findUnique({
+      where: { uuid },
+    });
+
+    if (!guest) {
+      return null;
+    }
     const cart = await this.prisma.cart.findFirst({
-      where: { uuid: uuid },
+      where: { guestId: guest.id },
       include: { items: { include: { product: true } } },
     });
 
     return cart || null;
   }
 
-  @Patch(':uui')
-  async updateGuestCart(@Param('uuid') uuid: string) {
-    const cart = await this.prisma.cart.findFirst({
-      where: { uuid: uuid },
-      include: { items: { include: { product: true } } },
+  @Patch(':uuid')
+  async updateGuestCart(
+    @Param('uuid') uuid: string,
+    @Body() data: UpdateCartDto,
+  ) {
+    let guest = await this.prisma.guest.findUnique({ where: { uuid } });
+    if (!guest) {
+      guest = await this.prisma.guest.create({ data: { uuid } });
+    }
+
+    let cart = await this.prisma.cart.findFirst({
+      where: { guestId: guest.id },
     });
 
-    // Normaliser userId/guestId pour TypeScript
-    return {
-      ...cart,
-      userId: cart.userId ?? null,
-      uuid: cart.guestId as number,
-    };
+    cart = await this.cartService.updateCart(cart.id, data);
+
+    return cart;
   }
 }

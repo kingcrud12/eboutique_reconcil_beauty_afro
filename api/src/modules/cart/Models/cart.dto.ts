@@ -70,7 +70,7 @@ export class UpdateCartDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsInt()
-  uuid?: number;
+  uuid?: string;
 
   @ApiPropertyOptional({ type: () => [CartItemUpdateDto] })
   @IsOptional()
