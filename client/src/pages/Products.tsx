@@ -15,7 +15,7 @@ const Products = () => {
   const [popinMsg, setPopinMsg] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("Tous");
 
-  const { fetchCart, fetchGuestCart, createGuestCart, firstCart, updateGuestCart } = useCart();
+  const { fetchCart, fetchGuestCart, createGuestCart, firstCart, updateGuestCart, setCarts } = useCart();
   const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
@@ -39,6 +39,33 @@ const Products = () => {
     if (Number(product.stock) <= 0) return setPopinMsg("Produit indisponible.");
 
     setAddingId(productId);
+    // Optimistic UI: update cart state immediately
+    setCarts((prev) => {
+      const current = prev[0] ?? {
+        id: firstCart?.id ?? 0,
+        createdAt: new Date().toISOString(),
+        items: [],
+      };
+      const existing = current.items.find((i) => i.product.id === product.id);
+      let items;
+      if (existing) {
+        items = current.items.map((i) =>
+          i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i
+        );
+      } else {
+        items = [
+          ...current.items,
+          {
+            id: -(Math.floor(Math.random() * 100000) + 1),
+            productId: product.id,
+            quantity: 1,
+            product,
+          },
+        ];
+      }
+      return [{ ...current, items }];
+    });
+    setPopinMsg("Produit ajouté au panier !");
     try {
       if (isAuthenticated && user) {
         // Utilisateur connecté: garder le flux existant côté API utilisateur
@@ -64,10 +91,12 @@ const Products = () => {
         }
         await fetchGuestCart();
       }
-      setPopinMsg("Produit ajouté au panier !");
     } catch (err) {
       console.error("Erreur ajout article :", err);
       setPopinMsg("Impossible d’ajouter l’article");
+      // Re-sync in case optimistic update was wrong
+      if (isAuthenticated && user) await fetchCart();
+      else await fetchGuestCart();
     } finally {
       setAddingId(null);
     }

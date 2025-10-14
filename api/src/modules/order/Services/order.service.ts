@@ -27,13 +27,16 @@ type PrismaOrderWithItems = Order & {
 };
 
 /* =========================
-   Barèmes & helpers frais
+   Barèmes & helpers frais (dynamiques)
    ========================= */
 
-const SHIPPING_TABLES: Record<
+type ShippingTables = Record<
   DeliveryMode,
   Array<[maxKg: number, priceEUR: number]>
-> = {
+>;
+
+// Fallback local en cas d'indisponibilité de la source distante
+const SHIPPING_TABLES_FALLBACK: ShippingTables = {
   RELAY: [
     [0.25, 4.2],
     [0.5, 4.49],
@@ -82,11 +85,83 @@ const SHIPPING_TABLES: Record<
   ],
 };
 
-function computeShippingFeeEUR(
-  mode: DeliveryModeEnum,
+let SHIPPING_TABLES_CACHE: ShippingTables | null = null;
+let SHIPPING_TABLES_LAST_FETCH = 0;
+
+async function loadShippingTables(): Promise<ShippingTables> {
+  const maxAgeMs = 1000 * 60 * 60; // 1h
+  const now = Date.now();
+  if (SHIPPING_TABLES_CACHE && now - SHIPPING_TABLES_LAST_FETCH < maxAgeMs) {
+    return SHIPPING_TABLES_CACHE;
+  }
+
+  const url = process.env.SHIPPING_TARIFFS_URL; // doit retourner un JSON compatible
+  if (!url) {
+    // Tentative: récupérer dynamiquement depuis Mondial Relay (HTML)
+    try {
+      const mrRes = await fetch(
+        'https://www.mondialrelay.fr/envoi-de-colis/tarifs-expeditions/',
+        { method: 'GET' },
+      );
+      if (mrRes.ok) {
+        const html = await mrRes.text();
+        const parsed = parseMondialRelayHtml(html);
+        if (parsed) {
+          SHIPPING_TABLES_CACHE = {
+            RELAY: parsed.RELAY ?? SHIPPING_TABLES_FALLBACK.RELAY,
+            HOME: SHIPPING_TABLES_FALLBACK.HOME,
+            LOCKER: parsed.LOCKER ?? SHIPPING_TABLES_FALLBACK.LOCKER,
+            EXPRESS: SHIPPING_TABLES_FALLBACK.EXPRESS,
+          };
+          SHIPPING_TABLES_LAST_FETCH = now;
+          return SHIPPING_TABLES_CACHE;
+        }
+      }
+    } catch {
+      // ignore and fallback
+    }
+    SHIPPING_TABLES_CACHE = SHIPPING_TABLES_FALLBACK;
+    SHIPPING_TABLES_LAST_FETCH = now;
+    return SHIPPING_TABLES_CACHE;
+  }
+
+  try {
+    const res = await fetch(url, { method: 'GET' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    // Validation minimale
+    if (
+      json &&
+      typeof json === 'object' &&
+      Object.prototype.hasOwnProperty.call(
+        json as Record<string, unknown>,
+        'RELAY',
+      )
+    ) {
+      SHIPPING_TABLES_CACHE = json as ShippingTables;
+      SHIPPING_TABLES_LAST_FETCH = now;
+      return SHIPPING_TABLES_CACHE;
+    }
+    throw new Error('Invalid shipping tables schema');
+  } catch {
+    SHIPPING_TABLES_CACHE = SHIPPING_TABLES_FALLBACK;
+    SHIPPING_TABLES_LAST_FETCH = now;
+    return SHIPPING_TABLES_CACHE;
+  }
+}
+
+function normalizeMode(mode: DeliveryModeEnum | DeliveryMode): DeliveryMode {
+  return String(mode).toUpperCase() as DeliveryMode;
+}
+
+async function computeShippingFeeEUR(
+  mode: DeliveryModeEnum | DeliveryMode,
   totalWeightKg: number,
-): number {
-  const table = SHIPPING_TABLES[mode] ?? SHIPPING_TABLES.RELAY;
+): Promise<number> {
+  const tables = await loadShippingTables();
+  const key = normalizeMode(mode);
+  const table =
+    (tables as Record<string, Array<[number, number]>>)[key] ?? tables.RELAY;
   for (const [maxKg, price] of table) {
     if (totalWeightKg <= maxKg) return price;
   }
@@ -138,7 +213,10 @@ export class OrderService {
     }, 0);
 
     const totalWeightKg = computeTotalWeightKg(cart.items);
-    const shippingFee = computeShippingFeeEUR(data.deliveryMode, totalWeightKg);
+    const shippingFee = await computeShippingFeeEUR(
+      data.deliveryMode,
+      totalWeightKg,
+    );
 
     /** ✅ NEW: calcule et persiste le poids total en grammes */
     const totalWeightGrams = computeTotalWeightGrams(cart.items);
@@ -279,15 +357,15 @@ export class OrderService {
 
       const mode = existing.deliveryMode as unknown as DeliveryModeEnum;
       const totalWeightKg = computeTotalWeightKg(refreshedItems);
-      const shippingFee = computeShippingFeeEUR(mode, totalWeightKg);
+      const shippingFee = await computeShippingFeeEUR(mode, totalWeightKg);
 
       const totalWeightGrams = computeTotalWeightGrams(refreshedItems);
 
       const updatedOrder = await tx.order.update({
         where: { id: existing.id },
         data: {
-          total: +(newTotal + shippingFee).toFixed(2),
-          shippingFee,
+          total: +(newTotal + Number(shippingFee)).toFixed(2),
+          shippingFee: Number(shippingFee),
           totalWeightGrams, // ✅ NEW
         },
         include: { items: { include: { product: true } } },
@@ -375,8 +453,9 @@ export class OrderService {
     );
     const mode = existing.deliveryMode as unknown as DeliveryModeEnum;
     const totalWeightKg = computeTotalWeightKg(items);
-    const shippingFee = computeShippingFeeEUR(mode, totalWeightKg);
-    const grandTotal = +(itemsSum + shippingFee).toFixed(2);
+    const shippingFeePromise = computeShippingFeeEUR(mode, totalWeightKg);
+    const shippingFee = await shippingFeePromise;
+    const grandTotal = +(itemsSum + Number(shippingFee)).toFixed(2);
 
     /** ✅ NEW: recalcul du poids total en grammes pour persistance */
     const totalWeightGrams = computeTotalWeightGrams(items);
@@ -387,8 +466,8 @@ export class OrderService {
         status: (data.status as OrderStatus) ?? undefined,
         deliveryAddress: data.deliveryAddress ?? undefined,
         paymentIntentId: data.paymentIntentId ?? undefined,
-        shippingFee,
-        total: grandTotal,
+        shippingFee: Number(shippingFee),
+        total: Number(grandTotal),
         totalWeightGrams, // ✅ NEW
       },
       include: { items: { include: { product: true } } },
@@ -429,4 +508,55 @@ export class OrderService {
       ),
     };
   }
+}
+
+function parseMondialRelayHtml(html: string): {
+  RELAY?: Array<[number, number]>;
+  LOCKER?: Array<[number, number]>;
+} | null {
+  // Heuristiques simples pour extraire des paires (kg, €)
+  // 1) Normaliser: supprimer espaces multiples, passer en minuscule pour recherches de sections
+  const text = html.replace(/\s+/g, ' ');
+
+  // Helper: extraire paires depuis un segment
+  const extractPairs = (segment: string): Array<[number, number]> => {
+    const pairs: Array<[number, number]> = [];
+    // Cherche motifs comme "0,25" ou "0.25" suivis de "kg" et un prix "4,20" ou "4.20"
+    const re =
+      /(\d+[.,]?\d*)\s*(?:kg|KG)[^\d]{1,20}?(\d+[.,]?\d*)\s*(?:€|eur)/gi;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(segment))) {
+      const kg = Number(String(m[1]).replace(',', '.'));
+      const eur = Number(String(m[2]).replace(',', '.'));
+      if (Number.isFinite(kg) && Number.isFinite(eur)) {
+        pairs.push([kg, eur]);
+      }
+    }
+    // Tri par poids croissant, suppression doublons
+    const seen = new Set<number>();
+    const sorted = pairs
+      .sort((a, b) => a[0] - b[0])
+      .filter(([kg]) => (seen.has(kg) ? false : (seen.add(kg), true)));
+    return sorted;
+  };
+
+  // Tenter d'isoler des blocs pour Point Relais et Locker
+  const lower = text.toLowerCase();
+  const relayIdx = lower.indexOf('point relais');
+  const lockerIdx = lower.indexOf('locker');
+
+  const takeWindow = (start: number): string =>
+    start >= 0 ? text.slice(start, start + 5000) : '';
+
+  const relayBlock = takeWindow(relayIdx);
+  const lockerBlock = takeWindow(lockerIdx);
+
+  const relayPairs = extractPairs(relayBlock);
+  const lockerPairs = extractPairs(lockerBlock);
+
+  if (relayPairs.length === 0 && lockerPairs.length === 0) return null;
+  return {
+    RELAY: relayPairs.length ? relayPairs : undefined,
+    LOCKER: lockerPairs.length ? lockerPairs : undefined,
+  };
 }

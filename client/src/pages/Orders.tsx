@@ -157,6 +157,11 @@ function Orders() {
     number | null
   >(null);
 
+  // BAN (Base Adresse Nationale) autocomplete state
+  const [addressQuery, setAddressQuery] = useState("");
+  const [addressSuggestions, setAddressSuggestions] = useState<string[]>([]);
+  const [addressLoading, setAddressLoading] = useState(false);
+
   const fetchOrders = useCallback(async () => {
     const res = await api.get<Order[]>(`/orders/users/me`);
     setOrders(res.data ?? []);
@@ -180,6 +185,48 @@ function Orders() {
       }
     })();
   }, [navigate, fetchOrders]);
+
+  // Keep query in sync when opening modal with existing user address
+  useEffect(() => {
+    if (profileModalOpen) {
+      setAddressQuery(profileForm.adress ?? "");
+    }
+  }, [profileModalOpen, profileForm.adress]);
+
+  // Debounced fetch to BAN API for address suggestions
+  useEffect(() => {
+    const q = addressQuery?.trim();
+    if (!profileModalOpen) {
+      setAddressSuggestions([]);
+      return;
+    }
+    if (!q || q.length < 3) {
+      setAddressSuggestions([]);
+      return;
+    }
+    setAddressLoading(true);
+    const id = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(
+            q
+          )}&limit=5`
+        );
+        const data = await res.json();
+        const suggestions: string[] = Array.isArray(data?.features)
+          ? data.features
+              .map((f: any) => f?.properties?.label)
+              .filter((s: any) => typeof s === "string")
+          : [];
+        setAddressSuggestions(suggestions);
+      } catch {
+        setAddressSuggestions([]);
+      } finally {
+        setAddressLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(id);
+  }, [addressQuery, profileModalOpen]);
 
   const proceedToPayment = async (orderId: number) => {
     try {
@@ -566,16 +613,42 @@ function Orders() {
                   <label className="block text-sm font-medium mb-1">
                     Adresse
                   </label>
-                  <textarea
-                    value={profileForm.adress ?? ""}
-                    onChange={(e) =>
-                      setProfileForm((s) => ({ ...s, adress: e.target.value }))
-                    }
-                    rows={3}
-                    className="w-full border rounded p-2 text-sm"
-                    placeholder="Votre adresse complète"
-                    disabled={profileSubmitting}
-                  />
+                  <div className="relative">
+                    <input
+                      value={profileForm.adress ?? ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setProfileForm((s) => ({ ...s, adress: val }));
+                        setAddressQuery(val);
+                      }}
+                      className="w-full border rounded p-2 text-sm"
+                      placeholder="N° et voie, code postal, ville"
+                      disabled={profileSubmitting}
+                    />
+                    {addressLoading && (
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500">
+                        …
+                      </div>
+                    )}
+                    {addressSuggestions.length > 0 && (
+                      <ul className="absolute z-10 mt-1 w-full bg-white border rounded shadow max-h-56 overflow-auto text-sm">
+                        {addressSuggestions.map((sug) => (
+                          <li
+                            key={sug}
+                            className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                            onClick={() => {
+                              setProfileForm((s) => ({ ...s, adress: sug }));
+                              setAddressQuery(sug);
+                              setAddressSuggestions([]);
+                            }}
+                            title={sug}
+                          >
+                            {sug}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </div>
               )}
 
