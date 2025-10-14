@@ -15,7 +15,7 @@ const Products = () => {
   const [popinMsg, setPopinMsg] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("Tous");
 
-  const { fetchCart, fetchGuestCart, createGuestCart, firstCart } = useCart();
+  const { fetchCart, fetchGuestCart, createGuestCart, firstCart, updateGuestCart } = useCart();
   const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
@@ -57,8 +57,11 @@ const Products = () => {
         }
         await fetchCart();
       } else {
-        // Invité: créer d'abord un panier avec l'article puis rafraîchir
-        await createGuestCart({ items: [{ productId, quantity: 1 }] });
+        // Invité: essayer PATCH d'abord; si échec => POST puis refresh
+        const updated = await updateGuestCart({ items: [{ productId, quantity: 1 }] });
+        if (!updated) {
+          await createGuestCart({ items: [{ productId, quantity: 1 }] });
+        }
         await fetchGuestCart();
       }
       setPopinMsg("Produit ajouté au panier !");

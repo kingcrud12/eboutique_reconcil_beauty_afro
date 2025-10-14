@@ -1,7 +1,14 @@
 // src/pages/CheckEmail.tsx
-import React from "react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 function CheckEmail() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const id = setTimeout(() => navigate("/login"), 3000);
+    return () => clearTimeout(id);
+  }, [navigate]);
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100 px-4">
       <div className="bg-white shadow-md rounded-lg p-8 text-center max-w-md">
