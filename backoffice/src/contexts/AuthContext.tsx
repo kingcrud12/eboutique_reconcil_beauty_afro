@@ -14,7 +14,7 @@ interface JwtPayload {
   sub: number;
   email: string;
   role?: string;
-  exp: number; // secondes
+  exp: number;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

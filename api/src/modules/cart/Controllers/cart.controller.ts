@@ -22,11 +22,15 @@ import {
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/jwt/jwt-auth.guard';
 import { JwtRequest } from '../../auth/jwt/Jwt-request.interface';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @ApiTags('Cart')
 @Controller('carts')
 export class CartController {
-  constructor(private readonly cartService: CartService) {}
+  constructor(
+    private readonly cartService: CartService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   @Post()
   @ApiOperation({
@@ -131,7 +135,6 @@ export class CartController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('users/me/:id')
   @ApiOperation({
     summary: 'Récupérer un panier',
@@ -140,18 +143,10 @@ export class CartController {
     @Req() req: JwtRequest,
     @Param('id', ParseIntPipe) id: number,
   ): Promise<ICart> {
-    const userId = req.user.userId;
     const cart = await this.cartService.getCartById(id);
 
     if (!cart) {
       throw new HttpException('Panier introuvable', HttpStatus.NOT_FOUND);
-    }
-
-    if (cart.userId !== userId) {
-      throw new HttpException(
-        'Accès interdit à ce panier',
-        HttpStatus.FORBIDDEN,
-      );
     }
 
     return cart;
@@ -177,5 +172,73 @@ export class CartController {
         quantity: item.quantity,
       })),
     };
+  }
+
+  @Post(':uuid')
+  async createGuestCart(
+    @Param('uuid') uuid: string, // UUID côté front
+    @Body() data: ICartCreateUpdate,
+  ) {
+    // Vérifier si le guest existe via uuid
+    let guest = await this.prisma.guest.findUnique({
+      where: { uuid: uuid },
+    });
+
+    if (!guest) {
+      guest = await this.prisma.guest.create({
+        data: { uuid: uuid },
+      });
+    }
+
+    // Filtrer les items valides
+    const itemsForCreate = (data.items ?? [])
+      .filter((item) => item.productId != null)
+      .map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity ?? 1,
+      }));
+
+    const cart = await this.cartService.create({
+      guestId: guest.id,
+      items: itemsForCreate,
+    });
+
+    return cart;
+  }
+
+  @Get(':uuid')
+  async getCart(@Param('uuid') uuid: string) {
+    const guest = await this.prisma.guest.findUnique({
+      where: { uuid },
+    });
+
+    if (!guest) {
+      return null;
+    }
+    const cart = await this.prisma.cart.findFirst({
+      where: { guestId: guest.id },
+      include: { items: { include: { product: true } } },
+    });
+
+    return cart || null;
+  }
+
+  @Patch(':uuid')
+  async updateGuestCart(
+    @Param('uuid') uuid: string,
+    @Body() data: UpdateCartDto,
+  ) {
+    let guest = await this.prisma.guest.findUnique({ where: { uuid } });
+    if (!guest) {
+      guest = await this.prisma.guest.create({ data: { uuid } });
+    }
+
+    const cart = await this.prisma.cart.findFirst({
+      where: { guestId: guest.id },
+    });
+
+    const updatedCart = await this.cartService.updateCart(cart.id, data);
+
+    return updatedCart;
   }
 }

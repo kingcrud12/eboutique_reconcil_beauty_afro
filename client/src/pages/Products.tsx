@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../connect_to_api/api";
 import { IProduct } from "../connect_to_api/product.interface";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Popin from "../components/Popin";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
@@ -14,11 +14,9 @@ const Products = () => {
   const [addingId, setAddingId] = useState<number | null>(null);
   const [popinMsg, setPopinMsg] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("Tous");
-  const [showAuthModal, setShowAuthModal] = useState(false);
 
-  const { fetchCart, firstCart } = useCart();
+  const { fetchCart, fetchGuestCart, createGuestCart, firstCart, updateGuestCart } = useCart();
   const { isAuthenticated, user } = useAuth();
-  const location = useLocation();
 
   useEffect(() => {
     api
@@ -40,30 +38,32 @@ const Products = () => {
 
     if (Number(product.stock) <= 0) return setPopinMsg("Produit indisponible.");
 
-    if (!isAuthenticated || !user) {
-      // Affiche la modal si l'utilisateur n'est pas connecté
-      setShowAuthModal(true);
-      return;
-    }
-
     setAddingId(productId);
     try {
-      let cartId: number;
-
-      if (!firstCart) {
-        const res = await api.post("/carts", {
-          userId: user.id,
-          items: [{ productId, quantity: 1 }],
-        });
-        cartId = res.data.id;
+      if (isAuthenticated && user) {
+        // Utilisateur connecté: garder le flux existant côté API utilisateur
+        let cartId: number;
+        if (!firstCart) {
+          const res = await api.post("/carts", {
+            userId: user.id,
+            items: [{ productId, quantity: 1 }],
+          });
+          cartId = res.data.id;
+        } else {
+          cartId = firstCart.id;
+          await api.patch(`/carts/users/me/${cartId}`, {
+            items: [{ productId, quantity: 1 }],
+          });
+        }
+        await fetchCart();
       } else {
-        cartId = firstCart.id;
-        await api.patch(`/carts/users/me/${cartId}`, {
-          items: [{ productId, quantity: 1 }],
-        });
+        // Invité: essayer PATCH d'abord; si échec => POST puis refresh
+        const updated = await updateGuestCart({ items: [{ productId, quantity: 1 }] });
+        if (!updated) {
+          await createGuestCart({ items: [{ productId, quantity: 1 }] });
+        }
+        await fetchGuestCart();
       }
-
-      await fetchCart();
       setPopinMsg("Produit ajouté au panier !");
     } catch (err) {
       console.error("Erreur ajout article :", err);
@@ -87,33 +87,7 @@ const Products = () => {
         <Popin message={popinMsg} onClose={() => setPopinMsg(null)} />
       )}
 
-      {showAuthModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
-          <div className="bg-white p-6 rounded shadow-md w-[320px] text-center">
-            <h2 className="text-lg font-bold mb-4">Connexion requise</h2>
-            <p className="text-sm mb-6">
-              Vous devez être connecté pour ajouter un produit au panier.
-            </p>
-            <div className="flex justify-center gap-2">
-              {/* Redirige vers /login avec l'URL courante en state */}
-              <Link
-                to={`/login?state=${encodeURIComponent(
-                  `${location.pathname}${location.search}${location.hash || ""}`
-                )}`}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-              >
-                Se connecter
-              </Link>
-              <button
-                onClick={() => setShowAuthModal(false)}
-                className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-              >
-                Annuler
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* La modal de connexion est retirée: les invités peuvent créer/modifier un panier */}
 
       <div className="mb-8 flex justify-center">
         <select
@@ -134,7 +108,7 @@ const Products = () => {
       </div>
 
       <div className="flex gap-4 sm:gap-6 overflow-x-auto px-2 py-4 scroll-smooth snap-x snap-mandatory">
-        {filtered.map((p, idx) => {
+        {filtered.map((p) => {
           const isOutOfStock = Number(p.stock) <= 0;
           const isAdding = addingId === p.id;
           const disabled = isAdding || isOutOfStock;

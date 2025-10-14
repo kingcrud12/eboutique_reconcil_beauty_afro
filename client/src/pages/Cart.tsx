@@ -1,16 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { useCart } from "../contexts/CartContext";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import api from "../connect_to_api/api";
 import { IProduct } from "../connect_to_api/product.interface";
+import { useAuth } from "../contexts/AuthContext";
 
 function Cart() {
-  const { carts, fetchCart, setCarts } = useCart();
+  const {
+    carts,
+    fetchCart,
+    setCarts,
+    fetchGuestCart,
+    updateGuestCart,
+  } = useCart();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const GUEST_STORAGE_KEY = "guest_cart_uuid";
 
   const [loading, setLoading] = useState(true);
-  const [authError, setAuthError] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedCartId, setSelectedCartId] = useState<number | null>(null);
   const [products, setProducts] = useState<IProduct[]>([]);
@@ -18,23 +25,35 @@ function Cart() {
   const [confirmDeleteCartId, setConfirmDeleteCartId] = useState<number | null>(
     null
   );
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
     const loadCart = async () => {
       try {
-        await fetchCart();
-      } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.status === 401) {
-          setAuthError(true);
+        if (isAuthenticated) {
+          // Si un panier invité existe, le réconcilier avec l'utilisateur connecté
+          const guestUuid = localStorage.getItem(GUEST_STORAGE_KEY);
+          if (guestUuid) {
+            // Récupérer l'utilisateur connecté
+            const me = await api.get<{ id: number }>("/users/me");
+            // PATCH du panier invité pour l'associer à l'userId
+            // NB: côté API, il faudra que PATCH /carts/{uuid} accepte userId
+            await updateGuestCart({ userId: me.data.id });
+            // Nettoyer l'UUID invité
+            localStorage.removeItem(GUEST_STORAGE_KEY);
+          }
+          await fetchCart();
         } else {
-          console.error("Erreur chargement panier:", error);
+          await fetchGuestCart();
         }
+      } catch (error) {
+        console.error("Erreur chargement panier:", error);
       } finally {
         setLoading(false);
       }
     };
     loadCart();
-  }, [fetchCart]);
+  }, [fetchCart, fetchGuestCart, isAuthenticated, updateGuestCart]);
 
   // Incrément optimiste
   const handleAddOne = (cartId: number, productId: number) => {
@@ -53,14 +72,21 @@ function Cart() {
       )
     );
 
-    api
-      .patch(`/carts/users/me/${cartId}`, {
-        items: [{ productId, quantity: 1 }],
-      })
-      .catch((err) => {
-        console.error("Erreur incrément :", err);
-        fetchCart();
+    if (isAuthenticated) {
+      api
+        .patch(`/carts/users/me/${cartId}`, {
+          items: [{ productId, quantity: 1 }],
+        })
+        .catch((err) => {
+          console.error("Erreur incrément :", err);
+          fetchCart();
+        });
+    } else {
+      updateGuestCart({ items: [{ productId, quantity: 1 }] }).catch((err) => {
+        console.error("Erreur incrément (guest) :", err);
+        fetchGuestCart();
       });
+    }
   };
 
   // Décrément optimiste
@@ -82,14 +108,23 @@ function Cart() {
       )
     );
 
-    api
-      .patch(`/carts/users/me/${cartId}`, {
-        items: [{ productId, quantity: -1 }],
-      })
-      .catch((err) => {
-        console.error("Erreur décrément :", err);
-        fetchCart();
-      });
+    if (isAuthenticated) {
+      api
+        .patch(`/carts/users/me/${cartId}`, {
+          items: [{ productId, quantity: -1 }],
+        })
+        .catch((err) => {
+          console.error("Erreur décrément :", err);
+          fetchCart();
+        });
+    } else {
+      updateGuestCart({ items: [{ productId, quantity: -1 }] }).catch(
+        (err) => {
+          console.error("Erreur décrément (guest) :", err);
+          fetchGuestCart();
+        }
+      );
+    }
   };
 
   const openModal = async (cartId: number) => {
@@ -107,10 +142,22 @@ function Cart() {
     if (!selectedCartId) return;
     try {
       setAddingProductId(productId);
-      await api.patch(`/carts/users/me/${selectedCartId}`, {
-        items: [{ productId, quantity: 1 }],
-      });
-      await fetchCart();
+      if (isAuthenticated) {
+        await api.patch(`/carts/users/me/${selectedCartId}`, {
+          items: [{ productId, quantity: 1 }],
+        });
+        await fetchCart();
+      } else {
+        // Invité: vérifier existence via GET avant toute écriture
+        await fetchGuestCart();
+        if (!carts.length) {
+          // Pas de panier côté serveur: ne pas POST/PATCH
+          alert("Votre panier invité a été supprimé. Rafraîchissez la page.");
+        } else {
+          await updateGuestCart({ items: [{ productId, quantity: 1 }] });
+          await fetchGuestCart();
+        }
+      }
       setModalOpen(false);
     } catch (error) {
       console.error("Erreur ajout produit", error);
@@ -123,8 +170,18 @@ function Cart() {
   const confirmDeleteCart = async () => {
     if (!confirmDeleteCartId) return;
     try {
-      await api.delete(`/carts/users/me/${confirmDeleteCartId}`);
-      await fetchCart();
+      if (isAuthenticated) {
+        await api.delete(`/carts/users/me/${confirmDeleteCartId}`);
+        await fetchCart();
+      } else {
+        // Pour les invités, on vide le panier en local (pas de route DELETE définie)
+        setCarts((prev) =>
+          prev.map((c) =>
+            c.id === confirmDeleteCartId ? { ...c, items: [] } : c
+          )
+        );
+        await fetchGuestCart();
+      }
       setConfirmDeleteCartId(null);
     } catch (error) {
       console.error("Erreur suppression panier", error);
@@ -132,20 +189,6 @@ function Cart() {
   };
 
   if (loading) return <div className="p-6 text-center">Chargement...</div>;
-  if (authError)
-    return (
-      <div className="p-6 text-center">
-        <p className="text-red-500 mt-[180px]">
-          Veuillez vous connecter pour accéder à votre panier.
-        </p>
-        <button
-          onClick={() => navigate("/login")}
-          className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
-        >
-          Se connecter
-        </button>
-      </div>
-    );
 
   return (
     <div className="p-6 max-w-6xl mx-auto mt-[80px]">
@@ -162,12 +205,14 @@ function Cart() {
           <div key={cart.id} className="border rounded-lg p-4 shadow">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold">Panier {idx + 1}</h2>
-              <button
-                onClick={() => setConfirmDeleteCartId(cart.id)}
-                className="text-sm text-red-600 hover:text-red-800"
-              >
-                Supprimer le panier
-              </button>
+              {isAuthenticated && (
+                <button
+                  onClick={() => setConfirmDeleteCartId(cart.id)}
+                  className="text-sm text-red-600 hover:text-red-800"
+                >
+                  Supprimer le panier
+                </button>
+              )}
             </div>
 
             {cart.items.length === 0 ? (
@@ -218,7 +263,9 @@ function Cart() {
                 Ajouter des articles
               </button>
               <button
-                onClick={() => navigate("/delivery")}
+                onClick={() =>
+                  isAuthenticated ? navigate("/delivery") : setShowAuthModal(true)
+                }
                 className="mt-4 px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
               >
                 Valider le panier
@@ -288,6 +335,32 @@ function Cart() {
                 className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
               >
                 Oui
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal demande de connexion pour invités lors de la validation */}
+      {showAuthModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full text-center">
+            <h3 className="text-lg font-semibold mb-2">Connexion requise</h3>
+            <p className="text-sm text-gray-700 mb-6">
+              Veuillez vous connecter pour continuer la validation du panier.
+            </p>
+            <div className="flex justify-center gap-3">
+              <button
+                onClick={() => navigate("/login")}
+                className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
+              >
+                Se connecter
+              </button>
+              <button
+                onClick={() => setShowAuthModal(false)}
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+              >
+                Annuler
               </button>
             </div>
           </div>

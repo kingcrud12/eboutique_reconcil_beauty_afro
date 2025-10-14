@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import api from "../connect_to_api/api";
 import { IProduct } from "../connect_to_api/product.interface";
 import Popin from "../components/Popin";
@@ -9,7 +9,6 @@ import { useAuth } from "../contexts/AuthContext";
 function Product() {
   const { productId } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [product, setProduct] = useState<IProduct | null>(null);
   const [loading, setLoading] = useState(true);
@@ -17,9 +16,9 @@ function Product() {
   // États pour l'ajout au panier / UI
   const [adding, setAdding] = useState(false);
   const [popinMsg, setPopinMsg] = useState<string | null>(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  
 
-  const { fetchCart, firstCart } = useCart();
+  const { fetchCart, fetchGuestCart, createGuestCart, firstCart, updateGuestCart } = useCart();
   const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
@@ -91,30 +90,36 @@ function Product() {
     if (!product) return setPopinMsg("Produit introuvable.");
     if (Number(product.stock) <= 0) return setPopinMsg("Produit indisponible.");
 
-    if (!isAuthenticated || !user) {
-      // Affiche la modal si l'utilisateur n'est pas connecté
-      setShowAuthModal(true);
-      return;
-    }
-
     setAdding(true);
     try {
-      let cartId: number;
-
-      if (!firstCart) {
-        const res = await api.post("/carts", {
-          userId: user.id,
-          items: [{ productId: product.id, quantity: 1 }],
-        });
-        cartId = res.data.id;
+      if (isAuthenticated && user) {
+        // Utilisateur connecté: conserver le flux existant
+        let cartId: number;
+        if (!firstCart) {
+          const res = await api.post("/carts", {
+            userId: user.id,
+            items: [{ productId: product.id, quantity: 1 }],
+          });
+          cartId = res.data.id;
+        } else {
+          cartId = firstCart.id;
+          await api.patch(`/carts/users/me/${cartId}`, {
+            items: [{ productId: product.id, quantity: 1 }],
+          });
+        }
+        await fetchCart();
       } else {
-        cartId = firstCart.id;
-        await api.patch(`/carts/users/me/${cartId}`, {
+        // Invité: essayer PATCH d'abord; si échec => POST puis refresh
+        const updated = await updateGuestCart({
           items: [{ productId: product.id, quantity: 1 }],
         });
+        if (!updated) {
+          await createGuestCart({
+            items: [{ productId: product.id, quantity: 1 }],
+          });
+        }
+        await fetchGuestCart();
       }
-
-      await fetchCart();
       setPopinMsg("Produit ajouté au panier !");
     } catch (err) {
       console.error("Erreur ajout article :", err);
@@ -133,36 +138,7 @@ function Product() {
           <Popin message={popinMsg} onClose={() => setPopinMsg(null)} />
         )}
 
-        {/* Modal de connexion si nécessaire */}
-        {showAuthModal && (
-          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
-            <div className="bg-white p-6 rounded shadow-md w-[320px] text-center">
-              <h2 className="text-lg font-bold mb-4">Connexion requise</h2>
-              <p className="text-sm mb-6">
-                Vous devez être connecté pour ajouter un produit au panier.
-              </p>
-              <div className="flex justify-center gap-2">
-                {/* Redirige vers /login avec l'URL courante en state */}
-                <Link
-                  to={`/login?state=${encodeURIComponent(
-                    `${location.pathname}${location.search}${
-                      location.hash || ""
-                    }`
-                  )}`}
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                >
-                  Se connecter
-                </Link>
-                <button
-                  onClick={() => setShowAuthModal(false)}
-                  className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-                >
-                  Annuler
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Les invités peuvent également créer/modifier un panier, pas de modal de connexion */}
 
         {/* Title large */}
         <header className="mb-8 md:mb-12">

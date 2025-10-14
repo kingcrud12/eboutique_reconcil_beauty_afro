@@ -44,6 +44,11 @@ export class CreateCartDto {
   @IsInt()
   guestId?: number;
 
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  uuid?: number;
+
   @ApiPropertyOptional({ type: () => [CartItemCreateDto] })
   @IsOptional()
   @ValidateNested({ each: true })
@@ -61,6 +66,11 @@ export class UpdateCartDto {
   @IsOptional()
   @IsInt()
   guestId?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  uuid?: string;
 
   @ApiPropertyOptional({ type: () => [CartItemUpdateDto] })
   @IsOptional()

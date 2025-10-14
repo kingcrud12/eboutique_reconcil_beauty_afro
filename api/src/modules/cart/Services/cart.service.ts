@@ -12,15 +12,14 @@ import { IProduct } from 'src/modules/product/Interfaces/product.interface';
 export class CartService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: ICartCreate): Promise<ICartCreate | null> {
-    if (!data.userId && !data.guestId) {
-      return null;
-    }
+  async create(data: ICartCreate): Promise<ICart | null> {
+    if (!data.userId && !data.guestId) return null;
 
     const cart = await this.prisma.cart.create({
       data: {
-        userId: data?.userId,
-        guestId: data?.guestId,
+        userId: data?.userId ?? null,
+        guestId: data?.guestId ?? null,
+        uuid: data?.uuid ?? null,
         items: data.items?.length
           ? {
               create: data.items.map((item) => ({
@@ -31,15 +30,11 @@ export class CartService {
           : undefined,
       },
       include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
+        items: { include: { product: true } },
       },
     });
 
-    return this.exportToCartCreateInterface(cart);
+    return this.exportToCartInterface(cart); // retourne ICart complet
   }
 
   async getCartById(id: number): Promise<ICart | null> {
@@ -101,6 +96,7 @@ export class CartService {
       where: { id },
       data: {
         userId: data.userId ?? undefined,
+        uuid: data.uuid ?? undefined,
         guestId: data.guestId ?? undefined,
       },
     });
@@ -183,6 +179,7 @@ export class CartService {
     return {
       userId: cart.userId ?? undefined,
       guestId: cart.guestId ?? undefined,
+      uuid: cart.uuid ?? undefined,
       items: cart.items.map((item) => ({
         id: item.id,
         productId: item.productId,
@@ -208,6 +205,7 @@ export class CartService {
       id: cart.id,
       userId: cart.userId ?? undefined,
       guestId: cart.guestId ?? undefined,
+      uuid: cart.uuid ?? undefined,
       createdAt: cart.createdAt,
       items: cart.items.map((item) => ({
         id: item.id,

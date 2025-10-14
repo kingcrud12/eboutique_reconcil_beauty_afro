@@ -30,14 +30,13 @@ function Appbar() {
   }, [isAuthenticated, fetchCart]);
 
   const handleLogout = () => {
-    logout();
     setCarts([]);
     window.dispatchEvent(new Event("cart:clear"));
+
+    logout();
     setUserModalOpen(false);
 
-    if (!isAuthenticated) {
-      return;
-    }
+    navigate("/");
   };
 
   const handleLoginRedirect = () => {
