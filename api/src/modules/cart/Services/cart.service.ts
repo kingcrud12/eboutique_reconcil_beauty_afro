@@ -178,7 +178,7 @@ export class CartService {
   ): ICartCreate {
     return {
       userId: cart.userId ?? undefined,
-      guestId: cart.guestId as number,
+      guestId: cart.guestId ?? undefined,
       uuid: cart.uuid ?? undefined,
       items: cart.items.map((item) => ({
         id: item.id,
@@ -204,7 +204,7 @@ export class CartService {
     return {
       id: cart.id,
       userId: cart.userId ?? undefined,
-      guestId: cart.guestId as number,
+      guestId: cart.guestId ?? undefined,
       uuid: cart.uuid ?? undefined,
       createdAt: cart.createdAt,
       items: cart.items.map((item) => ({

@@ -233,12 +233,12 @@ export class CartController {
       guest = await this.prisma.guest.create({ data: { uuid } });
     }
 
-    let cart = await this.prisma.cart.findFirst({
+    const cart = await this.prisma.cart.findFirst({
       where: { guestId: guest.id },
     });
 
-    cart = await this.cartService.updateCart(cart.id, data);
+    const updatedCart = await this.cartService.updateCart(cart.id, data);
 
-    return cart;
+    return updatedCart;
   }
 }
