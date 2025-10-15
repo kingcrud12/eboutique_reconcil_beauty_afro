@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { User, ShoppingCart, Menu } from "lucide-react";
+import { User, ShoppingCart, Menu, Facebook, Instagram, Youtube } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../contexts/CartContext";
 
@@ -45,7 +45,33 @@ function Appbar() {
   };
 
   return (
-    <div className="fixed top-0 left-0 w-full z-50 bg-white text-black px-4 py-2 sm:py-4 shadow">
+    <div className="fixed top-0 left-0 w-full z-50 shadow">
+      {/* Super header */}
+      <div className="w-full bg-[#1f2023] text-[#c2a63b] text-xs">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-2">
+          <div className="flex items-center gap-4">
+            <a href="https://facebook.com" target="_blank" rel="noreferrer" aria-label="Facebook" className="hover:opacity-80">
+              <Facebook className="w-4 h-4" />
+            </a>
+            <a href="https://instagram.com" target="_blank" rel="noreferrer" aria-label="Instagram" className="hover:opacity-80">
+              <Instagram className="w-4 h-4" />
+            </a>
+            <a href="https://youtube.com" target="_blank" rel="noreferrer" aria-label="YouTube" className="hover:opacity-80">
+              <Youtube className="w-4 h-4" />
+            </a>
+          </div>
+          <div className="flex items-center gap-2">
+            <span> +33 6 28 48 56 37</span>
+            <span className="opacity-60">|</span>
+            <a href="mailto:info@lafrobeauty.com" className="hover:underline">
+              reconcilafrobeauty@gmail.com
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Main appbar */}
+      <div className="w-full bg-white text-black px-4 py-2 sm:py-4">
       <div className="flex items-center justify-between">
         <div className="md:hidden">
           <button onClick={() => setMenuOpen(!menuOpen)}>
@@ -140,6 +166,7 @@ function Appbar() {
           </Link>
         </div>
       )}
+      </div>
     </div>
   );
 }

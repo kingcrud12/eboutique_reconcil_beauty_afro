@@ -62,11 +62,16 @@ function Hero() {
             ) : (
               // Autres images normales
               <Link to="/products" aria-label="Voir les produits">
-                <img
-                  src={src}
-                  alt={`banner_${i}`}
-                  className="w-full sm:h-[400px] lg:h-full mt-[16px] object-cover cursor-pointer"
-                />
+                <div className="overflow-hidden">
+                  <img
+                    src={src}
+                    alt={`banner_${i}`}
+                    className="w-full sm:h-[400px] lg:h-full mt-[48px] object-cover cursor-pointer animate-zoom-slow"
+                    style={{
+                      animation: 'zoomSlow 8s ease-in-out infinite'
+                    }}
+                  />
+                </div>
               </Link>
             )}
           </div>

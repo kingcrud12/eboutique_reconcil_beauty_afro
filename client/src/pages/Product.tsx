@@ -171,7 +171,7 @@ function Product() {
 
         {/* Title large */}
         <header className="mb-8 md:mb-12">
-          <h1 className="text-4xl md:text-6xl font-serif font-bold text-gray-900 leading-tight max-w-3xl">
+          <h1 className="mt-[90px] text-4xl md:text-6xl font-serif font-bold text-gray-900 leading-tight max-w-3xl">
             {product.name}
           </h1>
           <div className="mt-6 w-24 h-1 bg-yellow-400 rounded mx-0"></div>
