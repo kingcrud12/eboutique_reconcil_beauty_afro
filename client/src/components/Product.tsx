@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
 import Popin from "../components/Popin";
+import ProductIcons from "./ProductIcons";
 
 function AnimatedIcon({
   title,
@@ -234,6 +235,7 @@ function Product() {
         </div>
 
         <div className="text-center mb-8">
+          <ProductIcons />
           <h2 className="text-3xl font-extrabold text-gray-900">
             Nos Produits
           </h2>

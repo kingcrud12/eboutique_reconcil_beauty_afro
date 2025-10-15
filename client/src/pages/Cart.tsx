@@ -191,7 +191,7 @@ function Cart() {
   if (loading) return <div className="p-6 text-center">Chargement...</div>;
 
   return (
-    <div className="p-6 max-w-6xl mx-auto mt-[80px]">
+    <div className="p-6 max-w-6xl mx-auto mt-[120px]">
       <h1
         className={`text-2xl font-bold ${
           carts.length === 0 ? "mb-[280px]" : "mb-8"
