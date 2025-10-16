@@ -53,7 +53,7 @@ function Appbar() {
             <a href="https://facebook.com" target="_blank" rel="noreferrer" aria-label="Facebook" className="hover:opacity-80">
               <Facebook className="w-4 h-4" />
             </a>
-            <a href="https://instagram.com" target="_blank" rel="noreferrer" aria-label="Instagram" className="hover:opacity-80">
+            <a href="https://www.instagram.com/arcencielmanwema?igsh=MTByNHpjNnUxNzB2eg==" target="_blank" rel="noreferrer" aria-label="Instagram" className="hover:opacity-80">
               <Instagram className="w-4 h-4" />
             </a>
             <a href="https://youtube.com" target="_blank" rel="noreferrer" aria-label="YouTube" className="hover:opacity-80">
@@ -63,7 +63,7 @@ function Appbar() {
           <div className="flex items-center gap-2">
             <span> +33 6 28 48 56 37</span>
             <span className="opacity-60">|</span>
-            <a href="mailto:info@lafrobeauty.com" className="hover:underline">
+            <a href="mailto:reconcilafrobeauty@gmail.com" className="hover:underline">
               reconcilafrobeauty@gmail.com
             </a>
           </div>

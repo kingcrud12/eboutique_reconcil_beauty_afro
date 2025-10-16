@@ -56,10 +56,25 @@ function Footer() {
 
       {/* Bottom section */}
       <div className="mt-6 pt-4 border-t border-gray-700 text-sm text-gray-400 flex flex-col md:flex-row justify-between items-center gap-2">
-        <p>© Yann Dipita All Rights Reserved.</p>
+        <a
+          href="https://yann-dipita.vercel.app"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Yann Dipita"
+        >
+          © Yann Dipita All Rights Reserved.
+        </a>
         <p>
           Designed with <span className="text-red-500">❤️</span> by{" "}
-          <span className="text-white">Yann Dipita</span>
+          <a
+            href="https://yann-dipita.vercel.app"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Yann Dipita"
+            className="text-white"
+          >
+            Yann Dipita
+          </a>
         </p>
       </div>
     </footer>

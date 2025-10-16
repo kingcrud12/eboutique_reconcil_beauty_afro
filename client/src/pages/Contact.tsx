@@ -35,7 +35,7 @@ export default function Contact() {
   return (
     <section className="max-w-4xl mx-auto p-6 sm:p-12">
       <h1 className="text-3xl font-bold text-slate-800 mb-6">Contactez-nous</h1>
-      <p className="text-slate-600 mb-8">
+      <p className="text-slate-600 mt-[90px]">
         Remplissez le formulaire ci-dessous et nous vous répondrons dès que
         possible.
       </p>

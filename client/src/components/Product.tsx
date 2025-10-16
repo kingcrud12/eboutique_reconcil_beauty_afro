@@ -56,7 +56,6 @@ function Product() {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    // détecte support tactile
     const touch =
       typeof window !== "undefined" &&
       ("ontouchstart" in window || navigator.maxTouchPoints > 0);
@@ -64,10 +63,7 @@ function Product() {
   }, []);
 
   useEffect(() => {
-    // Définir les IDs des produits à récupérer
-    const productIds = [1, 14, 6]; // IDs spécifiés
-
-    // Utiliser Promise.all pour récupérer plusieurs produits par leur ID
+    const productIds = [1, 14, 6];
     Promise.all(
       productIds.map((id) =>
         api
@@ -79,11 +75,10 @@ function Product() {
           })
       )
     )
-      .then((productsData) => setProducts(productsData)) // Mettre à jour les produits dans le state
-      .finally(() => setLoading(false)); // Terminer le chargement
+      .then((productsData) => setProducts(productsData))
+      .finally(() => setLoading(false));
   }, []);
 
-  // close active zoom when tapping outside or on scroll/resize
   useEffect(() => {
     function onDocTouch(e: TouchEvent | Event) {
       if (!containerRef.current) return;
@@ -202,20 +197,17 @@ function Product() {
     "bg-[#f6ede2]",
   ];
 
-  // click handler for touch: first tap zooms, second tap navigates
   const handleImageClickOnTouch = (
     e: React.MouseEvent | React.TouchEvent,
     productId: number,
     productPath: string
   ) => {
-    if (!isTouch) return; // let default on desktop
-    // If already active -> navigate
+    if (!isTouch) return;
     if (activeProductId === productId) {
       setActiveProductId(null);
       navigate(productPath);
       return;
     }
-    // otherwise activate zoom and prevent navigation
     e.preventDefault();
     setActiveProductId(productId);
   };
@@ -247,7 +239,7 @@ function Product() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {displayed.map((product, idx) => {
             const isOutOfStock = Number(product.stock) <= 0;
-            const isMiddle = idx === 1; // Carte du milieu
+            const isMiddle = idx === 1;
             const isActive = activeProductId === product.id;
 
             return (
@@ -287,8 +279,8 @@ function Product() {
                         isActive ? "mobile-active" : ""
                       }`}
                       style={{
-                        mixBlendMode: "multiply", // Mélange l'image avec le fond
-                        background: "transparent", // Supprime le fond blanc de l'image
+                        mixBlendMode: "multiply",
+                        background: "transparent",
                       }}
                     />
                   </Link>
