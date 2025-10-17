@@ -59,11 +59,18 @@ export class PointRelaisService {
       throw new Error('Adresse manquante ou invalide');
     }
 
-    const parts = address.split(',').map((p) => p.trim());
+    // Format avec virgules : "rue, code postal, ville"
+    const commaParts = address.split(',').map((p) => p.trim());
+    if (commaParts.length >= 3) {
+      return [commaParts[0], commaParts[1], commaParts[2]];
+    }
 
-    // Gestion des formats d'adresse plus flexibles
-    if (parts.length >= 3) {
-      return [parts[0], parts[1], parts[2]];
+    // Format standard français : "12 Rue Lecourbe 75015 Paris"
+    // On cherche le code postal (5 chiffres) et on sépare avant/après
+    const postalCodeMatch = address.match(/^(.+?)\s+(\d{5})\s+(.+)$/);
+    if (postalCodeMatch) {
+      const [, street, postalCode, city] = postalCodeMatch;
+      return [street.trim(), postalCode, city.trim()];
     }
 
     // Tentative de parsing avec d'autres séparateurs
@@ -79,18 +86,18 @@ export class PointRelaisService {
       }
     }
 
-    // Si on a au moins 2 parties, on essaie de deviner
-    if (parts.length === 2) {
+    // Si on a au moins 2 parties avec virgules, on essaie de deviner
+    if (commaParts.length === 2) {
       // Si la deuxième partie ressemble à un code postal + ville
-      const secondPart = parts[1];
+      const secondPart = commaParts[1];
       const postalCodeMatch = secondPart.match(/^(\d{5})\s*(.+)$/);
       if (postalCodeMatch) {
-        return [parts[0], postalCodeMatch[1], postalCodeMatch[2]];
+        return [commaParts[0], postalCodeMatch[1], postalCodeMatch[2]];
       }
     }
 
     throw new Error(
-      `Adresse invalide. Format attendu : "rue, code postal, ville". Adresse reçue : "${address}"`,
+      `Adresse invalide. Formats acceptés : "rue, code postal, ville" ou "12 Rue Lecourbe 75015 Paris". Adresse reçue : "${address}"`,
     );
   }
 
