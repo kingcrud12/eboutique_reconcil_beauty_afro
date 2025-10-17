@@ -19,7 +19,7 @@ import { Decimal } from '@prisma/client/runtime/library';
 import { AdminMailService } from '../mailer/admin-mail.service';
 
 type StripeRawRequest = Request & { rawBody: Buffer };
-type DeliveryMode = 'EXPRESS' | 'HOME' | 'RELAY';
+type DeliveryMode = 'HOME' | 'RELAY';
 
 @Controller('webhooks/stripe')
 export class StripeWebhookController {

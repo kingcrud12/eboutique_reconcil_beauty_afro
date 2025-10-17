@@ -5,7 +5,6 @@ import { Decimal } from '@prisma/client/runtime/library';
 export enum DeliveryModeEnum {
   RELAY = 'RELAY',
   HOME = 'HOME',
-  EXPRESS = 'EXPRESS',
   LOCKER = 'LOCKER',
 }
 

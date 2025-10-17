@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 
-type DeliveryMode = 'EXPRESS' | 'HOME' | 'RELAY';
+type DeliveryMode = 'HOME' | 'RELAY';
 
 interface OrderItemCtx {
   name: string;
@@ -52,8 +52,6 @@ export class MailService {
 
   private estimateDays(mode: DeliveryMode): number {
     switch (mode) {
-      case 'EXPRESS':
-        return 2;
       case 'HOME':
       case 'RELAY':
       default:
