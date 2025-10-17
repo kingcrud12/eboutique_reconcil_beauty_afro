@@ -14,8 +14,24 @@ export class PointRelaisService {
   async findRelaisByUserId(userId: number): Promise<ParcelShop[]> {
     const user = await this.usersService.get(userId);
 
-    const [, postalCode, city] = this.parseAddress(user.adress);
-    const url = this.buildUrl({ postalCode, city });
+    if (!user.adress) {
+      throw new Error('Adresse utilisateur non renseignée');
+    }
+
+    let postalCode: string;
+    let city: string;
+    let url: string;
+
+    try {
+      const [, parsedPostalCode, parsedCity] = this.parseAddress(user.adress);
+      postalCode = parsedPostalCode;
+      city = parsedCity;
+      url = this.buildUrl({ postalCode, city });
+    } catch {
+      throw new Error(
+        `Format d'adresse invalide. Format attendu : "rue, code postal, ville". Adresse actuelle : "${user.adress}"`,
+      );
+    }
 
     try {
       const response = await axios.get<SearchPRResponse>(url);
@@ -39,13 +55,43 @@ export class PointRelaisService {
   }
 
   private parseAddress(address: string): [string, string, string] {
-    const parts = address.split(',').map((p) => p.trim());
-    if (parts.length < 3) {
-      throw new Error(
-        'Adresse invalide. Format attendu : "rue, code postal, ville"',
-      );
+    if (!address || typeof address !== 'string') {
+      throw new Error('Adresse manquante ou invalide');
     }
-    return [parts[0], parts[1], parts[2]];
+
+    const parts = address.split(',').map((p) => p.trim());
+
+    // Gestion des formats d'adresse plus flexibles
+    if (parts.length >= 3) {
+      return [parts[0], parts[1], parts[2]];
+    }
+
+    // Tentative de parsing avec d'autres séparateurs
+    const alternativeFormats = [
+      address.split(' - '), // "rue - code postal - ville"
+      address.split(' | '), // "rue | code postal | ville"
+      address.split(';'), // "rue; code postal; ville"
+    ];
+
+    for (const format of alternativeFormats) {
+      if (format.length >= 3) {
+        return [format[0].trim(), format[1].trim(), format[2].trim()];
+      }
+    }
+
+    // Si on a au moins 2 parties, on essaie de deviner
+    if (parts.length === 2) {
+      // Si la deuxième partie ressemble à un code postal + ville
+      const secondPart = parts[1];
+      const postalCodeMatch = secondPart.match(/^(\d{5})\s*(.+)$/);
+      if (postalCodeMatch) {
+        return [parts[0], postalCodeMatch[1], postalCodeMatch[2]];
+      }
+    }
+
+    throw new Error(
+      `Adresse invalide. Format attendu : "rue, code postal, ville". Adresse reçue : "${address}"`,
+    );
   }
 
   private buildUrl({

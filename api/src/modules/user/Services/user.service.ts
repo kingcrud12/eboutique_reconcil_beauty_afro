@@ -77,7 +77,7 @@ export class UserService {
       lastName: user.lastName,
       email: user.email,
       adress: user.adress,
-      phone: user.phone as string,
+      phone: user.phone,
     };
   }
 

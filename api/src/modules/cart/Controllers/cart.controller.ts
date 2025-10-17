@@ -176,7 +176,7 @@ export class CartController {
 
   @Post(':uuid')
   async createGuestCart(
-    @Param('uuid') uuid: string, // UUID côté front
+    @Param('uuid') uuid: string,
     @Body() data: ICartCreateUpdate,
   ) {
     // Vérifier si le guest existe via uuid
@@ -228,17 +228,58 @@ export class CartController {
     @Param('uuid') uuid: string,
     @Body() data: UpdateCartDto,
   ) {
-    let guest = await this.prisma.guest.findUnique({ where: { uuid } });
-    if (!guest) {
-      guest = await this.prisma.guest.create({ data: { uuid } });
+    try {
+      // Recherche ou création du guest avec gestion des doublons
+      let guest = await this.prisma.guest.findUnique({ where: { uuid } });
+      if (!guest) {
+        try {
+          guest = await this.prisma.guest.create({ data: { uuid } });
+        } catch (error: any) {
+          // Si création échoue (doublon), on récupère l'existant
+          if (
+            error &&
+            typeof error === 'object' &&
+            'code' in error &&
+            (error as { code: string }).code === 'P2002'
+          ) {
+            guest = await this.prisma.guest.findUnique({ where: { uuid } });
+            if (!guest) {
+              throw new HttpException(
+                'Erreur lors de la création du guest',
+                HttpStatus.INTERNAL_SERVER_ERROR,
+              );
+            }
+          } else {
+            throw error;
+          }
+        }
+      }
+
+      // Recherche du panier
+      let cart = await this.prisma.cart.findFirst({
+        where: { guestId: guest.id },
+      });
+
+      // Si pas de panier, on en crée un
+      if (!cart) {
+        cart = await this.prisma.cart.create({
+          data: {
+            guestId: guest.id,
+            items: {
+              create: data.items || [],
+            },
+          },
+        });
+      }
+
+      const updatedCart = await this.cartService.updateCart(cart.id, data);
+      return updatedCart;
+    } catch (error) {
+      console.error('Erreur updateGuestCart:', error);
+      throw new HttpException(
+        'Erreur lors de la mise à jour du panier guest',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-
-    const cart = await this.prisma.cart.findFirst({
-      where: { guestId: guest.id },
-    });
-
-    const updatedCart = await this.cartService.updateCart(cart.id, data);
-
-    return updatedCart;
   }
 }
