@@ -105,7 +105,7 @@ function Cart() {
                 .filter((i) => i.quantity > 0),
             }
           : cart
-      )
+      ).filter((cart) => cart.items.length > 0) // Supprime les paniers vides
     );
 
     if (isAuthenticated) {
@@ -174,13 +174,10 @@ function Cart() {
         await api.delete(`/carts/users/me/${confirmDeleteCartId}`);
         await fetchCart();
       } else {
-        // Pour les invités, on vide le panier en local (pas de route DELETE définie)
-        setCarts((prev) =>
-          prev.map((c) =>
-            c.id === confirmDeleteCartId ? { ...c, items: [] } : c
-          )
-        );
-        await fetchGuestCart();
+        // Pour les invités, on supprime complètement le panier du state local
+        setCarts((prev) => prev.filter((c) => c.id !== confirmDeleteCartId));
+        // Optionnel : on peut aussi vider le panier côté serveur si une route DELETE existe
+        // await api.delete(`/carts/${guestUuid}`);
       }
       setConfirmDeleteCartId(null);
     } catch (error) {
@@ -194,14 +191,22 @@ function Cart() {
     <div className="p-6 max-w-6xl mx-auto mt-[120px]">
       <h1
         className={`text-2xl font-bold ${
-          carts.length === 0 ? "mb-[280px]" : "mb-8"
+          carts.filter(cart => cart.items.length > 0).length === 0 ? "mb-[280px]" : "mb-8"
         }`}
       >
         🛒 Vos Paniers
       </h1>
 
-      <div className="space-y-6">
-        {carts.map((cart, idx) => (
+      {carts.filter(cart => cart.items.length > 0).length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-lg">Aucun panier avec des articles</p>
+          <p className="text-gray-400 text-sm mt-2">
+            Ajoutez des produits à votre panier pour les voir apparaître ici
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {carts.filter(cart => cart.items.length > 0).map((cart, idx) => (
           <div key={cart.id} className="border rounded-lg p-4 shadow">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold">Panier {idx + 1}</h2>
@@ -273,7 +278,8 @@ function Cart() {
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       {/* Modal Produits */}
       {modalOpen && (
