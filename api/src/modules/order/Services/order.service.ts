@@ -75,14 +75,6 @@ const SHIPPING_TABLES_FALLBACK: ShippingTables = {
     [20.0, 20.89],
     [25.0, 31.0],
   ],
-  EXPRESS: [
-    [0.25, 4.55],
-    [0.5, 6.65],
-    [0.75, 7.95],
-    [1.0, 8.7],
-    [2.0, 10.0],
-    [5.0, 15.9],
-  ],
 };
 
 let SHIPPING_TABLES_CACHE: ShippingTables | null = null;
@@ -111,7 +103,6 @@ async function loadShippingTables(): Promise<ShippingTables> {
             RELAY: parsed.RELAY ?? SHIPPING_TABLES_FALLBACK.RELAY,
             HOME: SHIPPING_TABLES_FALLBACK.HOME,
             LOCKER: parsed.LOCKER ?? SHIPPING_TABLES_FALLBACK.LOCKER,
-            EXPRESS: SHIPPING_TABLES_FALLBACK.EXPRESS,
           };
           SHIPPING_TABLES_LAST_FETCH = now;
           return SHIPPING_TABLES_CACHE;
@@ -120,7 +111,11 @@ async function loadShippingTables(): Promise<ShippingTables> {
     } catch {
       // ignore and fallback
     }
-    SHIPPING_TABLES_CACHE = SHIPPING_TABLES_FALLBACK;
+    SHIPPING_TABLES_CACHE = {
+      RELAY: SHIPPING_TABLES_FALLBACK.RELAY,
+      HOME: SHIPPING_TABLES_FALLBACK.HOME,
+      LOCKER: SHIPPING_TABLES_FALLBACK.LOCKER,
+    };
     SHIPPING_TABLES_LAST_FETCH = now;
     return SHIPPING_TABLES_CACHE;
   }
@@ -144,7 +139,11 @@ async function loadShippingTables(): Promise<ShippingTables> {
     }
     throw new Error('Invalid shipping tables schema');
   } catch {
-    SHIPPING_TABLES_CACHE = SHIPPING_TABLES_FALLBACK;
+    SHIPPING_TABLES_CACHE = {
+      RELAY: SHIPPING_TABLES_FALLBACK.RELAY,
+      HOME: SHIPPING_TABLES_FALLBACK.HOME,
+      LOCKER: SHIPPING_TABLES_FALLBACK.LOCKER,
+    };
     SHIPPING_TABLES_LAST_FETCH = now;
     return SHIPPING_TABLES_CACHE;
   }

@@ -22,7 +22,7 @@ interface Order {
   shippingFee?: number | string;
   status: "pending" | "paid" | string;
   deliveryAddress: string;
-  deliveryMode: "RELAY" | "HOME" | "EXPRESS" | string;
+  deliveryMode: "RELAY" | "HOME" | string;
   items: OrderItem[];
 }
 interface User {
@@ -36,7 +36,7 @@ interface User {
 
 // ===== Helpers FRAIS DE LIVRAISON (mêmes barèmes que le back) =====
 const SHIPPING_TABLES: Record<
-  "RELAY" | "HOME" | "EXPRESS",
+  "RELAY" | "HOME",
   Array<[number, number]>
 > = {
   RELAY: [
@@ -61,14 +61,6 @@ const SHIPPING_TABLES: Record<
     [1.0, 9.4],
     [2.0, 10.7],
     [5.0, 16.6],
-  ],
-  EXPRESS: [
-    [0.25, 4.55],
-    [0.5, 6.65],
-    [0.75, 7.95],
-    [1.0, 8.7],
-    [2.0, 10.0],
-    [5.0, 15.9],
   ],
 };
 
@@ -98,8 +90,7 @@ function computeShippingFee(order: Order): number {
   }
   const modeKey = String(order.deliveryMode || "RELAY").toUpperCase() as
     | "RELAY"
-    | "HOME"
-    | "EXPRESS";
+    | "HOME";
   const table = SHIPPING_TABLES[modeKey] ?? SHIPPING_TABLES.RELAY;
   const weight = computeTotalWeightKg(order);
   for (const [maxKg, price] of table) {
@@ -123,8 +114,6 @@ const translateDeliveryMode = (mode: string) => {
   switch (mode.toLowerCase()) {
     case "home":
       return "Livraison à domicile standard";
-    case "express":
-      return "Livraison à domicile express";
     case "relay":
       return "Livraison en point relais";
     default:

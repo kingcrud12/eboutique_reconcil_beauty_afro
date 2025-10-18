@@ -72,7 +72,7 @@ function Checkout() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [selectedCartId, setSelectedCartId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  const [ordering, setOrdering] = useState<"home" | "express" | "relay" | null>(
+  const [ordering, setOrdering] = useState<"home" | "relay" | null>(
     null
   );
 
@@ -215,8 +215,8 @@ function Checkout() {
     }
   };
 
-  // Création commande pour domicile (standard/express)
-  const createHomeOrder = async (mode: "home" | "express") => {
+  // Création commande pour domicile
+  const createHomeOrder = async (mode: "home") => {
     if (!user) return;
     const cleanAddress = address?.trim();
     if (!cleanAddress) {
@@ -228,7 +228,7 @@ function Checkout() {
       await api.post("/orders", {
         deliveryAddress: cleanAddress,
         userId: user.id,
-        deliveryMode: mode === "home" ? "HOME" : "EXPRESS",
+        deliveryMode: "HOME",
       });
       navigate("/orders");
     } catch (e) {
@@ -372,17 +372,9 @@ function Checkout() {
           disabled={!user || ordering !== null}
           title="Livraison standard à l'adresse saisie"
         >
-          {ordering === "home" ? "Création..." : "Livraison à domicile"}
+          {ordering === "home" ? "Création..." : "Livraison à domicile (Colissimo)"}
         </button>
 
-        <button
-          className="px-4 py-2 rounded border hover:bg-gray-50 disabled:opacity-60"
-          onClick={() => createHomeOrder("express")}
-          disabled={!user || ordering !== null}
-          title="Livraison express à l'adresse saisie"
-        >
-          {ordering === "express" ? "Création..." : "Livraison express"}
-        </button>
       </div>
 
       {parcelShops.length > 0 && (

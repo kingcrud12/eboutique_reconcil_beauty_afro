@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { PrismaService } from '../../prisma/prisma.service';
 
-type DeliveryMode = 'EXPRESS' | 'HOME' | 'RELAY';
+type DeliveryMode = 'HOME' | 'RELAY';
 
 interface OrderItemCtx {
   name: string;
@@ -40,8 +40,6 @@ export class AdminMailService {
 
   private estimateDays(mode: DeliveryMode): number {
     switch (mode) {
-      case 'EXPRESS':
-        return 2;
       case 'HOME':
       case 'RELAY':
       default:

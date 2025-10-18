@@ -21,7 +21,7 @@ interface IOrder {
   id: number;
   total: number;
   status: "pending" | "paid" | "canceled" | string;
-  deliveryMode?: "RELAY" | "HOME" | "EXPRESS" | string;
+  deliveryMode?: "RELAY" | "HOME" | string;
   deliveryAddress: string;
   userId?: number;
   items: IOrderItem[];
@@ -186,8 +186,6 @@ function Account() {
       ? badge("Point relais", "bg-blue-100 text-blue-700")
       : m === "HOME"
       ? badge("Domicile", "bg-purple-100 text-purple-700")
-      : m === "EXPRESS"
-      ? badge("Express", "bg-pink-100 text-pink-700")
       : null;
 
   return (
