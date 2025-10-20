@@ -203,6 +203,7 @@ export class OrderService {
     }
 
     console.log("OrderService.create - Recherche du panier pour userId:", data.userId);
+    // 🔎 IMPORTANT: si la réconciliation vient juste d'avoir lieu, le panier peut encore être sur guestId
     const cart = await this.prisma.cart.findFirst({
       where: { userId: data.userId },
       include: {
@@ -214,6 +215,19 @@ export class OrderService {
 
     console.log("OrderService.create - Panier trouvé:", cart ? `ID ${cart.id}, ${cart.items.length} articles` : "Aucun panier");
     
+    // Si aucun panier trouvé par userId, tenter une récupération par dernier panier reconcilé (uuid connu?)
+    if (!cart) {
+      console.log("OrderService.create - Aucun panier par userId. Tentative de reprise dernier panier par user");
+      const lastCart = await this.prisma.cart.findFirst({
+        where: { userId: data.userId },
+        orderBy: { createdAt: 'desc' },
+        include: { items: { include: { product: true } } },
+      });
+      if (lastCart) {
+        (cart as unknown as typeof lastCart) = lastCart;
+      }
+    }
+
     if (!cart || cart.items.length === 0) {
       console.log("OrderService.create - Aucun panier ou panier vide");
       return null;

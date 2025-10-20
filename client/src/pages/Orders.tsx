@@ -22,7 +22,7 @@ interface Order {
   shippingFee?: number | string;
   status: "pending" | "paid" | string;
   deliveryAddress: string;
-  deliveryMode: "RELAY" | "HOME" | string;
+  deliveryMode: "RELAY" | "HOME" | "LOCKER" | string;
   items: OrderItem[];
 }
 interface User {
