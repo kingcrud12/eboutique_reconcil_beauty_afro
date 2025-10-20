@@ -225,15 +225,33 @@ function Checkout() {
     }
     setOrdering(mode);
     try {
-      await api.post("/orders", {
+      console.log("Tentative de création de commande (domicile)...", {
+        deliveryAddress: cleanAddress,
+        userId: user.id,
+        deliveryMode: "HOME"
+      });
+      
+      const response = await api.post("/orders", {
         deliveryAddress: cleanAddress,
         userId: user.id,
         deliveryMode: "HOME",
       });
+      
+      console.log("Commande créée avec succès:", response.data);
       navigate("/orders");
     } catch (e) {
       console.error("Erreur création commande (domicile) :", e);
-      alert("Une erreur est survenue lors de la commande");
+      if (e && typeof e === "object" && "response" in e) {
+        const response = (e as any).response;
+        console.log("Détails de l'erreur API:", {
+          status: response?.status,
+          statusText: response?.statusText,
+          data: response?.data
+        });
+        alert(`Erreur lors de la création de commande: ${response?.data?.message || response?.statusText || "Erreur inconnue"}`);
+      } else {
+        alert("Une erreur est survenue lors de la commande");
+      }
     } finally {
       setOrdering(null);
     }
@@ -253,15 +271,33 @@ function Checkout() {
 
     setOrdering("relay");
     try {
-      await api.post("/orders", {
+      console.log("Tentative de création de commande (relais/locker)...", {
+        deliveryAddress,
+        userId: user.id,
+        deliveryMode: isLocker ? "LOCKER" : "RELAY"
+      });
+      
+      const response = await api.post("/orders", {
         deliveryAddress,
         userId: user.id,
         deliveryMode: isLocker ? "LOCKER" : "RELAY", // 👈 envoie LOCKER si besoin
       });
+      
+      console.log("Commande créée avec succès:", response.data);
       navigate("/orders");
     } catch (error) {
       console.error("Erreur création commande (relais/locker) :", error);
-      alert("Une erreur est survenue lors de la commande");
+      if (error && typeof error === "object" && "response" in error) {
+        const response = (error as any).response;
+        console.log("Détails de l'erreur API:", {
+          status: response?.status,
+          statusText: response?.statusText,
+          data: response?.data
+        });
+        alert(`Erreur lors de la création de commande: ${response?.data?.message || response?.statusText || "Erreur inconnue"}`);
+      } else {
+        alert("Une erreur est survenue lors de la commande");
+      }
     } finally {
       setOrdering(null);
     }
