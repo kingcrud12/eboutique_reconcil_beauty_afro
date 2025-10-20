@@ -54,7 +54,7 @@ const SHIPPING_TABLES_FALLBACK: ShippingTables = {
     [25.0, 34.99],
   ],
   HOME: [
-    [0.25, 0.0],
+    [0.25, 5.25],
     [0.5, 7.35],
     [0.75, 8.65],
     [1.0, 9.4],
