@@ -36,23 +36,23 @@ interface User {
 
 // ===== Helpers FRAIS DE LIVRAISON (mêmes barèmes que le back) =====
 const SHIPPING_TABLES: Record<
-  "RELAY" | "HOME",
+  "RELAY" | "HOME" | "LOCKER",
   Array<[number, number]>
 > = {
   RELAY: [
-    [0.25, 4.2],
-    [0.5, 4.3],
-    [0.75, 5.4],
-    [1.0, 5.4],
-    [2.0, 6.6],
-    [3.0, 14.99],
-    [4.0, 8.9],
-    [5.0, 12.4],
-    [7.0, 14.4],
-    [10.0, 14.4],
-    [15.0, 22.4],
-    [20.0, 22.4],
-    [25.0, 32.4],
+    [0.25, 4.20],
+    [0.5, 4.49],
+    [0.75, 5.69],
+    [1.0, 5.69],
+    [2.0, 6.99],
+    [3.0, 7.69],
+    [4.0, 9.29],
+    [5.0, 12.99],
+    [7.0, 14.99],
+    [10.0, 15.99],
+    [15.0, 23.49],
+    [20.0, 23.99],
+    [25.0, 34.99],
   ],
   HOME: [
     [0.25, 5.25],
@@ -61,6 +61,21 @@ const SHIPPING_TABLES: Record<
     [1.0, 9.4],
     [2.0, 10.7],
     [5.0, 16.6],
+  ],
+  LOCKER: [
+    [0.25, 3.99],
+    [0.5, 3.99],
+    [0.75, 4.49],
+    [1.0, 4.49],
+    [2.0, 6.19],
+    [3.0, 6.99],
+    [4.0, 8.49],
+    [5.0, 11.99],
+    [7.0, 14.89],
+    [10.0, 15.89],
+    [15.0, 23.39],
+    [20.0, 23.89],
+    [25.0, 34.89],
   ],
 };
 
@@ -90,7 +105,8 @@ function computeShippingFee(order: Order): number {
   }
   const modeKey = String(order.deliveryMode || "RELAY").toUpperCase() as
     | "RELAY"
-    | "HOME";
+    | "HOME"
+    | "LOCKER";
   const table = SHIPPING_TABLES[modeKey] ?? SHIPPING_TABLES.RELAY;
   const weight = computeTotalWeightKg(order);
   for (const [maxKg, price] of table) {
@@ -116,6 +132,8 @@ const translateDeliveryMode = (mode: string) => {
       return "Livraison à domicile standard";
     case "relay":
       return "Livraison en point relais";
+    case "locker":
+      return "Livraison en locker";
     default:
       return mode;
   }
@@ -162,13 +180,37 @@ function Orders() {
         setLoading(true);
         setError(null);
         // On récupère l'utilisateur complet
-        const meRes = await api.get<User>("/users/me");
-        setUser(meRes.data ?? null);
+        try {
+          console.log("Tentative de récupération de l'utilisateur...");
+          const meRes = await api.get<User>("/users/me");
+          console.log("Utilisateur récupéré avec succès:", meRes.data);
+          setUser(meRes.data ?? null);
+        } catch (userError) {
+          console.error("Erreur récupération utilisateur :", userError);
+          if (userError && typeof userError === "object" && "response" in userError) {
+            const response = (userError as any).response;
+            console.log("Détails de l'erreur:", {
+              status: response?.status,
+              statusText: response?.statusText,
+              data: response?.data
+            });
+          } else {
+            console.log("Détails de l'erreur (format inconnu):", userError);
+          }
+          // Si on ne peut pas récupérer l'utilisateur, on continue quand même
+          // pour essayer de récupérer les commandes
+          setUser(null);
+        }
 
         await fetchOrders();
       } catch (e) {
-        console.error("Erreur récupération commandes / user :", e);
-        navigate("/login");
+        console.error("Erreur récupération commandes :", e);
+        // Seulement rediriger vers login si on ne peut vraiment pas récupérer les commandes
+        if (e && typeof e === 'object' && 'response' in e && e.response && typeof e.response === 'object' && 'status' in e.response && (e.response.status === 401 || e.response.status === 403)) {
+          navigate("/login");
+        } else {
+          setError("Erreur lors du chargement des commandes");
+        }
       } finally {
         setLoading(false);
       }
