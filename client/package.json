@@ -32,9 +32,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "prebuild": "echo 'Starting build process...'",
-    "build": "GENERATE_SOURCEMAP=false react-scripts build && cp public/_redirects build/",
-    "postbuild": "echo 'Build completed successfully'",
+    "build": "react-scripts build && cp public/_redirects build/",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
