@@ -92,19 +92,31 @@ function Checkout() {
   const navigate = useNavigate();
 
   // ✅ récup des actions du contexte panier
-  const { fetchCart: fetchCartContext } = useCart();
+  const { fetchCart: fetchCartContext, updateGuestCart } = useCart();
 
   useEffect(() => {
     api
       .get<User>("/users/me")
-      .then((res) => {
+      .then(async (res) => {
         setUser(res.data);
         setAddress(res.data.adress);
-        fetchCart();
-        fetchCartContext(); // ✅ synchro du contexte dès l’arrivée sur la page
+
+        // 🔄 Réconciliation éventuelle d'un panier invité avec l'utilisateur connecté
+        try {
+          const guestUuid = localStorage.getItem("guest_cart_uuid");
+          if (guestUuid) {
+            await updateGuestCart({ userId: res.data.id });
+            localStorage.removeItem("guest_cart_uuid");
+          }
+        } catch (e) {
+          console.warn("Réconciliation guest cart échouée (non bloquant)", e);
+        }
+
+        await fetchCart();
+        await fetchCartContext(); // ✅ synchro du contexte dès l’arrivée sur la page
       })
       .catch((err) => console.error("Erreur récupération user :", err));
-  }, [fetchCartContext]);
+  }, [fetchCartContext, updateGuestCart]);
 
   const fetchCart = async () => {
     try {
