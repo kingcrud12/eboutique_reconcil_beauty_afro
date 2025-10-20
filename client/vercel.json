@@ -2,11 +2,6 @@
   "buildCommand": "yarn build",
   "outputDirectory": "build",
   "framework": "create-react-app",
-  "functions": {
-    "app/api/**/*.js": {
-      "maxDuration": 30
-    }
-  },
   "build": {
     "env": {
       "NODE_OPTIONS": "--max-old-space-size=4096"
