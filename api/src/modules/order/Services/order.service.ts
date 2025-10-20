@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import {
   ForbiddenException,
   Injectable,
@@ -31,7 +32,7 @@ type PrismaOrderWithItems = Order & {
    ========================= */
 
 type ShippingTables = Record<
-  DeliveryMode,
+  "RELAY" | "HOME" | "LOCKER",
   Array<[maxKg: number, priceEUR: number]>
 >;
 
@@ -41,16 +42,16 @@ const SHIPPING_TABLES_FALLBACK: ShippingTables = {
     [0.25, 4.2],
     [0.5, 4.49],
     [0.75, 5.69],
-    [1.0, 5.4],
-    [2.0, 6.6],
-    [3.0, 14.99],
-    [4.0, 8.9],
-    [5.0, 12.4],
-    [7.0, 14.4],
-    [10.0, 14.4],
-    [15.0, 22.4],
-    [20.0, 22.4],
-    [25.0, 32.4],
+    [1.0, 5.69],
+    [2.0, 6.99],
+    [3.0, 7.69],
+    [4.0, 9.29],
+    [5.0, 12.99],
+    [7.0, 14.99],
+    [10.0, 15.99],
+    [15.0, 23.49],
+    [20.0, 23.99],
+    [25.0, 34.99],
   ],
   HOME: [
     [0.25, 5.25],
@@ -61,19 +62,19 @@ const SHIPPING_TABLES_FALLBACK: ShippingTables = {
     [5.0, 16.6],
   ],
   LOCKER: [
-    [0.25, 3.59],
-    [0.5, 3.59],
-    [0.75, 3.59],
-    [1.0, 3.59],
-    [2.0, 5.39],
-    [3.0, 5.99],
-    [4.0, 6.89],
-    [5.0, 9.29],
-    [7.0, 12.19],
-    [10.0, 13.69],
-    [15.0, 19.79],
-    [20.0, 20.89],
-    [25.0, 31.0],
+    [0.25, 3.99],
+    [0.5, 3.99],
+    [0.75, 4.49],
+    [1.0, 4.49],
+    [2.0, 6.19],
+    [3.0, 6.99],
+    [4.0, 8.49],
+    [5.0, 11.99],
+    [7.0, 14.89],
+    [10.0, 15.89],
+    [15.0, 23.39],
+    [20.0, 23.89],
+    [25.0, 34.89],
   ],
 };
 
@@ -194,8 +195,14 @@ export class OrderService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: IOrderCreate): Promise<IOrder | null> {
-    if (!data.userId) return null;
+    console.log("OrderService.create - Données reçues:", data);
+    
+    if (!data.userId) {
+      console.log("OrderService.create - Aucun userId fourni");
+      return null;
+    }
 
+    console.log("OrderService.create - Recherche du panier pour userId:", data.userId);
     const cart = await this.prisma.cart.findFirst({
       where: { userId: data.userId },
       include: {
@@ -205,7 +212,12 @@ export class OrderService {
       },
     });
 
-    if (!cart || cart.items.length === 0) return null;
+    console.log("OrderService.create - Panier trouvé:", cart ? `ID ${cart.id}, ${cart.items.length} articles` : "Aucun panier");
+    
+    if (!cart || cart.items.length === 0) {
+      console.log("OrderService.create - Aucun panier ou panier vide");
+      return null;
+    }
 
     const total = cart.items.reduce((sum, item) => {
       return sum + item.quantity * Number(item.product.price);
