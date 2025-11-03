@@ -7,7 +7,9 @@ const ProductsSEO = () => {
   return (
     <>
       <Helmet>
-        <title>Nos produits capillaires et corporels - Arcenciel Manewma</title>
+        <title>
+          Nos produits capillaires et corporels - Reconcil' Afro Beauty
+        </title>
         <meta
           name="description"
           content="Découvrez notre sélection de produits capillaires et corporels de qualité pour cheveux et corps. Achetez facilement en ligne !"
