@@ -24,7 +24,8 @@ const ProductSEO = () => {
       {/* SEO */}
       <Helmet>
         <title>
-          {product ? `${product.name} - Achetez en ligne` : "Produit"}
+          {product ? `${product.name} - Achetez en ligne` : "Produit"} -
+          Reconcil' Afro Beauty
         </title>
         <meta
           name="description"
