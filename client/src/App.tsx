@@ -4,11 +4,9 @@ import Home from "./pages/Home";
 import About from "./pages/About";
 import Appointment from "./pages/Appointment";
 import Account from "./pages/Account";
-import Products from "./pages/Products";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import PrivateRoute from "./components/PrivateRoute";
-import Product from "./pages/Product";
 import ConfirmAccount from "./pages/ConfirmAccount";
 import CheckEmail from "./pages/CheckEmail";
 import ResetPassword from "./pages/ResetPassword";
@@ -21,6 +19,8 @@ import SuccessPageOrder from "./pages/SucessPageOrder";
 import TestPage from "./TestPage";
 import Contact from "./pages/Contact";
 import AboutUs from "./pages/AboutUs";
+import ProductsSEO from "./pages/ProductsSEO";
+import ProductSEO from "./pages/ProductSEO";
 
 function App() {
   return (
@@ -28,12 +28,12 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
-          <Route path="products" element={<Products />} />
+          <Route path="products" element={<ProductsSEO />} />
           <Route path="about" element={<About />} />
           <Route path="appointment" element={<Appointment />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
-          <Route path="product/:productId" element={<Product />} />
+          <Route path="product/:productId" element={<ProductSEO />} />
           <Route path="confirm-account" element={<ConfirmAccount />} />
           <Route path="check" element={<CheckEmail />} />
           <Route path="reset-password" element={<ResetPassword />} />

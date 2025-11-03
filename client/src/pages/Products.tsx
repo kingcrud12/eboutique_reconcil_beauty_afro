@@ -15,7 +15,14 @@ const Products = () => {
   const [popinMsg, setPopinMsg] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("Tous");
 
-  const { fetchCart, fetchGuestCart, createGuestCart, firstCart, updateGuestCart, setCarts } = useCart();
+  const {
+    fetchCart,
+    fetchGuestCart,
+    createGuestCart,
+    firstCart,
+    updateGuestCart,
+    setCarts,
+  } = useCart();
   const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
@@ -85,7 +92,9 @@ const Products = () => {
         await fetchCart();
       } else {
         // Invité: essayer PATCH d'abord; si échec => POST puis refresh
-        const updated = await updateGuestCart({ items: [{ productId, quantity: 1 }] });
+        const updated = await updateGuestCart({
+          items: [{ productId, quantity: 1 }],
+        });
         if (!updated) {
           await createGuestCart({ items: [{ productId, quantity: 1 }] });
         }
