@@ -23,6 +23,10 @@ const ProductSEO = () => {
     <>
       {/* SEO */}
       <Helmet>
+        <link
+          rel="canonical"
+          href={`https://eboutique-reconcil-beauty-afro.vercel.app${window.location.pathname}`}
+        />
         <title>
           {product ? `${product.name} - Achetez en ligne` : "Produit"} -
           Reconcil' Afro Beauty

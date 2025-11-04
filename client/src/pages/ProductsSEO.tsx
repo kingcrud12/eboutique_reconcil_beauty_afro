@@ -7,6 +7,10 @@ const ProductsSEO = () => {
   return (
     <>
       <Helmet>
+        <link
+          rel="canonical"
+          href={`https://eboutique-reconcil-beauty-afro.vercel.app${window.location.pathname}`}
+        />
         <title>
           Nos produits capillaires et corporels - Reconcil' Afro Beauty
         </title>
