@@ -49,12 +49,15 @@ jobs:
         LOGIN_PASSWORD: ${{ secrets.LOGIN_PASSWORD }}
         LOGIN_USERNAME_REGISTER: ${{ secrets.LOGIN_USERNAME_REGISTER }}
       run: |
-        echo "Vérification des variables d'environnement..."
-        echo "LASTNAME est défini: $([ -z "$LASTNAME" ] && echo 'NON' || echo 'OUI')"
-        echo "FIRSTNAME est défini: $([ -z "$FIRSTNAME" ] && echo 'NON' || echo 'OUI')"
-        echo "LOGIN_USERNAME est défini: $([ -z "$LOGIN_USERNAME" ] && echo 'NON' || echo 'OUI')"
-        echo "LOGIN_PASSWORD est défini: $([ -z "$LOGIN_PASSWORD" ] && echo 'NON' || echo 'OUI')"
-        echo "LOGIN_USERNAME_REGISTER est défini: $([ -z "$LOGIN_USERNAME_REGISTER" ] && echo 'NON' || echo 'OUI')"
+        echo "=== Vérification des variables d'environnement ==="
+        echo "LASTNAME est défini: $([ -z "$LASTNAME" ] && echo '❌ NON' || echo '✅ OUI')"
+        echo "FIRSTNAME est défini: $([ -z "$FIRSTNAME" ] && echo '❌ NON' || echo '✅ OUI')"
+        echo "LOGIN_USERNAME est défini: $([ -z "$LOGIN_USERNAME" ] && echo '❌ NON' || echo '✅ OUI')"
+        echo "LOGIN_PASSWORD est défini: $([ -z "$LOGIN_PASSWORD" ] && echo '❌ NON' || echo '✅ OUI')"
+        echo "LOGIN_USERNAME_REGISTER est défini: $([ -z "$LOGIN_USERNAME_REGISTER" ] && echo '❌ NON' || echo '✅ OUI')"
+        echo ""
+        echo "=== Test avec Python ==="
+        python -c "import os; print('LASTNAME:', '✅' if os.getenv('LASTNAME') else '❌'); print('FIRSTNAME:', '✅' if os.getenv('FIRSTNAME') else '❌'); print('LOGIN_USERNAME:', '✅' if os.getenv('LOGIN_USERNAME') else '❌')"
     
     - name: Exécution des tests TC001 (Inscription)
       env:

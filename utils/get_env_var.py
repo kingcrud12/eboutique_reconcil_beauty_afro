@@ -14,7 +14,20 @@ else:
     load_dotenv(override=False)
 
 def get_env_var(name: str, required=True):
+    # Essayer d'abord directement depuis os.getenv (pour les variables système)
     value = os.getenv(name)
+    
+    # Si pas trouvé et qu'on est en CI, essayer de recharger (au cas où)
+    if not value and os.getenv("CI") == "true":
+        # En CI, les variables devraient être directement disponibles
+        value = os.environ.get(name)
+    
     if required and not value:
-        raise ValueError(f"⚠️ La variable d'environnement {name} doit être définie (dans .env ou comme variable d'environnement système)")
+        # Message d'erreur plus détaillé pour le debug
+        is_ci = os.getenv("CI") == "true"
+        env_source = "secrets GitHub" if is_ci else "fichier .env"
+        raise ValueError(
+            f"⚠️ La variable d'environnement {name} doit être définie ({env_source}).\n"
+            f"Vérifiez que le secret {name} est configuré dans GitHub Settings → Secrets and variables → Actions."
+        )
     return value
