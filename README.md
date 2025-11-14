@@ -14,7 +14,8 @@ Cette documentation présente un projet d'automatisation de tests web avec Selen
 4. [Concepts Selenium utilisés](#concepts-selenium-utilisés)
 5. [Guide de démarrage](#guide-de-démarrage)
 6. [Comment refaire un projet similaire](#comment-refaire-un-projet-similaire)
-7. [Bonnes pratiques](#bonnes-pratiques)
+7. [GitHub Actions CI/CD](#github-actions-cicd)
+8. [Bonnes pratiques](#bonnes-pratiques)
 
 ---
 
@@ -41,15 +42,19 @@ Ce projet automatise les tests d'une application e-commerce en utilisant Seleniu
 ```
 selenium_automation_project/
 │
-├── TC001/                    # Test Case 001 : Inscription
+├── .github/
+│   └── workflows/
+│       └── run_tests.yml      # Pipeline GitHub Actions
+│
+├── TC001/                     # Test Case 001 : Inscription
 │   ├── __init__.py
 │   └── TC001.py
 │
-├── TC002/                    # Test Case 002 : Connexion valide
+├── TC002/                     # Test Case 002 : Connexion valide
 │   ├── __init__.py
 │   └── TC002.py
 │
-├── TC003/                    # Test Case 003 : Connexion invalide
+├── TC003/                     # Test Case 003 : Connexion invalide
 │   ├── __init__.py
 │   └── TC003.py
 │
@@ -68,7 +73,8 @@ selenium_automation_project/
 ├── .env                       # Variables d'environnement (à créer)
 ├── exemple.env                # Exemple de fichier .env
 ├── requirements.txt           # Dépendances Python
-└── README.md                  # Cette documentation
+├── README.md                  # Cette documentation
+└── GITHUB_ACTIONS_SETUP.md    # Guide de configuration GitHub Actions
 ```
 
 ### Explication de la structure
@@ -847,6 +853,121 @@ def fill_input(driver, by, selector, value, timeout=10):
     # 5. Retourner False si l'élément n'a pas été trouvé
     return False
 ```
+
+---
+
+## 🔄 GitHub Actions CI/CD
+
+Ce projet inclut un pipeline CI/CD avec GitHub Actions qui exécute automatiquement les tests à chaque push sur le repository.
+
+### 🎯 Fonctionnalités
+
+- ✅ **Exécution automatique** : Les tests se lancent à chaque push sur `main`, `master` ou `develop`
+- ✅ **Mode headless** : Les tests s'exécutent sans interface graphique pour la performance
+- ✅ **Environnement isolé** : Chaque exécution utilise un environnement Ubuntu propre
+- ✅ **Rapports détaillés** : Visualisation des résultats directement dans GitHub
+
+### 📁 Structure du workflow
+
+Le workflow est défini dans `.github/workflows/run_tests.yml` :
+
+```yaml
+name: Tests d'automatisation Selenium
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:  # Déclenchement manuel
+```
+
+### 🚀 Configuration
+
+#### 1. Prérequis
+
+- Repository GitHub : [https://github.com/kingcrud12/eboutique_reconcil_beauty_afro.git](https://github.com/kingcrud12/eboutique_reconcil_beauty_afro.git)
+- Droits d'administration sur le repository
+
+#### 2. Configuration des secrets GitHub
+
+Les identifiants de test doivent être configurés comme **Secrets** dans GitHub :
+
+1. Allez dans **Settings** → **Secrets and variables** → **Actions**
+2. Ajoutez les secrets suivants :
+
+| Secret | Description |
+|--------|-------------|
+| `LASTNAME` | Nom de famille pour l'inscription |
+| `FIRSTNAME` | Prénom pour l'inscription |
+| `LOGIN_USERNAME` | Email de connexion valide |
+| `LOGIN_PASSWORD` | Mot de passe de connexion |
+| `WRONG_EMAIL` | Email invalide pour test négatif |
+| `WRONG_PASSWORD` | Mot de passe invalide |
+| `LOGIN_USERNAME_REGISTER` | Email pour création de compte |
+
+> 📖 **Guide détaillé** : Consultez [GITHUB_ACTIONS_SETUP.md](GITHUB_ACTIONS_SETUP.md) pour les instructions complètes.
+
+### 🔍 Visualisation des résultats
+
+1. Allez sur votre repository GitHub
+2. Cliquez sur l'onglet **Actions**
+3. Sélectionnez le workflow "Tests d'automatisation Selenium"
+4. Consultez les logs de chaque étape
+
+### 🎨 Badge de statut (optionnel)
+
+Ajoutez un badge dans votre `README.md` pour afficher le statut des tests :
+
+```markdown
+![Tests](https://github.com/kingcrud12/eboutique_reconcil_beauty_afro/workflows/Tests%20d'automatisation%20Selenium/badge.svg)
+```
+
+### 🔧 Fonctionnement technique
+
+#### Détection du mode CI
+
+Les tests détectent automatiquement s'ils s'exécutent en CI grâce à la variable d'environnement `CI` :
+
+```python
+is_ci = os.getenv("CI") == "true"
+headless_mode = is_ci or os.getenv("HEADLESS", "false").lower() == "true"
+```
+
+#### Exécution en mode headless
+
+En CI, les tests s'exécutent automatiquement en mode headless :
+
+```python
+driver = create_driver(headless=headless_mode)
+```
+
+#### Suppression des pauses interactives
+
+Les `input()` sont automatiquement ignorés en CI :
+
+```python
+if not is_ci:
+    input("Appuie sur Entrée pour fermer le navigateur...")
+```
+
+### 📊 Avantages du CI/CD
+
+1. **Détection précoce des bugs** : Les tests s'exécutent automatiquement
+2. **Historique des exécutions** : Suivi de l'évolution des tests
+3. **Validation des PR** : Les tests doivent passer avant le merge
+4. **Documentation vivante** : Les tests servent de documentation exécutable
+
+### 🐛 Dépannage
+
+Si les tests échouent dans GitHub Actions :
+
+1. **Vérifiez les logs** : Cliquez sur l'étape qui a échoué
+2. **Vérifiez les secrets** : Assurez-vous que tous les secrets sont configurés
+3. **Vérifiez l'URL** : L'application doit être accessible depuis Internet
+4. **Vérifiez les sélecteurs** : Les éléments de la page peuvent avoir changé
+
+Pour plus de détails, consultez [GITHUB_ACTIONS_SETUP.md](GITHUB_ACTIONS_SETUP.md).
 
 ---
 

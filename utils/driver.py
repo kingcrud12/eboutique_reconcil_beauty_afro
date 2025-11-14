@@ -9,8 +9,22 @@ def create_driver(headless=False):
     options.add_argument("--disable-extensions")
     if headless:
         options.add_argument("--headless=new")
+        options.add_argument("--disable-gpu")
 
-    service = Service(os.getenv("CHROMEDRIVER_PATH", "/opt/homebrew/bin/chromedriver"))
+    # Utiliser webdriver-manager si disponible, sinon utiliser le chemin personnalisé
+    chromedriver_path = os.getenv("CHROMEDRIVER_PATH")
+    
+    if chromedriver_path:
+        service = Service(chromedriver_path)
+    else:
+        # Essayer d'utiliser webdriver-manager
+        try:
+            from webdriver_manager.chrome import ChromeDriverManager
+            service = Service(ChromeDriverManager().install())
+        except ImportError:
+            # Fallback vers le chemin par défaut
+            service = Service("/opt/homebrew/bin/chromedriver")
+    
     driver = webdriver.Chrome(service=service, options=options)
     driver.implicitly_wait(2)
     return driver
