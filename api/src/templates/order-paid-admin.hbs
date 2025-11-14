@@ -1,0 +1,72 @@
+<table width="100%" cellpadding="0" cellspacing="0" style="font-family:Arial,Helvetica,sans-serif; color:#111;">
+    <tr>
+        <td>
+            <h2>Nouvelle commande payée 🎉</h2>
+            <p>La commande <strong>#{{orderId}}</strong> vient d’être réglée par {{#if
+                customerFirstName}}{{customerFirstName}} {{customerLastName}}{{else}}un client invité{{/if}}.</p>
+
+            <h3 style="margin-top:20px;">Récapitulatif</h3>
+            <table width="100%" cellpadding="6" cellspacing="0"
+                style="border-collapse:collapse; border:1px solid #eee;">
+                <tr style="background:#fafafa;">
+                    <th align="left">Produit</th>
+                    <th align="right">Qté</th>
+                    <th align="right">PU (€)</th>
+                    <th align="right">Total (€)</th>
+                </tr>
+                {{#each items}}
+                <tr>
+                    <td>{{this.name}}</td>
+                    <td align="right">{{this.quantity}}</td>
+                    <td align="right">{{this.unitPrice}}</td>
+                    <td align="right">{{this.lineTotal}}</td>
+                </tr>
+                {{/each}}
+                <tr>
+                    <td colspan="3" align="right" style="border-top:1px solid #eee;">Sous-total articles</td>
+                    <td align="right" style="border-top:1px solid #eee;">{{itemsSubtotal}}</td>
+                </tr>
+                <tr>
+                    <td colspan="3" align="right">Frais de livraison</td>
+                    <td align="right">{{shippingFee}}</td>
+                </tr>
+                <tr>
+                    <td colspan="3" align="right"><strong>Total</strong></td>
+                    <td align="right"><strong>{{total}}</strong></td>
+                </tr>
+            </table>
+
+            <h3 style="margin-top:20px;">Livraison</h3>
+            <p><strong>Mode :</strong> {{deliveryMode}}</p>
+
+            {{#if deliveryAddress}}
+            <p><strong>Adresse de livraison :</strong><br />{{deliveryAddress}}</p>
+            {{/if}}
+
+            {{#if relayLabel}}
+            <p><strong>Point Relais :</strong> {{relayLabel}}<br />{{relayAddress}}</p>
+            {{/if}}
+
+            <!-- === Section Infos Client après Relay === -->
+            <h3 style="margin-top:20px;">Informations sur le client</h3>
+
+            {{#if adress}}
+            <p><strong>Adresse (profil) :</strong><br />{{adress}}</p>
+            {{/if}}
+
+            {{#if phone}}
+            <p><strong>Téléphone :</strong> {{phone}}</p>
+            {{/if}}
+
+            {{#unless adress}}
+            {{#unless phone}}
+            <p><em>Aucune information client disponible.</em></p>
+            {{/unless}}
+            {{/unless}}
+            <!-- ========================================= -->
+
+            <p><strong>Durée estimée :</strong> {{etaDays}} jours environ.</p>
+            <p style="margin-top:24px;">— Reconcil Beauty Afro</p>
+        </td>
+    </tr>
+</table>

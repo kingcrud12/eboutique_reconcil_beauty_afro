@@ -1,0 +1,257 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  firstName    String
+  lastName     String
+  email        String        @unique
+  password     String
+  role         Role          @default(user)
+  adress       String?       @db.Text
+  phone        String?
+  isConfirmed  Boolean       @default(false)
+  appointments Appointment[]
+  carts        Cart[]
+  orders       Order[]       @relation("UserOrders")
+
+  Booking Booking[]
+}
+
+model Guest {
+  id           Int           @id @default(autoincrement())
+  uuid         String?       @unique
+  firstName    String?
+  lastName     String?
+  email        String?
+  adress       String?       @db.Text
+  appointments Appointment[]
+  carts        Cart[]        @relation("Guest_Carts")
+  cartsByUuid  Cart[]        @relation("Guest_Carts_Uuid")
+  orders       Order[]       @relation("GuestOrders")
+}
+
+model Product {
+  id          Int         @id @default(autoincrement())
+  name        String      @unique
+  description String?     @db.Text
+  price       Decimal     @db.Decimal(10, 2)
+  stock       Int         @default(0)
+  imageUrl    String?
+  category    String?
+  weight      Int?
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+}
+
+enum Category {
+  Nattes
+  Braids
+  Ecailles
+  Knotless
+  Cornrows
+}
+
+enum Subcategory {
+  NATTES_COLLEES
+  NATTES_DEMELEES
+
+  KNOTLESS_SMALL
+  KNOTLESS_MEDIUM
+  KNOTLESS_LARGE
+
+  BRAIDS_CLASSIC
+  BRAIDS_FEEDIN
+
+  CORNROWS_SIMPLE
+  CORNROWS_DESIGN
+
+  ECAILLES_SIMPLE
+}
+
+enum SlotStatus {
+  open
+  booked
+  cancelled
+}
+
+model Service {
+  id       Int     @id @default(autoincrement())
+  name     String  @unique
+  duration Int
+  price    Decimal @db.Decimal(10, 2)
+
+  imageUrl String?
+
+  category    Category
+  subcategory Subcategory
+
+  slots Slot[]
+
+  @@index([category, subcategory])
+}
+
+model StripeEvent {
+  id          Int       @id @default(autoincrement())
+  eventId     String    @unique
+  type        String
+  status      String
+  error       String?
+  createdAt   DateTime  @default(now())
+  processedAt DateTime?
+}
+
+model Slot {
+  id        Int     @id @default(autoincrement())
+  serviceId Int
+  service   Service @relation(fields: [serviceId], references: [id])
+
+  startAt DateTime @unique
+  endAt   DateTime @unique
+
+  status          SlotStatus @default(open)
+  paymentIntentId String?
+  booking         Booking?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([serviceId])
+  @@index([startAt, endAt])
+  @@index([status])
+}
+
+model Booking {
+  id     Int  @id @default(autoincrement())
+  slotId Int  @unique
+  slot   Slot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+
+  // Cas utilisateur inscrit
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id])
+
+  // Cas invité (pas de userId)
+  guestFirstName String?
+  guestLastName  String?
+  guestEmail     String?
+  guestPhone     String?
+
+  paymentIntentId String?
+
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Appointment {
+  id          Int               @id @default(autoincrement())
+  date        DateTime
+  hour        DateTime
+  status      AppointmentStatus @default(pending)
+  depositPaid Boolean           @default(false)
+  userId      Int?
+  guestId     Int?
+  serviceId   Int
+  guest       Guest?            @relation(fields: [guestId], references: [id])
+  user        User?             @relation(fields: [userId], references: [id])
+
+  @@index([guestId], map: "Appointment_guestId_fkey")
+  @@index([serviceId], map: "Appointment_serviceId_fkey")
+  @@index([userId], map: "Appointment_userId_fkey")
+}
+
+model Cart {
+  id          Int        @id @default(autoincrement())
+  createdAt   DateTime   @default(now())
+  userId      Int?
+  guestId     Int?
+  uuid        String?
+  guest       Guest?     @relation("Guest_Carts", fields: [guestId], references: [id], onDelete: Cascade)
+  guestByUuid Guest?     @relation("Guest_Carts_Uuid", fields: [uuid], references: [uuid], onDelete: Cascade)
+  user        User?      @relation(fields: [userId], references: [id])
+  items       CartItem[]
+
+  @@index([userId], map: "Cart_userId_fkey")
+}
+
+model CartItem {
+  id        Int     @id @default(autoincrement())
+  quantity  Int
+  cartId    Int
+  productId Int
+  cart      Cart    @relation(fields: [cartId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@index([cartId], map: "CartItem_cartId_fkey")
+  @@index([productId], map: "CartItem_productId_fkey")
+}
+
+model Order {
+  id               Int          @id @default(autoincrement())
+  total            Decimal      @db.Decimal(10, 2)
+  totalWeightGrams Int?         @default(0)
+  shippingFee      Decimal?     @default(0) @db.Decimal(10, 2)
+  status           OrderStatus  @default(pending)
+  createdAt        DateTime     @default(now())
+  deliveryAddress  String       @db.Text
+  paymentIntentId  String?
+  userId           Int?
+  guestId          Int?
+  deliveryMode     DeliveryMode
+  items            OrderItem[]
+  guest            Guest?       @relation("GuestOrders", fields: [guestId], references: [id])
+  user             User?        @relation("UserOrders", fields: [userId], references: [id])
+
+  @@index([guestId], map: "orders_guestId_fkey")
+  @@index([userId], map: "orders_userId_fkey")
+  @@map("orders")
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  quantity  Int
+  unitPrice Decimal @db.Decimal(10, 2)
+  orderId   Int
+  productId Int
+  weight    Int?
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@index([productId], map: "OrderItem_productId_fkey")
+  @@index([orderId], map: "OrderItem_orderId_fkey")
+}
+
+enum Role {
+  user
+  admin
+}
+
+enum AppointmentStatus {
+  pending
+  confirmed
+  canceled
+}
+
+enum Knotless {
+  Boho_knotless
+}
+
+enum OrderStatus {
+  pending
+  paid
+  canceled
+}
+
+enum DeliveryMode {
+  RELAY
+  HOME
+  LOCKER
+}
