@@ -41,6 +41,21 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     
+    - name: Vérification des variables d'environnement (debug)
+      env:
+        LASTNAME: ${{ secrets.LASTNAME }}
+        FIRSTNAME: ${{ secrets.FIRSTNAME }}
+        LOGIN_USERNAME: ${{ secrets.LOGIN_USERNAME }}
+        LOGIN_PASSWORD: ${{ secrets.LOGIN_PASSWORD }}
+        LOGIN_USERNAME_REGISTER: ${{ secrets.LOGIN_USERNAME_REGISTER }}
+      run: |
+        echo "Vérification des variables d'environnement..."
+        echo "LASTNAME est défini: $([ -z "$LASTNAME" ] && echo 'NON' || echo 'OUI')"
+        echo "FIRSTNAME est défini: $([ -z "$FIRSTNAME" ] && echo 'NON' || echo 'OUI')"
+        echo "LOGIN_USERNAME est défini: $([ -z "$LOGIN_USERNAME" ] && echo 'NON' || echo 'OUI')"
+        echo "LOGIN_PASSWORD est défini: $([ -z "$LOGIN_PASSWORD" ] && echo 'NON' || echo 'OUI')"
+        echo "LOGIN_USERNAME_REGISTER est défini: $([ -z "$LOGIN_USERNAME_REGISTER" ] && echo 'NON' || echo 'OUI')"
+    
     - name: Exécution des tests TC001 (Inscription)
       env:
         CI: true
