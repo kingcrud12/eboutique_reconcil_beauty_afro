@@ -58,8 +58,13 @@ const bootstrap = async () => {
       process.env.BACKOFFICE_TEST_URL,
       process.env.BACKOFFICE_UP_URL,
       process.env.PROXY_URL,
+      'http://localhost:3000',
+      'http://localhost:3001',
     ],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['Content-Type', 'Authorization'],
   });
 
   const port = process.env.PORT || 3000;
