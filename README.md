@@ -137,6 +137,35 @@ Ce projet inclut une suite de tests d'automatisation avec Selenium et Python pou
 - **TC002** : Test de connexion avec des identifiants valides
 - **TC003** : Test de connexion avec des identifiants invalides (test négatif)
 
+### Architecture des tests
+
+Les tests utilisent une architecture orientée objet avec une classe de base `BaseTest` qui centralise toute la logique commune :
+
+- **`utils/base_test.py`** : Classe `BaseTest` qui gère :
+  - La création et configuration du driver Selenium
+  - La détection automatique du mode CI/headless
+  - Le cycle de vie des tests (setup, execution, teardown)
+  - La gestion des messages de succès/échec
+  - La pause interactive (uniquement en mode local)
+
+Chaque test (TC001, TC002, TC003) instancie simplement `BaseTest` avec ses paramètres spécifiques :
+
+```python
+# Exemple TC001
+test = BaseTest(
+    test_function=fill_register_form,
+    success_message="✅ Formulaire d'inscription rempli avec succès",
+    failure_message="⚠️ Échec du remplissage du formulaire"
+)
+test.run()
+```
+
+Cette architecture permet :
+- ✅ **DRY** : Évite la duplication de code
+- ✅ **Maintenabilité** : Modifications centralisées dans `BaseTest`
+- ✅ **Extensibilité** : Facile d'ajouter de nouveaux tests
+- ✅ **Simplicité** : Chaque test se concentre sur sa logique spécifique
+
 ### Pipeline CI/CD
 
 Les tests s'exécutent automatiquement via GitHub Actions à chaque push sur les branches `main`, `master` ou `develop`.

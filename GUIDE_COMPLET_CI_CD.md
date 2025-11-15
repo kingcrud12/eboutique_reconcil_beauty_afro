@@ -189,9 +189,17 @@ eboutique_reconcil_beauty_afro/
 ├── backoffice/             # Interface admin (existant)
 ├── client/                 # Application client (existant)
 ├── TC001/                  # Test 1 (ajouté)
+│   └── TC001.py
 ├── TC002/                  # Test 2 (ajouté)
+│   └── TC002.py
 ├── TC003/                  # Test 3 (ajouté)
+│   └── TC003.py
 ├── utils/                  # Utilitaires Selenium (ajouté)
+│   ├── base_test.py        # Classe de base pour tous les tests
+│   ├── driver.py
+│   ├── fill_login_form.py
+│   ├── fill_register_form.py
+│   └── ...
 ├── .github/
 │   └── workflows/
 │       └── run_tests.yml   # Pipeline CI/CD (ajouté)
@@ -204,38 +212,99 @@ eboutique_reconcil_beauty_afro/
 
 ### Problème initial
 
-Les tests étaient conçus pour s'exécuter **localement** avec un navigateur visible :
+Les tests étaient conçus pour s'exécuter **localement** avec un navigateur visible et contenaient beaucoup de code dupliqué :
 
 ```python
-# AVANT (TC001.py)
+# AVANT (TC001.py, TC002.py, TC003.py - code répété)
 def test_register_user():
-    driver = create_driver(headless=False)  # Navigateur visible
-    # ...
-    input("Appuie sur Entrée pour fermer...")  # Pause interactive
-```
-
-**Problèmes en CI** :
-1. ❌ Pas d'interface graphique → `headless=False` ne fonctionne pas
-2. ❌ Pas d'interaction utilisateur → `input()` bloque indéfiniment
-3. ❌ Les tests doivent s'exécuter automatiquement sans intervention
-
-### Solution : Détection automatique du mode CI
-
-#### Modification 1 : Détection de l'environnement CI
-
-```python
-# APRÈS (TC001.py)
-import os
-
-def test_register_user():
-    # Détecter si on est en CI (GitHub Actions)
     is_ci = os.getenv("CI") == "true"
     headless_mode = is_ci or os.getenv("HEADLESS", "false").lower() == "true"
+    driver = create_driver(headless=headless_mode)
+    get_url(driver)
+    try:
+        success = fill_register_form(driver)
+        if success:
+            print("✅ Succès")
+        else:
+            print("⚠️ Échec")
+            exit(1)
+        if not is_ci:
+            input("Appuie sur Entrée pour fermer...")
+    finally:
+        driver.quit()
+```
+
+**Problèmes** :
+1. ❌ Code dupliqué dans chaque test
+2. ❌ Pas d'interface graphique en CI → `headless=False` ne fonctionne pas
+3. ❌ Pas d'interaction utilisateur → `input()` bloque indéfiniment
+4. ❌ Difficile à maintenir (changements à faire dans plusieurs fichiers)
+
+### Solution : Classe BaseTest centralisée
+
+#### Architecture avec BaseTest
+
+Une classe `BaseTest` centralise toute la logique commune, et chaque test l'instancie avec ses paramètres spécifiques :
+
+```python
+# utils/base_test.py - Classe centrale
+class BaseTest:
+    def __init__(self, test_function, success_message, failure_message, exit_on_failure=True):
+        self.test_function = test_function
+        self.success_message = success_message
+        self.failure_message = failure_message
+        self.exit_on_failure = exit_on_failure
+        self.is_ci = os.getenv("CI") == "true"
+        self.headless_mode = self.is_ci or os.getenv("HEADLESS", "false").lower() == "true"
     
-    driver = create_driver(headless=headless_mode)  # Headless en CI
-    # ...
-    if not is_ci:  # Pause seulement en local
-        input("Appuie sur Entrée pour fermer...")
+    def run(self):
+        try:
+            self.setup()  # Crée le driver et charge l'URL
+            success = self.test_function(self.driver)  # Exécute le test spécifique
+            
+            if success:
+                print(self.success_message)
+            else:
+                print(self.failure_message)
+                if self.exit_on_failure:
+                    exit(1)
+            
+            if not self.is_ci:  # Pause seulement en local
+                input("Appuie sur Entrée pour fermer...")
+        finally:
+            self.teardown()  # Ferme le navigateur
+```
+
+#### Utilisation dans les tests
+
+```python
+# APRÈS (TC001.py) - Simple et concis
+from utils.base_test import BaseTest
+from utils.fill_register_form import fill_register_form
+
+def test_register_user():
+    test = BaseTest(
+        test_function=fill_register_form,
+        success_message="✅ Formulaire d'inscription rempli avec succès",
+        failure_message="⚠️ Échec du remplissage du formulaire"
+    )
+    test.run()
+```
+
+**Avantages** :
+- ✅ **DRY** : Code commun centralisé dans `BaseTest`
+- ✅ **Maintenabilité** : Modifications dans un seul endroit
+- ✅ **Simplicité** : Chaque test se concentre sur sa logique
+- ✅ **Détection automatique CI** : `BaseTest` gère automatiquement le mode headless
+- ✅ **Extensibilité** : Facile d'ajouter de nouveaux tests
+
+#### Détection automatique du mode CI
+
+La classe `BaseTest` détecte automatiquement l'environnement :
+
+```python
+self.is_ci = os.getenv("CI") == "true"  # GitHub Actions définit CI=true
+self.headless_mode = self.is_ci or os.getenv("HEADLESS", "false").lower() == "true"
 ```
 
 **Explication** :
@@ -243,19 +312,17 @@ def test_register_user():
 - Si `CI=true` → mode headless activé automatiquement
 - Si `CI=true` → pas de pause interactive
 
-#### Modification 2 : Codes de sortie pour les échecs
+#### Gestion des codes de sortie
 
 ```python
-if success:
-    print("✅ Succès")
-else:
-    print("⚠️ Échec")
+if self.exit_on_failure:
     exit(1)  # Code d'erreur pour signaler l'échec à GitHub Actions
 ```
 
 **Explication** :
 - `exit(1)` = code d'erreur (0 = succès, 1+ = échec)
 - GitHub Actions détecte ce code et marque le test comme "échec"
+- Les tests négatifs peuvent désactiver `exit_on_failure=False`
 
 #### Modification 3 : Gestion des variables d'environnement
 
@@ -532,6 +599,15 @@ env:
 
 **Résultat** : Les tests fonctionnent à la fois en local ET en CI.
 
+### 2.1. Refactorisation avec BaseTest ✅
+
+- Création de la classe `BaseTest` pour centraliser la logique commune
+- Élimination de la duplication de code entre TC001, TC002, TC003
+- Architecture orientée objet : chaque test instancie `BaseTest` avec ses paramètres
+- Amélioration de la maintenabilité et de l'extensibilité
+
+**Résultat** : Code plus propre, plus maintenable et plus facile à étendre.
+
 ### 3. Création du pipeline GitHub Actions ✅
 
 - Création du fichier `.github/workflows/run_tests.yml`
@@ -570,9 +646,17 @@ eboutique_reconcil_beauty_afro/
 │   └── workflows/
 │       └── run_tests.yml    ← Pipeline CI/CD
 ├── TC001/                   ← Test 1
+│   └── TC001.py
 ├── TC002/                   ← Test 2
+│   └── TC002.py
 ├── TC003/                   ← Test 3
+│   └── TC003.py
 ├── utils/                   ← Utilitaires Selenium
+│   ├── base_test.py         ← Classe de base pour tous les tests
+│   ├── driver.py
+│   ├── fill_login_form.py
+│   ├── fill_register_form.py
+│   └── ...
 └── requirements.txt         ← Dépendances Python
 ```
 

@@ -158,6 +158,7 @@ eboutique_reconcil_beauty_afro/
 │   └── TC003.py                      ← Test 3
 │
 ├── utils/
+│   ├── base_test.py                  ← Classe de base pour tous les tests (logique commune)
 │   ├── driver.py                     ← Crée le driver Selenium
 │   ├── wait_element.py               ← Attend les éléments
 │   ├── click_element.py              ← Clique sur éléments
