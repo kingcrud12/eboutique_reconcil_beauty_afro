@@ -136,10 +136,15 @@ Ce projet inclut une suite de tests d'automatisation avec Selenium et Python pou
 - **TC001** : Test d'inscription d'un nouvel utilisateur
 - **TC002** : Test de connexion avec des identifiants valides
 - **TC003** : Test de connexion avec des identifiants invalides (test négatif)
+- **TC004** : Test d'achat de produit par un utilisateur non authentifié
 
 ### Architecture des tests
 
-Les tests utilisent une architecture orientée objet avec une classe de base `BaseTest` qui centralise toute la logique commune :
+Les tests utilisent une architecture orientée objet avec deux approches :
+
+#### Tests utilisant BaseTest (TC001, TC002, TC003)
+
+Ces tests utilisent la classe de base `BaseTest` qui centralise toute la logique commune :
 
 - **`utils/base_test.py`** : Classe `BaseTest` qui gère :
   - La création et configuration du driver Selenium
@@ -148,7 +153,7 @@ Les tests utilisent une architecture orientée objet avec une classe de base `Ba
   - La gestion des messages de succès/échec
   - La pause interactive (uniquement en mode local)
 
-Chaque test (TC001, TC002, TC003) instancie simplement `BaseTest` avec ses paramètres spécifiques :
+Chaque test instancie simplement `BaseTest` avec ses paramètres spécifiques :
 
 ```python
 # Exemple TC001
@@ -160,9 +165,26 @@ test = BaseTest(
 test.run()
 ```
 
+#### Test avec classe dédiée (TC004)
+
+Le test TC004 utilise une classe dédiée `TestBuyingProductNonAuthenticated` adaptée à ses besoins spécifiques :
+
+- **`TC004/test_buying_product_non_authenticated.py`** : Classe indépendante qui gère :
+  - La création et configuration du driver Selenium
+  - La détection automatique du mode CI/headless
+  - Le cycle de vie du test (setup, execution, teardown)
+  - La logique spécifique au parcours d'achat non authentifié
+
+```python
+# TC004.py
+test = TestBuyingProductNonAuthenticated()
+test.run()
+```
+
 Cette architecture permet :
-- ✅ **DRY** : Évite la duplication de code
-- ✅ **Maintenabilité** : Modifications centralisées dans `BaseTest`
+- ✅ **DRY** : Évite la duplication de code (BaseTest pour les tests similaires)
+- ✅ **Flexibilité** : Permet des classes dédiées pour des besoins spécifiques
+- ✅ **Maintenabilité** : Modifications centralisées ou isolées selon les besoins
 - ✅ **Extensibilité** : Facile d'ajouter de nouveaux tests
 - ✅ **Simplicité** : Chaque test se concentre sur sa logique spécifique
 
