@@ -93,6 +93,8 @@ jobs:
       env:
         CI: true
         PYTHONPATH: ${{ github.workspace }}
+        LOGIN_USERNAME: ${{ secrets.LOGIN_USERNAME }}
+        LOGIN_PASSWORD: ${{ secrets.LOGIN_PASSWORD }}
       run: |
         python TC004/TC004.py
     

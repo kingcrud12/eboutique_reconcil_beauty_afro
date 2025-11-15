@@ -47,10 +47,13 @@ def buy_product_non_authenticated(driver):
 
         time.sleep(8)
 
-        validate_home_delivery(driver)
+        home_delivery_validated = validate_home_delivery(driver)
 
-        if validate_home_delivery:
+        if home_delivery_validated:
             print("Commande créée avec succès, le panier créé en mode invité est bien récupéré et transformé en commande")
+        else:
+            print("⚠️ Échec de la validation de la livraison à domicile")
+            return False
 
         return True
 

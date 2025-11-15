@@ -4,9 +4,10 @@ from selenium.common import TimeoutException
 def configure_actions(driver, by, selector):
     try:
         element = wait_for_element(driver, by, selector)
+        if element is None:
+            return False
         driver.execute_script("arguments[0].scrollIntoView({block:'center'});", element)
         element.click()
         return True
-    except TimeoutException:
-        pass
-    return False
+    except (TimeoutException, AttributeError) as e:
+        return False
