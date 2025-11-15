@@ -88,6 +88,13 @@ jobs:
         WRONG_PASSWORD: ${{ secrets.WRONG_PASSWORD }}
       run: |
         python TC003/TC003.py
+
+    - name: Exécution des tests TC004 (Parcours de commande en mode invité)
+      env:
+        CI: true
+        PYTHONPATH: ${{ github.workspace }}
+      run: |
+        python TC004/TC004.py
     
     - name: Upload des logs en cas d'échec
       if: failure()
