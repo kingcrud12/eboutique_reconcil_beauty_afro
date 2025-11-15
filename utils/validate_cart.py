@@ -4,5 +4,5 @@ from utils.configure_actions import configure_actions
 
 
 def validate_cart(driver):
-    configure_actions(driver, By.XPATH, "//button[normalize-space()='Valider le panier']")
+    return configure_actions(driver, By.XPATH, "//button[normalize-space()='Valider le panier']")
 
