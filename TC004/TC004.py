@@ -1,3 +1,4 @@
+import os
 import time
 
 from utils.adding_product_to_cart import adding_product_to_cart
@@ -10,30 +11,39 @@ from utils.validate_cart import validate_cart
 
 
 def test_buying_product_non_authenticated():
-    driver = create_driver(headless=False)
+    is_ci = os.getenv("CI") == "true"
+    headless_mode = is_ci or os.getenv("HEADLESS", "false").lower() == "true"
 
-    get_url(driver)
+    driver = None
+    try:
+        driver = create_driver(headless=headless_mode)
 
-    click_on_products_section(driver)
+        get_url(driver)
 
-    adding_product_to_cart(driver)
+        click_on_products_section(driver)
 
-    time.sleep(2)
+        adding_product_to_cart(driver)
 
-    show_cart(driver)
+        time.sleep(2)
 
-    validate_cart(driver)
+        show_cart(driver)
 
-    if validate_cart:
-        print("Panier créé avec succès, le front créé bien un panier pour l'utilisateur non connecté")
+        cart_validated = validate_cart(driver)
 
-    is_login_card_display(driver)
+        if cart_validated:
+            print("Panier créé avec succès, le front créé bien un panier pour l'utilisateur non connecté")
 
-    if is_login_card_display:
-        print("le front demande bien à l'utilisateur non connecté de se connecter pour valider le panier")
+        login_card_displayed = is_login_card_display(driver)
 
+        if login_card_displayed:
+            print("le front demande bien à l'utilisateur non connecté de se connecter pour valider le panier")
 
-    input("Appuie sur Entrée pour fermer le navigateur...")
+        if not is_ci:
+            input("Appuie sur Entrée pour fermer le navigateur...")
+    
+    finally:
+        if driver:
+            driver.quit()
 
 if __name__ == "__main__":
     test_buying_product_non_authenticated()
