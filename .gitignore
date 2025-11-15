@@ -1,0 +1,8 @@
+# ... existing code ...
+
+# E2E Tests
+e2e/selenium/node_modules/
+e2e/selenium/screenshots/
+e2e/selenium/coverage/
+e2e/selenium/.env
+

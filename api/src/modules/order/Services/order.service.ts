@@ -204,27 +204,60 @@ export class OrderService {
 
     console.log("OrderService.create - Recherche du panier pour userId:", data.userId);
     // 🔎 IMPORTANT: si la réconciliation vient juste d'avoir lieu, le panier peut encore être sur guestId
-    const cart = await this.prisma.cart.findFirst({
-      where: { userId: data.userId },
+    // On cherche d'abord par userId
+    let cart = await this.prisma.cart.findFirst({
+      where: { 
+        userId: data.userId,
+        items: { some: {} } // Au moins un item
+      },
       include: {
         items: {
           include: { product: true },
         },
       },
+      orderBy: { createdAt: 'desc' }, // Le plus récent en premier
     });
 
-    console.log("OrderService.create - Panier trouvé:", cart ? `ID ${cart.id}, ${cart.items.length} articles` : "Aucun panier");
+    console.log("OrderService.create - Panier trouvé par userId:", cart ? `ID ${cart.id}, ${cart.items.length} articles` : "Aucun panier");
     
-    // Si aucun panier trouvé par userId, tenter une récupération par dernier panier reconcilé (uuid connu?)
+    // Si aucun panier trouvé par userId, chercher les paniers récemment créés/modifiés pour cet utilisateur
+    // (au cas où la réconciliation n'a pas encore mis à jour le userId)
     if (!cart) {
-      console.log("OrderService.create - Aucun panier par userId. Tentative de reprise dernier panier par user");
-      const lastCart = await this.prisma.cart.findFirst({
-        where: { userId: data.userId },
+      console.log("OrderService.create - Aucun panier par userId. Recherche des paniers récents...");
+      // Chercher les paniers créés dans les 5 dernières minutes qui pourraient être en cours de réconciliation
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      const recentCarts = await this.prisma.cart.findMany({
+        where: {
+          OR: [
+            { userId: data.userId },
+            { 
+              createdAt: { gte: fiveMinutesAgo },
+              items: { some: {} }
+            }
+          ]
+        },
+        include: { 
+          items: { 
+            include: { product: true } 
+          } 
+        },
         orderBy: { createdAt: 'desc' },
-        include: { items: { include: { product: true } } },
+        take: 5, // Limiter à 5 paniers récents
       });
-      if (lastCart) {
-        (cart as unknown as typeof lastCart) = lastCart;
+      
+      // Prendre le premier panier avec des items
+      cart = recentCarts.find(c => c.items.length > 0) || null;
+      
+      if (cart) {
+        console.log("OrderService.create - Panier récent trouvé:", `ID ${cart.id}, ${cart.items.length} articles`);
+        // Si le panier n'a pas encore de userId, le mettre à jour maintenant
+        if (!cart.userId) {
+          console.log("OrderService.create - Mise à jour du panier avec userId:", data.userId);
+          await this.prisma.cart.update({
+            where: { id: cart.id },
+            data: { userId: data.userId, guestId: null },
+          });
+        }
       }
     }
 

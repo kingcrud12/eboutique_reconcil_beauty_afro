@@ -11,7 +11,7 @@ const Login = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [showResetLink, setShowResetLink] = useState(false);
   const [resetSent, setResetSent] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // 👁 toggle
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -28,7 +28,6 @@ const Login = () => {
       localStorage.setItem("token", token);
       login(token);
 
-      // 🔹 redirection selon présence d'un panier guest
       const guestCart = localStorage.getItem(GUEST_STORAGE_KEY);
       if (guestCart) {
         navigate("/cart");
@@ -65,7 +64,11 @@ const Login = () => {
           Connexion
         </h2>
 
-        <form onSubmit={handleLogin} className="space-y-5">
+        <form
+          onSubmit={handleLogin}
+          className="space-y-5"
+          data-testid="login-form"
+        >
           <div>
             <label
               htmlFor="email"
@@ -79,6 +82,7 @@ const Login = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              data-testid="login-email"
               className="mt-1 w-full px-4 py-2 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-slate-500"
             />
           </div>
@@ -97,13 +101,14 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                data-testid="login-password"
                 className="mt-1 w-full px-4 py-2 pr-10 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-slate-500"
               />
-              {/* 👁 bouton œil */}
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+                data-testid="toggle-password-visibility"
               >
                 {showPassword ? "🙈" : "👁️"}
               </button>
@@ -112,6 +117,7 @@ const Login = () => {
 
           <button
             type="submit"
+            data-testid="login-submit"
             className="w-full bg-slate-800 text-white py-2 rounded-md hover:bg-slate-700 transition duration-200 font-semibold"
           >
             Se connecter
@@ -119,7 +125,10 @@ const Login = () => {
         </form>
 
         {errorMessage && (
-          <p className="mt-4 text-sm text-red-600 text-center font-medium">
+          <p
+            className="mt-4 text-sm text-red-600 text-center font-medium"
+            data-testid="login-error"
+          >
             {errorMessage}
           </p>
         )}
@@ -129,6 +138,7 @@ const Login = () => {
             <button
               onClick={handleSendResetLink}
               className="text-blue-600 hover:underline"
+              data-testid="login-reset-link"
             >
               Mot de passe oublié ? Cliquez ici pour recevoir un lien de
               réinitialisation.
@@ -137,7 +147,10 @@ const Login = () => {
         )}
 
         {resetSent && (
-          <p className="mt-4 text-sm text-green-600 text-center font-medium">
+          <p
+            className="mt-4 text-sm text-green-600 text-center font-medium"
+            data-testid="login-reset-sent"
+          >
             Un e-mail de réinitialisation a été envoyé si le compte existe.
           </p>
         )}
@@ -147,6 +160,7 @@ const Login = () => {
           <Link
             to="/register"
             className="text-slate-800 font-medium hover:underline"
+            data-testid="login-register-link"
           >
             Créer un compte
           </Link>

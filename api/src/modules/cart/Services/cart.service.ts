@@ -92,13 +92,30 @@ export class CartService {
     });
 
     if (!existingCart) return null;
+
+    // 🔄 Si on assigne un userId, on supprime le guestId (réconciliation)
+    const updateData: {
+      userId?: number | null;
+      guestId?: number | null;
+      uuid?: string | null;
+    } = {};
+
+    if (data.userId !== undefined) {
+      updateData.userId = data.userId;
+      updateData.guestId = null; // Supprimer guestId lors de la réconciliation
+    } else {
+      updateData.userId = data.userId ?? undefined;
+    }
+    if (data.guestId !== undefined) {
+      updateData.guestId = data.guestId;
+    }
+    if (data.uuid !== undefined) {
+      updateData.uuid = data.uuid;
+    }
+
     await this.prisma.cart.update({
       where: { id },
-      data: {
-        userId: data.userId ?? undefined,
-        uuid: data.uuid ?? undefined,
-        guestId: data.guestId ?? undefined,
-      },
+      data: updateData,
     });
     if (data.items && data.items.length > 0) {
       for (const item of data.items) {
