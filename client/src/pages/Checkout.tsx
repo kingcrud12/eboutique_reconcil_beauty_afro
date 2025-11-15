@@ -237,6 +237,39 @@ function Checkout() {
     }
     setOrdering(mode);
     try {
+      // 🔄 Vérifier que le panier est bien réconcilié avant de créer la commande
+      console.log("Vérification du panier avant création de commande...");
+      let cartCheckAttempts = 0;
+      let cartReady = false;
+      
+      while (cartCheckAttempts < 5 && !cartReady) {
+        try {
+          const cartRes = await api.get<Cart[]>("/carts/users/me");
+          if (cartRes.data && cartRes.data.length > 0) {
+            // Prendre le premier panier avec des items (les paniers de /users/me sont déjà filtrés par userId)
+            const userCart = cartRes.data.find(c => c.items && c.items.length > 0) || cartRes.data[0];
+            if (userCart && userCart.items && userCart.items.length > 0) {
+              cartReady = true;
+              console.log("Panier réconcilié trouvé:", userCart.id, userCart.items.length, "articles");
+            }
+          }
+        } catch (e) {
+          console.warn("Erreur vérification panier:", e);
+        }
+        
+        if (!cartReady) {
+          cartCheckAttempts++;
+          if (cartCheckAttempts < 5) {
+            console.log(`Attente réconciliation panier... (tentative ${cartCheckAttempts}/5)`);
+            await new Promise(resolve => setTimeout(resolve, 500)); // Attendre 500ms
+          }
+        }
+      }
+      
+      if (!cartReady) {
+        console.warn("Panier non trouvé après réconciliation, tentative de création de commande quand même...");
+      }
+      
       console.log("Tentative de création de commande (domicile)...", {
         deliveryAddress: cleanAddress,
         userId: user.id,
@@ -258,9 +291,16 @@ function Checkout() {
         console.log("Détails de l'erreur API:", {
           status: response?.status,
           statusText: response?.statusText,
-          data: response?.data
+          data: response?.data,
+          headers: response?.headers
         });
-        alert(`Erreur lors de la création de commande: ${response?.data?.message || response?.statusText || "Erreur inconnue"}`);
+        
+        // Vérifier si c'est une erreur CORS
+        if (response?.status === 0 || !response?.status) {
+          alert("Erreur de connexion au serveur. Vérifiez votre connexion et réessayez.");
+        } else {
+          alert(`Erreur lors de la création de commande: ${response?.data?.message || response?.statusText || "Erreur inconnue"}`);
+        }
       } else {
         alert("Une erreur est survenue lors de la commande");
       }
@@ -283,6 +323,39 @@ function Checkout() {
 
     setOrdering("relay");
     try {
+      // 🔄 Vérifier que le panier est bien réconcilié avant de créer la commande
+      console.log("Vérification du panier avant création de commande...");
+      let cartCheckAttempts = 0;
+      let cartReady = false;
+      
+      while (cartCheckAttempts < 5 && !cartReady) {
+        try {
+          const cartRes = await api.get<Cart[]>("/carts/users/me");
+          if (cartRes.data && cartRes.data.length > 0) {
+            // Prendre le premier panier avec des items (les paniers de /users/me sont déjà filtrés par userId)
+            const userCart = cartRes.data.find(c => c.items && c.items.length > 0) || cartRes.data[0];
+            if (userCart && userCart.items && userCart.items.length > 0) {
+              cartReady = true;
+              console.log("Panier réconcilié trouvé:", userCart.id, userCart.items.length, "articles");
+            }
+          }
+        } catch (e) {
+          console.warn("Erreur vérification panier:", e);
+        }
+        
+        if (!cartReady) {
+          cartCheckAttempts++;
+          if (cartCheckAttempts < 5) {
+            console.log(`Attente réconciliation panier... (tentative ${cartCheckAttempts}/5)`);
+            await new Promise(resolve => setTimeout(resolve, 500)); // Attendre 500ms
+          }
+        }
+      }
+      
+      if (!cartReady) {
+        console.warn("Panier non trouvé après réconciliation, tentative de création de commande quand même...");
+      }
+      
       console.log("Tentative de création de commande (relais/locker)...", {
         deliveryAddress,
         userId: user.id,
@@ -304,9 +377,16 @@ function Checkout() {
         console.log("Détails de l'erreur API:", {
           status: response?.status,
           statusText: response?.statusText,
-          data: response?.data
+          data: response?.data,
+          headers: response?.headers
         });
-        alert(`Erreur lors de la création de commande: ${response?.data?.message || response?.statusText || "Erreur inconnue"}`);
+        
+        // Vérifier si c'est une erreur CORS
+        if (response?.status === 0 || !response?.status) {
+          alert("Erreur de connexion au serveur. Vérifiez votre connexion et réessayez.");
+        } else {
+          alert(`Erreur lors de la création de commande: ${response?.data?.message || response?.statusText || "Erreur inconnue"}`);
+        }
       } else {
         alert("Une erreur est survenue lors de la commande");
       }
