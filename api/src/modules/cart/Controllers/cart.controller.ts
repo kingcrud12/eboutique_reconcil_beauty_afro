@@ -260,14 +260,12 @@ export class CartController {
         where: { guestId: guest.id },
       });
 
-      // Si pas de panier, on en crée un
+      // Si pas de panier, on en crée un SANS items (ils seront ajoutés par updateCart)
       if (!cart) {
         cart = await this.prisma.cart.create({
           data: {
             guestId: guest.id,
-            items: {
-              create: data.items || [],
-            },
+            // Ne pas créer les items ici, updateCart s'en chargera
           },
         });
       }
