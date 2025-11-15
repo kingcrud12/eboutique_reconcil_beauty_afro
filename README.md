@@ -125,6 +125,81 @@ src/
 - Les administrateurs peuvent gérer le catalogue, les commandes et les utilisateurs via le backoffice.
 
 
+---
+
+## 🧪 Tests d'automatisation Selenium
+
+Ce projet inclut une suite de tests d'automatisation avec Selenium et Python pour valider les fonctionnalités de l'application.
+
+### Structure des tests
+
+- **TC001** : Test d'inscription d'un nouvel utilisateur
+- **TC002** : Test de connexion avec des identifiants valides
+- **TC003** : Test de connexion avec des identifiants invalides (test négatif)
+- **TC004** : Test d'achat de produit par un utilisateur non authentifié
+
+### Architecture des tests
+
+Les tests utilisent une architecture orientée objet avec deux approches :
+
+#### Tests utilisant BaseTest (TC001, TC002, TC003)
+
+Ces tests utilisent la classe de base `BaseTest` qui centralise toute la logique commune :
+
+- **`utils/base_test.py`** : Classe `BaseTest` qui gère :
+  - La création et configuration du driver Selenium
+  - La détection automatique du mode CI/headless
+  - Le cycle de vie des tests (setup, execution, teardown)
+  - La gestion des messages de succès/échec
+  - La pause interactive (uniquement en mode local)
+
+Chaque test instancie simplement `BaseTest` avec ses paramètres spécifiques :
+
+```python
+# Exemple TC001
+test = BaseTest(
+    test_function=fill_register_form,
+    success_message="✅ Formulaire d'inscription rempli avec succès",
+    failure_message="⚠️ Échec du remplissage du formulaire"
+)
+test.run()
+```
+
+#### Test avec classe dédiée (TC004)
+
+Le test TC004 utilise une classe dédiée `TestBuyingProductNonAuthenticated` adaptée à ses besoins spécifiques :
+
+- **`TC004/test_buying_product_non_authenticated.py`** : Classe indépendante qui gère :
+  - La création et configuration du driver Selenium
+  - La détection automatique du mode CI/headless
+  - Le cycle de vie du test (setup, execution, teardown)
+  - La logique spécifique au parcours d'achat non authentifié
+
+```python
+# TC004.py
+test = TestBuyingProductNonAuthenticated()
+test.run()
+```
+
+Cette architecture permet :
+- ✅ **DRY** : Évite la duplication de code (BaseTest pour les tests similaires)
+- ✅ **Flexibilité** : Permet des classes dédiées pour des besoins spécifiques
+- ✅ **Maintenabilité** : Modifications centralisées ou isolées selon les besoins
+- ✅ **Extensibilité** : Facile d'ajouter de nouveaux tests
+- ✅ **Simplicité** : Chaque test se concentre sur sa logique spécifique
+
+### Pipeline CI/CD
+
+Les tests s'exécutent automatiquement via GitHub Actions à chaque push sur les branches `main`, `master` ou `develop`.
+
+**Configuration requise** :
+- Les secrets GitHub doivent être configurés (voir `GITHUB_ACTIONS_SETUP.md`)
+- Les tests s'exécutent en mode headless dans GitHub Actions
+
+**Documentation complète** : Consultez `GITHUB_ACTIONS_SETUP.md` pour les instructions détaillées de configuration.
+
+---
+
 Licence
 
 Ce projet est sous licence MIT.
