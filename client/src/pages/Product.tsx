@@ -16,9 +16,15 @@ function Product() {
   // États pour l'ajout au panier / UI
   const [adding, setAdding] = useState(false);
   const [popinMsg, setPopinMsg] = useState<string | null>(null);
-  
 
-  const { fetchCart, fetchGuestCart, createGuestCart, firstCart, updateGuestCart, setCarts } = useCart();
+  const {
+    fetchCart,
+    fetchGuestCart,
+    createGuestCart,
+    firstCart,
+    updateGuestCart,
+    setCarts,
+  } = useCart();
   const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
@@ -258,13 +264,6 @@ function Product() {
 
         {/* Additional info / back button */}
         <div className="mt-12 flex flex-col md:flex-row md:justify-between items-center md:items-start gap-4">
-          <div className="text-sm text-gray-600">
-            <div>
-              <span className="font-semibold">Poids:</span>{" "}
-              <span>{weightDisplay}</span>
-            </div>
-          </div>
-
           <div className="flex gap-3">
             <button
               onClick={() => navigate("/products")}
