@@ -1,5 +1,11 @@
+from __future__ import annotations
+
 import os
-from selenium.webdriver.remote.webdriver import WebDriver
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from selenium.webdriver.remote.webdriver import WebDriver
+
 from utils.buy_product_non_authenticated import buy_product_non_authenticated
 from utils.driver import create_driver
 from utils.get_url import get_url
@@ -8,7 +14,7 @@ from utils.get_url import get_url
 class TestBuyingProductNonAuthenticated:
     
     def __init__(self):
-        self.driver: WebDriver = None
+        self.driver: "WebDriver | None" = None
         self.is_ci = os.getenv("CI") == "true"
         self.headless_mode = self.is_ci or os.getenv("HEADLESS", "false").lower() == "true"
     
@@ -32,7 +38,11 @@ class TestBuyingProductNonAuthenticated:
                 exit(1)
             
             if not self.is_ci:
-                input("Appuie sur Entrée pour fermer le navigateur...")
+                try:
+                    input("Appuie sur Entrée pour fermer le navigateur...")
+                except (EOFError, KeyboardInterrupt):
+                    # Mode non-interactif (pipeline CI, etc.)
+                    pass
         
         finally:
             self.teardown()
