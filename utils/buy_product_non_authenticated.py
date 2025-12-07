@@ -1,9 +1,12 @@
 import time
 from utils.adding_product_to_cart import adding_product_to_cart
+from utils.click_on_login_button import click_on_login_button
 from utils.click_on_products_section import click_on_products_section
+from utils.fill_login_form import fill_login_form
 from utils.is_login_card_display import is_login_card_display
 from utils.show_cart import show_cart
 from utils.validate_cart import validate_cart
+from utils.validate_home_delivery import validate_home_delivery
 
 
 def buy_product_non_authenticated(driver):
@@ -30,6 +33,26 @@ def buy_product_non_authenticated(driver):
             print("le front demande bien à l'utilisateur non connecté de se connecter pour valider le panier")
         else:
             print("⚠️ Le front n'a pas demandé la connexion")
+            return False
+
+        time.sleep(2)
+
+        click_on_login_button(driver)
+
+        fill_login_form(driver)
+
+        time.sleep(2)
+
+        validate_cart(driver)
+
+        time.sleep(8)
+
+        home_delivery_validated = validate_home_delivery(driver)
+
+        if home_delivery_validated:
+            print("Commande créée avec succès, le panier créé en mode invité est bien récupéré et transformé en commande")
+        else:
+            print("⚠️ Échec de la validation de la livraison à domicile")
             return False
 
         return True

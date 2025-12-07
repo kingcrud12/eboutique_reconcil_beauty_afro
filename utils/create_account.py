@@ -1,6 +1,5 @@
 from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
-
 from utils.wait_element import wait_for_element
 
 
