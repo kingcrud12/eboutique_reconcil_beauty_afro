@@ -30,8 +30,10 @@ interface OrderMailContext {
 export class MailService {
   constructor(private readonly mailerService: MailerService) {}
 
+  frontend = process.env.FRONTEND_URL;
+
   async sendConfirmationEmail(to: string, token: string) {
-    const confirmUrl = `https://eboutique-reconcil-beauty-afro.vercel.app/confirm-account?token=${token}`;
+    const confirmUrl = `${this.frontend}/confirm-account?token=${token}`;
     await this.mailerService.sendMail({
       to,
       subject: 'Confirmez votre compte',
@@ -41,7 +43,7 @@ export class MailService {
   }
 
   async sendPasswordResetEmail(to: string, token: string) {
-    const resetUrl = `https://eboutique-reconcil-beauty-afro.vercel.app/reset-password?token=${token}`;
+    const resetUrl = `${this.frontend}/reset-password?token=${token}`;
     await this.mailerService.sendMail({
       to,
       subject: 'Réinitialisation de votre mot de passe',
