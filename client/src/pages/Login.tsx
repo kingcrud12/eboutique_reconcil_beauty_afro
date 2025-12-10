@@ -37,9 +37,8 @@ const Login = () => {
     } catch (error: any) {
       console.error("Erreur de connexion :", error.response?.data || error);
       setErrorMessage("Email ou mot de passe incorrect.");
-      if (error.response?.status === 401) {
-        setShowResetLink(true);
-      }
+      // Afficher le lien de réinitialisation à chaque erreur de connexion
+      setShowResetLink(true);
     }
   };
 
