@@ -72,7 +72,7 @@ function Hero() {
   return (
     // If cinematic, use z-[60] to cover the fixed z-50 Appbar. Also enforce h-screen.
     <div className={`w-full relative overflow-hidden bg-white transition-all duration-500
-      ${isCinematicMode ? "z-[60] h-screen fixed inset-0" : "relative h-[65vh] md:h-screen z-0"}
+      ${isCinematicMode ? "z-[60] h-screen fixed inset-0" : "relative h-[45vh] md:h-screen z-0"}
     `}>
       <Slider {...settings} className="h-full">
         {slides.map((slide, index) => (

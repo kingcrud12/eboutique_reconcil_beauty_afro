@@ -219,18 +219,14 @@ function Product() {
   return (
     <div
       ref={containerRef}
-      className="py-8 md:py-16 px-1 sm:px-2 lg:px-3 bg-white font-sans"
+      className="pt-2 pb-16 md:py-16 px-1 sm:px-2 lg:px-3 bg-white font-sans"
     >
       {popinMsg && (
         <Popin message={popinMsg} onClose={() => setPopinMsg(null)} />
       )}
 
       <div className="w-full mx-auto">
-        <div className="flex flex-wrap justify-center gap-6 mb-10">
-          {/* Animated Icons */}
-        </div>
-
-        <div className="text-center mb-8">
+        <div className="text-center mb-4">
           <ProductIcons />
           <h2 className="text-3xl font-extrabold text-gray-900">
             Nos Produits

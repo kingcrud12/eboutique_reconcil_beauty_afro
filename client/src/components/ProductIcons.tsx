@@ -78,7 +78,7 @@ const ProductIcons = () => {
 
   if (showRabbit) {
     return (
-      <div className="w-full mb-8 h-40 flex items-center justify-center overflow-hidden gap-8 animate-fade-in">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-16 flex items-center justify-center overflow-hidden gap-8 animate-fade-in">
         <div className="flex flex-col items-center animate-bounce-slow">
           <img
             src="/rabbit_anim.jpg"
@@ -101,7 +101,7 @@ const ProductIcons = () => {
   }
 
   return (
-    <div className="w-full mb-8">
+    <div className="w-full mb-2">
       {/* Desktop: une seule ligne */}
       <div className="hidden sm:flex justify-between items-center px-4 sm:px-8 lg:px-16 h-40 transition-all duration-500">
         {icons.map((item) => (
