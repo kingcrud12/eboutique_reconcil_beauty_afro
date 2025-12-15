@@ -7,17 +7,9 @@ import "slick-carousel/slick/slick-theme.css";
 
 const slides = [
   {
-    image: "cinematic_hero.png",
-    title: "L'Essence de la Nature",
-    subtitle: "Plongez dans un univers où la beauté rencontre l'authenticité.",
-    cta: "Explorer la Collection",
-    link: "/products",
-    isCinematic: true, // Marker for full-screen mode
-  },
-  {
     image: "ban_2.png",
     title: "L'Élégance Naturelle",
-    subtitle: "L'alliance parfaite du beuure de mangue et de la carthame.",
+    subtitle: "L'alliance parfaite du beure de mangue et de la carthame.",
     cta: "Voir",
     link: "/products",
   },
@@ -27,6 +19,14 @@ const slides = [
     subtitle: "La magie de la Mangue et du Carthame pour vos cheveux.",
     cta: "Découvrir le Duo",
     link: "/products",
+  },
+  {
+    image: "cinematic_hero.png",
+    title: "L'Essence de la Nature",
+    subtitle: "Plongez dans un univers où la beauté rencontre l'authenticité.",
+    cta: "Explorer la Collection",
+    link: "/products",
+    isCinematic: true, // Marker for full-screen mode
   },
 ];
 
@@ -89,16 +89,16 @@ function Hero() {
 
                 {/* Text Overlay */}
                 <div className={`absolute inset-0 flex flex-col items-center justify-center text-center p-4 
-                  ${slide.isCinematic ? "bg-black/10 justify-end pb-32" : "bg-black/5"}`}>
+                  ${slide.isCinematic ? "bg-black/40 justify-end pb-32" : "bg-black/40"}`}>
 
                   <div className="max-w-4xl space-y-4 animate-fade-in-up">
                     <h2 className="text-4xl md:text-6xl lg:text-7xl font-playfair text-white drop-shadow-lg font-bold">
                       {slide.title}
                     </h2>
-                    <p className="text-xl md:text-2xl font-open-sans text-white/90 drop-shadow-md max-w-2xl mx-auto">
+                    <p className="text-xl md:text-2xl font-open-sans text-white/95 drop-shadow-md font-medium max-w-2xl mx-auto">
                       {slide.subtitle}
                     </p>
-                    <span className="inline-block mt-6 px-8 py-3 bg-white/10 backdrop-blur-md border border-white/30 text-white font-semibold rounded-full hover:bg-white hover:text-purple-900 transition-all duration-300 transform hover:scale-105">
+                    <span className="inline-block mt-6 px-8 py-3 bg-purple-900 text-white font-semibold rounded-full hover:bg-white hover:text-purple-900 transition-all duration-300 transform hover:scale-105 shadow-lg border border-transparent hover:border-purple-900">
                       {slide.cta}
                     </span>
                   </div>
