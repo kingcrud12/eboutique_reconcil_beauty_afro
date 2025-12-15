@@ -30,10 +30,10 @@ function App() {
           <Route index element={<Home />} />
           <Route path="products" element={<ProductsSEO />} />
           <Route path="about" element={<About />} />
-          <Route path="appointment" element={<Appointment />} />
+          <Route path="prenez-un-rendez-vous-pour-une-coiffure-afro" element={<Appointment />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
-          <Route path="product/:productId" element={<ProductSEO />} />
+          <Route path="product/:slug" element={<ProductSEO />} />
           <Route path="confirm-account" element={<ConfirmAccount />} />
           <Route path="check" element={<CheckEmail />} />
           <Route path="reset-password" element={<ResetPassword />} />
