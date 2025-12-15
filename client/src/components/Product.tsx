@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import api from "../connect_to_api/api";
 import { IProduct } from "../connect_to_api/product.interface";
 import { Link, useNavigate } from "react-router-dom";
+import { createProductSlug } from "../utils/urlUtils";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
 import Popin from "../components/Popin";
@@ -75,7 +76,10 @@ function Product() {
           })
       )
     )
-      .then((productsData) => setProducts(productsData))
+      .then((productsData) => {
+        const validProducts = productsData.filter((p) => !!p);
+        setProducts(validProducts);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -147,23 +151,23 @@ function Product() {
           prev.map((cart) =>
             cart.id === cartId
               ? {
-                  ...cart,
-                  items: cart.items.some((i) => i.product.id === product.id)
-                    ? cart.items.map((i) =>
-                        i.product.id === product.id
-                          ? { ...i, quantity: i.quantity + 1 }
-                          : i
-                      )
-                    : [
-                        ...cart.items,
-                        {
-                          id: Date.now(),
-                          productId: product.id,
-                          product,
-                          quantity: 1,
-                        },
-                      ],
-                }
+                ...cart,
+                items: cart.items.some((i) => i.product.id === product.id)
+                  ? cart.items.map((i) =>
+                    i.product.id === product.id
+                      ? { ...i, quantity: i.quantity + 1 }
+                      : i
+                  )
+                  : [
+                    ...cart.items,
+                    {
+                      id: Date.now(),
+                      productId: product.id,
+                      product,
+                      quantity: 1,
+                    },
+                  ],
+              }
               : cart
           )
         );
@@ -215,7 +219,7 @@ function Product() {
   return (
     <div
       ref={containerRef}
-      className="py-16 px-1 sm:px-2 lg:px-3 bg-white font-sans"
+      className="py-8 md:py-16 px-1 sm:px-2 lg:px-3 bg-white font-sans"
     >
       {popinMsg && (
         <Popin message={popinMsg} onClose={() => setPopinMsg(null)} />
@@ -245,26 +249,24 @@ function Product() {
             return (
               <article
                 key={product.id}
-                className={`group relative w-full flex flex-col bg-white rounded-3xl border border-gray-200 shadow-2xl transition-transform duration-300 ${
-                  isActive
-                    ? "z-50 -translate-y-2 shadow-2xl"
-                    : "hover:-translate-y-2 hover:z-10"
-                }`}
+                className={`group relative w-full flex flex-col bg-white rounded-3xl border border-gray-200 shadow-2xl transition-transform duration-300 ${isActive
+                  ? "z-50 -translate-y-2 shadow-2xl"
+                  : "hover:-translate-y-2 hover:z-10"
+                  }`}
               >
                 {/* IMAGE BLOCK */}
                 <div
-                  className={`w-full h-[420px] sm:h-[460px] md:h-96 flex items-center justify-center ${
-                    isMiddle ? "bg-white" : ""
-                  } overflow-visible`}
+                  className={`w-full h-[420px] sm:h-[460px] md:h-96 flex items-center justify-center ${isMiddle ? "bg-white" : ""
+                    } overflow-visible`}
                 >
                   <Link
-                    to={`/product/${product.id}`}
+                    to={`/product/${createProductSlug(product.id, product.name)}`}
                     onClick={(e) => {
                       if (isTouch) {
                         handleImageClickOnTouch(
                           e as any,
                           product.id,
-                          `/product/${product.id}`
+                          `/product/${createProductSlug(product.id, product.name)}`
                         );
                       }
                     }}
@@ -275,9 +277,8 @@ function Product() {
                       src={product.imageUrl}
                       alt={product.name}
                       loading="lazy"
-                      className={`w-11/12 sm:w-10/12 md:w-9/12 lg:w-8/12 max-w-none h-auto object-contain block desktop-img ${
-                        isActive ? "mobile-active" : ""
-                      }`}
+                      className={`w-11/12 sm:w-10/12 md:w-9/12 lg:w-8/12 max-w-none h-auto object-contain block desktop-img ${isActive ? "mobile-active" : ""
+                        }`}
                       style={{
                         mixBlendMode: "multiply",
                         background: "transparent",
@@ -289,7 +290,7 @@ function Product() {
                 {/* CARD BODY */}
                 <div className="p-8 flex-1 flex flex-col justify-between">
                   <div>
-                    <Link to={`/product/${product.id}`}>
+                    <Link to={`/product/${createProductSlug(product.id, product.name)}`}>
                       <h3 className="text-xl sm:text-2xl font-extrabold text-gray-800 mb-3 line-clamp-2">
                         {product.name}
                       </h3>

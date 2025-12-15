@@ -6,18 +6,21 @@ import Product from "./Product";
 import api from "../connect_to_api/api";
 import { IProduct } from "../connect_to_api/product.interface";
 
+import { extractIdFromSlug } from "../utils/urlUtils";
+
 const ProductSEO = () => {
-  const { productId } = useParams();
+  const { slug } = useParams();
   const [product, setProduct] = useState<IProduct | null>(null);
 
   useEffect(() => {
-    if (productId) {
+    if (slug) {
+      const id = extractIdFromSlug(slug);
       api
-        .get(`/products/${productId}`)
+        .get(`/products/${id}`)
         .then((res) => setProduct(res.data))
         .catch((err) => console.error("Erreur SEO produit :", err));
     }
-  }, [productId]);
+  }, [slug]);
 
   return (
     <>

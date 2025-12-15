@@ -12,15 +12,15 @@ const ProductsSEO = () => {
           href={`https://eboutique-reconcil-beauty-afro.vercel.app${window.location.pathname}`}
         />
         <title>
-          Nos produits capillaires et corporels - Reconcil' Afro Beauty
+          Produits Afro Beauté - Huile de Carthame, Chebe & Soins Capillaires | Reconcil' Afro Beauty
         </title>
         <meta
           name="description"
-          content="Découvrez notre sélection de produits capillaires et corporels de qualité pour cheveux et corps. Achetez facilement en ligne !"
+          content="Achetez nos huiles de carthame et chebe pour cheveux afro. Soins naturels, hydratation et croissance. Découvrez toute la gamme Afro Beauté."
         />
         <meta
           property="og:title"
-          content="Nos produits capillaires et corporels"
+          content="Produits Afro Beauté - Huile de Carthame & Chebe"
         />
         <meta
           property="og:description"

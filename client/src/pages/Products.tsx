@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import api from "../connect_to_api/api";
 import { IProduct } from "../connect_to_api/product.interface";
 import { Link } from "react-router-dom";
+import { createProductSlug } from "../utils/urlUtils";
 import Popin from "../components/Popin";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
@@ -138,8 +139,8 @@ const Products = () => {
               {cat === "hair"
                 ? "Produits capillaires"
                 : cat === "body"
-                ? "Produits corporels"
-                : "Tous"}
+                  ? "Produits corporels"
+                  : "Tous"}
             </option>
           ))}
         </select>
@@ -158,7 +159,7 @@ const Products = () => {
             >
               <div className="w-full h-60 sm:h-72 flex items-center justify-center bg-white">
                 <Link
-                  to={`/product/${p.id}`}
+                  to={`/product/${createProductSlug(p.id, p.name)}`}
                   className="w-full h-full flex items-center justify-center"
                 >
                   <img
@@ -175,7 +176,7 @@ const Products = () => {
 
               <div className="p-4 sm:p-6 flex-1 flex flex-col justify-between text-center">
                 <div>
-                  <Link to={`/product/${p.id}`}>
+                  <Link to={`/product/${createProductSlug(p.id, p.name)}`}>
                     <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 line-clamp-2">
                       {p.name}
                     </h3>
@@ -192,17 +193,16 @@ const Products = () => {
                   <button
                     onClick={() => handleAdd(p.id)}
                     disabled={disabled}
-                    className={`px-6 sm:px-8 py-3 rounded-full text-white font-semibold ${
-                      disabled
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-green-600 hover:opacity-95 transition"
-                    }`}
+                    className={`px-6 sm:px-8 py-3 rounded-full text-white font-semibold ${disabled
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-green-600 hover:opacity-95 transition"
+                      }`}
                   >
                     {isOutOfStock
                       ? "Indisponible"
                       : isAdding
-                      ? "Ajout..."
-                      : "Ajouter au panier"}
+                        ? "Ajout..."
+                        : "Ajouter au panier"}
                   </button>
                 </div>
               </div>

@@ -5,9 +5,10 @@ import { IProduct } from "../connect_to_api/product.interface";
 import Popin from "../components/Popin";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
+import { extractIdFromSlug } from "../utils/urlUtils";
 
 function Product() {
-  const { productId } = useParams();
+  const { slug } = useParams();
   const navigate = useNavigate();
 
   const [product, setProduct] = useState<IProduct | null>(null);
@@ -28,9 +29,10 @@ function Product() {
   const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
-    if (productId) {
+    if (slug) {
+      const id = extractIdFromSlug(slug);
       api
-        .get(`/products/${productId}`)
+        .get(`/products/${id}`)
         .then((res) => setProduct(res.data))
         .catch((err) => {
           console.error("Erreur produit :", err);
@@ -38,7 +40,7 @@ function Product() {
         })
         .finally(() => setLoading(false));
     }
-  }, [productId]);
+  }, [slug]);
 
   // Formatage du prix en euros (FR)
   const formatPrice = (raw: any) => {
@@ -47,8 +49,8 @@ function Product() {
       typeof raw === "number"
         ? raw
         : typeof raw === "string"
-        ? Number(raw.trim().replace(",", "."))
-        : NaN;
+          ? Number(raw.trim().replace(",", "."))
+          : NaN;
     if (!Number.isFinite(asNumber)) return null;
     return new Intl.NumberFormat("fr-FR", {
       style: "currency",
@@ -83,13 +85,6 @@ function Product() {
   const isOutOfStock = Number(product.stock) <= 0;
   const priceString = formatPrice(product.price);
 
-  // Prépare l'affichage du poids (ajoute 'g' si c'est un nombre)
-  const weightDisplay =
-    product.weight === null || product.weight === undefined
-      ? "—"
-      : typeof product.weight === "number"
-      ? `${product.weight} g`
-      : String(product.weight);
 
   // --- Logic d'ajout au panier (repris depuis Products)
   const handleAdd = async () => {
@@ -219,17 +214,16 @@ function Product() {
                 <button
                   onClick={handleAdd}
                   disabled={isOutOfStock || adding}
-                  className={`w-64 md:w-full max-w-xs md:max-w-none px-6 py-3 rounded-full text-white font-semibold transition ${
-                    isOutOfStock || adding
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-green-600 hover:opacity-95"
-                  }`}
+                  className={`w-64 md:w-full max-w-xs md:max-w-none px-6 py-3 rounded-full text-white font-semibold transition ${isOutOfStock || adding
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-green-600 hover:opacity-95"
+                    }`}
                 >
                   {isOutOfStock
                     ? "Indisponible"
                     : adding
-                    ? "Ajout..."
-                    : "Ajouter au panier"}
+                      ? "Ajout..."
+                      : "Ajouter au panier"}
                 </button>
 
                 {/* Placeholder pour options de paiement (inspiré visuel) */}

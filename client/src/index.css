@@ -25,9 +25,11 @@ code {
   0% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.05);
   }
+
   100% {
     transform: scale(1);
   }
@@ -45,15 +47,19 @@ code {
   0% {
     transform: rotate(0deg) translateY(0px);
   }
+
   25% {
     transform: rotate(5deg) translateY(-3px);
   }
+
   50% {
     transform: rotate(0deg) translateY(-5px);
   }
+
   75% {
     transform: rotate(-5deg) translateY(-3px);
   }
+
   100% {
     transform: rotate(0deg) translateY(0px);
   }
@@ -66,4 +72,146 @@ code {
 /* Animation de rotation continue pour les icônes au survol */
 .group:hover .animate-spin-dance {
   animation: spin 1s linear infinite, spinDance 2s ease-in-out infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin 8s linear infinite;
+}
+
+@keyframes bounceSlow {
+
+  0%,
+  100% {
+    transform: translateY(-5%);
+  }
+
+  50% {
+    transform: translateY(5%);
+  }
+}
+
+.animate-bounce-slow {
+  animation: bounceSlow 3s infinite ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* --- CALENDAR CUSTOMIZATION --- */
+.react-calendar {
+  width: 100% !important;
+  max-width: 100%;
+  background: white;
+  border: 1px solid #f3f4f6;
+  border-radius: 1rem;
+  font-family: 'Open Sans', sans-serif;
+  line-height: 1.125em;
+  padding: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.react-calendar__navigation button {
+  color: #581c87;
+  /* purple-900 */
+  min-width: 44px;
+  background: none;
+  font-size: 1.1rem;
+  font-family: 'Playfair Display', serif;
+  font-weight: bold;
+}
+
+.react-calendar__navigation button:enabled:hover,
+.react-calendar__navigation button:enabled:focus {
+  background-color: #f3f4f6;
+  border-radius: 0.5rem;
+}
+
+.react-calendar__month-view__weekdays {
+  text-align: center;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #6b7280;
+  /* gray-500 */
+  margin-bottom: 0.5rem;
+}
+
+.react-calendar__tile {
+  max-width: 100%;
+  text-align: center;
+  padding: 0.75rem 0.5rem;
+  background: none;
+  transition: all 0.2s;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  position: relative;
+}
+
+.react-calendar__tile:enabled:hover,
+.react-calendar__tile:enabled:focus {
+  background-color: #f3f4f6;
+  color: #581c87;
+}
+
+.react-calendar__tile--now {
+  background: #fdf4ff !important;
+  /* light purple */
+  color: #581c87 !important;
+  font-weight: bold;
+}
+
+.react-calendar__tile--active {
+  background: #581c87 !important;
+  color: white !important;
+  box-shadow: 0 4px 6px -1px rgba(88, 28, 135, 0.4);
+}
+
+.react-calendar__tile--active:enabled:hover,
+.react-calendar__tile--active:enabled:focus {
+  background: #4c1d75 !important;
+}
+
+/* Custom tile content (the little notification badge) */
+.react-calendar__tile span {
+  display: block;
+  margin: 2px auto 0;
+  font-size: 0.65rem;
+  width: fit-content;
+}
+
+/* --- CINEMATIC ANIMATIONS --- */
+@keyframes kenBurns {
+  0% {
+    transform: scale(1) translate(0, 0);
+  }
+
+  100% {
+    transform: scale(1.15) translate(-2%, -2%);
+  }
+}
+
+.animate-ken-burns {
+  animation: kenBurns 15s ease-out infinite alternate;
+  will-change: transform;
 }
