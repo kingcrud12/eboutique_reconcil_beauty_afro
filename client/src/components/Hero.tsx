@@ -8,6 +8,7 @@ import "slick-carousel/slick/slick-theme.css";
 const slides = [
   {
     image: "ban_2.png",
+    mobileImage: "ban_2_mobile.png",
     title: "L'Élégance Naturelle",
     subtitle: "L'alliance parfaite du beure de mangue et de la carthame.",
     cta: "Voir",
@@ -15,6 +16,7 @@ const slides = [
   },
   {
     image: "bannerAlph.png",
+    mobileImage: "bannerAlph_mobile.png",
     title: "Duo Éclat & Douceur",
     subtitle: "La magie de la Mangue et du Carthame pour vos cheveux.",
     cta: "Découvrir le Duo",
@@ -22,6 +24,7 @@ const slides = [
   },
   {
     image: "cinematic_hero.png",
+    mobileImage: "cinematic_hero_mobile.png",
     title: "L'Essence de la Nature",
     subtitle: "Plongez dans un univers où la beauté rencontre l'authenticité.",
     cta: "Explorer la Collection",
@@ -79,13 +82,16 @@ function Hero() {
           <div key={index} className="relative w-full h-full outline-none group overflow-hidden">
             <Link to={slide.link} className="block w-full h-full relative">
               <div className="w-full h-full overflow-hidden relative">
-                <img
-                  src={slide.image}
-                  alt={slide.title}
-                  className={`w-full h-full object-cover object-top transform transition-transform ease-in-out will-change-transform 
-                    ${slide.isCinematic ? "animate-ken-burns" : (index === currentSlide ? "scale-110 duration-[10000ms]" : "scale-100 duration-[10000ms]")} 
-                    filter brightness-105`}
-                />
+                <picture className="w-full h-full block">
+                  <source media="(max-width: 768px)" srcSet={slide.mobileImage || slide.image} />
+                  <img
+                    src={slide.image}
+                    alt={slide.title}
+                    className={`w-full h-full object-cover object-top transform transition-transform ease-in-out will-change-transform 
+                      ${slide.isCinematic ? "animate-ken-burns" : (index === currentSlide ? "scale-110 duration-[10000ms]" : "scale-100 duration-[10000ms]")} 
+                      filter brightness-105`}
+                  />
+                </picture>
 
                 {/* Text Overlay */}
                 <div className={`absolute inset-0 flex flex-col items-center justify-center text-center p-4 
