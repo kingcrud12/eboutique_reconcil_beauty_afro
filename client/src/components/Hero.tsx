@@ -71,7 +71,7 @@ function Hero() {
   };
 
   return (
-    <div className="w-full relative overflow-hidden bg-neutral-900 z-0">
+    <div className="w-full relative overflow-hidden bg-neutral-900 mt-[90px]">
       <Slider {...settings} className="w-full h-full">
         {slides.map((slide, index) => (
           <div
@@ -93,7 +93,7 @@ function Hero() {
               </picture>
 
               {/* Text Overlay */}
-              <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center px-4 py-8 sm:px-6 sm:py-12 md:px-12">
+              <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center text-center px-4 py-8 sm:px-6 sm:py-12 md:px-12">
                 <div className="max-w-4xl space-y-4 md:space-y-6 animate-fade-in-up">
                   <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-playfair text-white drop-shadow-lg font-bold leading-tight">
                     {slide.title}
