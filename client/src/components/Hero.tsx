@@ -5,9 +5,9 @@ const slides = [
   {
     image: "bannerAlph_square.png",
     tag: "Nouveauté",
-    title: "Gamme Hydratation Intense",
-    titleGreen: "Pour cheveux afro & bouclés",
-    subtitle: "Découvrez notre nouvelle collection aux huiles précieuses et beurre de karité pur",
+    title: "Duo Éclat & Douceur",
+    titleGreen: "Hydratation Intense & Brillance",
+    subtitle: "Un duo naturel qui respecte la vraie nature de vos cheveux",
     cta: "Découvrir la gamme",
     link: "/products",
   },
@@ -23,9 +23,9 @@ const slides = [
   {
     image: "banner_carthame_desktop.png",
     tag: "Sélection",
-    title: "Ingrédients Purs",
+    title: "L'Élégance Naturelle",
     titleGreen: "Directement de la nature",
-    subtitle: "Beurre de karité brut, aloe vera, huile de coco vierge — le meilleur pour vos cheveux",
+    subtitle: "Penser pour aimer et révéler la beauté de vos cheveux au quotidien",
     cta: "Explorer",
     link: "/products",
   },
@@ -81,11 +81,10 @@ function Hero() {
                 <button
                   key={i}
                   onClick={() => goTo(i)}
-                  className={`rounded-full transition-all duration-300 ${
-                    i === currentSlide
-                      ? "w-8 h-2 bg-sage-600"
-                      : "w-2 h-2 bg-gray-300 hover:bg-gray-400"
-                  }`}
+                  className={`rounded-full transition-all duration-300 ${i === currentSlide
+                    ? "w-8 h-2 bg-sage-600"
+                    : "w-2 h-2 bg-gray-300 hover:bg-gray-400"
+                    }`}
                   aria-label={`Slide ${i + 1}`}
                 />
               ))}
