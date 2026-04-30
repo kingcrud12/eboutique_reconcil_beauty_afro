@@ -39,7 +39,7 @@ function Hero() {
 
   // Auto-advance
   React.useEffect(() => {
-    const timer = setInterval(goNext, 5000);
+    const timer = setInterval(goNext, 2000);
     return () => clearInterval(timer);
   }, [currentSlide]);
 
