@@ -5,8 +5,10 @@ import { ParcelShop, SearchPRResponse } from './types/types';
 
 @Injectable()
 export class PointRelaisService {
-  private readonly apiBaseUrl = process.env.apiBaseUrl;
-  private readonly brand = process.env.brand;
+  private readonly apiBaseUrl =
+    process.env.apiBaseUrl ||
+    'https://widget.mondialrelay.com/parcelshop-picker/v4_0/services/parcelshop-picker.svc/SearchPR';
+  private readonly brand = process.env.brand || 'CC228Q2R';
   private readonly deliveryMode = '24R';
 
   constructor(private readonly usersService: UserService) {}

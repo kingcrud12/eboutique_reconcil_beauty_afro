@@ -6,8 +6,8 @@ type DeliveryMode = 'HOME' | 'RELAY';
 interface OrderItemCtx {
   name: string;
   quantity: number;
-  unitPrice: string; // formaté en "xx.yy"
-  lineTotal: string; // formaté en "xx.yy"
+  unitPrice: string;
+  lineTotal: string;
 }
 
 interface OrderMailContext {
@@ -21,9 +21,9 @@ interface OrderMailContext {
   etaDays?: number;
 
   items: OrderItemCtx[];
-  itemsSubtotal: string; // formaté
-  shippingFee: string; // formaté
-  total: string; // formaté
+  itemsSubtotal: string;
+  shippingFee: string;
+  total: string;
 }
 
 @Injectable()
@@ -64,7 +64,6 @@ export class MailService {
   async sendOrderPaidEmail(to: string, ctx: Omit<OrderMailContext, 'etaDays'>) {
     const etaDays = this.estimateDays(ctx.deliveryMode);
 
-    // format des montants
     const itemsFormatted = ctx.items.map((it) => ({
       ...it,
       unitPrice: isNaN(Number(it.unitPrice))

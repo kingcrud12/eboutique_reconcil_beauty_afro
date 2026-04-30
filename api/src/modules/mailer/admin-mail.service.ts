@@ -26,7 +26,6 @@ interface AdminOrderMailContext {
   shippingFee: number | string;
   total: number | string;
 
-  // possibilité de passer directement phone / adress depuis le webhook
   phone?: string | null;
   adress?: string | null;
 }
@@ -50,7 +49,6 @@ export class AdminMailService {
   async sendOrderPaidToAdmins(ctx: Omit<AdminOrderMailContext, 'etaDays'>) {
     const etaDays = this.estimateDays(ctx.deliveryMode);
 
-    // récupérer tous les utilisateurs avec rôle 'admin'
     const admins = await this.prisma.user.findMany({
       where: { role: 'admin' },
       select: { email: true },
@@ -59,7 +57,6 @@ export class AdminMailService {
     const adminEmails = admins.map((a) => a.email).filter(Boolean);
     if (adminEmails.length === 0) return;
 
-    // --- Résolution phone/adress : préférer ctx, sinon lire en DB ---
     let resolvedPhone: string | null = ctx.phone ?? null;
     let resolvedAdress: string | null = ctx.adress ?? null;
 
@@ -84,9 +81,6 @@ export class AdminMailService {
         }
       }
     }
-    // ---------------------------------------------------------------
-
-    // formater les montants en string "xx.xx"
     const items = ctx.items.map((it) => ({
       ...it,
       unitPrice: Number(it.unitPrice).toFixed(2),
