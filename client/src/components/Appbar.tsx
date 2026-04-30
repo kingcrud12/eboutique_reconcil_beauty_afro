@@ -92,9 +92,9 @@ function Appbar() {
               </button>
             </div>
 
-            <Link to="/" className="flex flex-col items-center md:items-start md:flex-row md:gap-2 group">
-              <img src="/AM_LOGO.png" alt="Logo" className="h-10 sm:h-12 w-auto transition-transform duration-300 group-hover:scale-105" />
-              <p className={`text-[10px] sm:text-xs leading-none mt-1 md:mt-0 font-serif tracking-wider text-black hidden md:block group-hover:text-purple-900 transition-colors duration-300`}>
+            <Link to="/" className="flex flex-row items-center gap-3 sm:gap-4 group">
+              <img src="/AM_LOGO.png" alt="Logo" className="h-16 sm:h-20 md:h-24 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
+              <p className={`text-[10px] sm:text-xs leading-none font-serif tracking-wider text-black hidden md:block group-hover:text-purple-900 transition-colors duration-300`}>
                 Réconcil' Afro Beauty
               </p>
             </Link>
