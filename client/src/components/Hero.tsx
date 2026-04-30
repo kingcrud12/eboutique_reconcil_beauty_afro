@@ -48,10 +48,10 @@ function Hero() {
   return (
     <section className="w-full bg-sage-50">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-10 md:py-16">
-        <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+        <div className="flex flex-col-reverse md:flex-row items-center gap-8 md:gap-12">
 
           {/* Left — Text */}
-          <div className="flex-1 space-y-5 text-center md:text-left">
+          <div className="flex-1 space-y-4 sm:space-y-5 text-center md:text-left w-full">
             <span className="inline-block bg-sage-100 text-sage-700 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide">
               {slide.tag}
             </span>
@@ -62,14 +62,14 @@ function Hero() {
               <span className="text-sage-600">{slide.titleGreen}</span>
             </h1>
 
-            <p className="text-gray-500 text-base md:text-lg max-w-lg mx-auto md:mx-0 leading-relaxed">
+            <p className="text-gray-500 text-sm sm:text-base md:text-lg max-w-lg mx-auto md:mx-0 leading-relaxed">
               {slide.subtitle}
             </p>
 
             <div className="pt-2">
               <Link
                 to={slide.link}
-                className="inline-block px-7 py-3 bg-sage-600 text-white font-medium rounded-lg hover:bg-sage-700 transition-colors duration-200 text-sm sm:text-base"
+                className="inline-block px-5 py-2.5 sm:px-7 sm:py-3 bg-sage-600 text-white font-medium rounded-lg hover:bg-sage-700 transition-colors duration-200 text-sm sm:text-base"
               >
                 {slide.cta}
               </Link>
@@ -92,8 +92,8 @@ function Hero() {
           </div>
 
           {/* Right — Product Image */}
-          <div className="flex-1 flex justify-center">
-            <div className="w-full max-w-md md:max-w-lg aspect-square rounded-2xl overflow-hidden bg-sage-50">
+          <div className="flex-1 flex justify-center w-full">
+            <div className="w-full max-w-[280px] sm:max-w-md md:max-w-lg aspect-square rounded-2xl overflow-hidden bg-sage-50 shadow-sm md:shadow-none">
               <img
                 src={`/${slide.image}`}
                 alt={slide.title}

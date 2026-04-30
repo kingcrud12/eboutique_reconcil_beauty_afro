@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import api from "../connect_to_api/api";
 import { useAuth } from "../contexts/AuthContext";
 import { useState } from "react";
@@ -13,6 +13,7 @@ const Login = () => {
   const [resetSent, setResetSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -29,7 +30,9 @@ const Login = () => {
       login(token);
 
       const guestCart = localStorage.getItem(GUEST_STORAGE_KEY);
-      if (guestCart) {
+      if (location.state?.fromCart) {
+        navigate("/delivery");
+      } else if (guestCart) {
         navigate("/cart");
       } else {
         navigate("/");

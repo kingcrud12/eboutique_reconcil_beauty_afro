@@ -3,13 +3,23 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { User, ShoppingCart, Menu, X, Search } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../contexts/CartContext";
+import api from "../connect_to_api/api";
+import { IProduct } from "../connect_to_api/product.interface";
+import { createProductSlug } from "../utils/urlUtils";
 
 function Appbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [userModalOpen, setUserModalOpen] = useState(false);
   const userRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const mobileSearchRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [products, setProducts] = useState<IProduct[]>([]);
+  const [searchResults, setSearchResults] = useState<IProduct[]>([]);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const { isAuthenticated, logout } = useAuth();
   const { totalQuantity, fetchCart, setCarts } = useCart();
@@ -18,6 +28,10 @@ function Appbar() {
     const handleClickOutside = (event: MouseEvent) => {
       if (userRef.current && !userRef.current.contains(event.target as Node)) {
         setUserModalOpen(false);
+      }
+      if (searchRef.current && !searchRef.current.contains(event.target as Node) &&
+          mobileSearchRef.current && !mobileSearchRef.current.contains(event.target as Node)) {
+        setIsSearchFocused(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -31,6 +45,24 @@ function Appbar() {
   useEffect(() => {
     setMenuOpen(false);
   }, [location.pathname]);
+
+  // Search logic hooks
+  useEffect(() => {
+    api.get<IProduct[]>("/products").then(res => setProducts(res.data)).catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (searchQuery.trim().length >= 2) {
+      const query = searchQuery.toLowerCase();
+      const results = products.filter(p => 
+        p.name.toLowerCase().includes(query) || 
+        p.description.toLowerCase().includes(query)
+      );
+      setSearchResults(results.slice(0, 5));
+    } else {
+      setSearchResults([]);
+    }
+  }, [searchQuery, products]);
 
   const handleLogout = () => {
     setCarts([]);
@@ -81,30 +113,103 @@ function Appbar() {
           </button>
 
           {/* Center — Search bar (desktop) */}
-          <div className="hidden md:flex flex-1 max-w-xl mx-auto">
+          <div className="hidden md:flex flex-1 max-w-xl mx-auto relative" ref={searchRef}>
             <div className="flex items-center w-full border border-gray-300 rounded-md px-3 py-2 bg-white hover:border-gray-400 transition-colors focus-within:border-sage-500">
               <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
               <input
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
                 placeholder="Rechercher un produit, un ingrédient..."
                 className="flex-1 ml-2.5 text-sm text-gray-700 outline-none bg-transparent placeholder:text-gray-400"
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") navigate("/products");
+                  if (e.key === "Enter") {
+                    navigate("/products");
+                    setIsSearchFocused(false);
+                  }
                 }}
               />
             </div>
+
+            {/* Dropdown de recherche */}
+            {isSearchFocused && searchResults.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-lg shadow-xl z-[999] overflow-hidden">
+                {searchResults.map(product => (
+                  <Link 
+                    key={product.id}
+                    to={`/product/${createProductSlug(product.id, product.name)}`}
+                    onClick={() => {
+                      setIsSearchFocused(false);
+                      setSearchQuery("");
+                    }}
+                    className="flex items-center gap-3 p-3 hover:bg-sage-50 border-b border-gray-50 last:border-0 transition-colors"
+                  >
+                    <img src={product.imageUrl} alt={product.name} className="w-12 h-12 object-contain mix-blend-multiply rounded-md bg-gray-50 p-1 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-800 line-clamp-1">{product.name}</p>
+                      <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{product.description}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Right — Mon compte + Panier */}
           <div className="hidden md:flex items-center gap-5 flex-shrink-0 relative" ref={userRef}>
             {/* Mon compte */}
-            <button
-              onClick={() => setUserModalOpen(!userModalOpen)}
-              className="flex items-center gap-1.5 text-gray-700 hover:text-gray-900 transition-colors"
-            >
-              <User className="w-5 h-5" />
-              <span className="text-sm">Mon compte</span>
-            </button>
+            <div className="relative group" ref={userRef}>
+              <Link
+                to={isAuthenticated ? "/account" : "/login"}
+                className="flex items-center gap-1.5 text-gray-700 hover:text-gray-900 transition-colors py-2"
+              >
+                <User className="w-5 h-5" />
+                <span className="text-sm">Mon compte</span>
+              </Link>
+
+              {/* User dropdown on hover */}
+              <div className="absolute right-0 top-full w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                {isAuthenticated ? (
+                  <>
+                    <Link
+                      to="/account"
+                      className="block px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
+                    >
+                      Profil
+                    </Link>
+                    <Link
+                      to="/orders"
+                      className="block px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
+                    >
+                      Mes commandes
+                    </Link>
+                    <hr className="my-1 border-gray-100" />
+                    <button
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-red-500"
+                      onClick={handleLogout}
+                    >
+                      Déconnexion
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/login"
+                      className="block px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
+                    >
+                      Se connecter
+                    </Link>
+                    <Link
+                      to="/register"
+                      className="block px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
+                    >
+                      Créer un compte
+                    </Link>
+                  </>
+                )}
+              </div>
+            </div>
 
             {/* Panier */}
             <button
@@ -114,53 +219,6 @@ function Appbar() {
               <ShoppingCart className="w-5 h-5" />
               <span className="text-sm">Panier ({totalQuantity})</span>
             </button>
-
-            {/* User dropdown */}
-            {userModalOpen && (
-              <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1">
-                {isAuthenticated ? (
-                  <>
-                    <Link
-                      to="/account"
-                      className="block px-4 py-2.5 hover:bg-gray-50 text-sm text-gray-700"
-                      onClick={() => setUserModalOpen(false)}
-                    >
-                      Mon compte
-                    </Link>
-                    <Link
-                      to="/orders"
-                      className="block px-4 py-2.5 hover:bg-gray-50 text-sm text-gray-700"
-                      onClick={() => setUserModalOpen(false)}
-                    >
-                      Mes commandes
-                    </Link>
-                    <hr className="my-1 border-gray-100" />
-                    <button
-                      className="block w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm text-red-500"
-                      onClick={handleLogout}
-                    >
-                      Déconnexion
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      className="block w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm text-gray-700"
-                      onClick={() => { setUserModalOpen(false); navigate("/login"); }}
-                    >
-                      Se connecter
-                    </button>
-                    <Link
-                      to="/register"
-                      className="block px-4 py-2.5 hover:bg-gray-50 text-sm text-gray-700"
-                      onClick={() => setUserModalOpen(false)}
-                    >
-                      Créer un compte
-                    </Link>
-                  </>
-                )}
-              </div>
-            )}
           </div>
 
           {/* Mobile icons (compact) */}
@@ -236,18 +294,49 @@ function Appbar() {
             </div>
 
             {/* Mobile search */}
-            <div className="p-4 border-b border-gray-100">
+            <div className="p-4 border-b border-gray-100 relative" ref={mobileSearchRef}>
               <div className="flex items-center border border-gray-300 rounded-md px-3 py-2">
                 <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
                 <input
                   type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
                   placeholder="Rechercher..."
                   className="flex-1 ml-2 text-sm text-gray-700 outline-none bg-transparent placeholder:text-gray-400"
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") { navigate("/products"); setMenuOpen(false); }
+                    if (e.key === "Enter") { 
+                      navigate("/products"); 
+                      setIsSearchFocused(false);
+                      setMenuOpen(false); 
+                    }
                   }}
                 />
               </div>
+
+              {/* Dropdown de recherche (mobile) */}
+              {isSearchFocused && searchResults.length > 0 && (
+                <div className="absolute top-full left-4 right-4 mt-1 bg-white border border-gray-100 rounded-lg shadow-xl z-[999] overflow-hidden">
+                  {searchResults.map(product => (
+                    <Link 
+                      key={product.id}
+                      to={`/product/${createProductSlug(product.id, product.name)}`}
+                      onClick={() => {
+                        setIsSearchFocused(false);
+                        setSearchQuery("");
+                        setMenuOpen(false);
+                      }}
+                      className="flex items-center gap-3 p-3 hover:bg-sage-50 border-b border-gray-50 last:border-0 transition-colors"
+                    >
+                      <img src={product.imageUrl} alt={product.name} className="w-10 h-10 object-contain mix-blend-multiply rounded-md bg-gray-50 p-1 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-gray-800 line-clamp-1">{product.name}</p>
+                        <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{product.description}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
 
             <nav className="p-4">
