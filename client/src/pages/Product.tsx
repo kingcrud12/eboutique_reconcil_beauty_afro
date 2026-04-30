@@ -161,114 +161,97 @@ function Product() {
   // --- fin logique ajout
 
   return (
-    <div className="font-sans bg-white min-h-screen pt-24 pb-16 px-4 sm:px-6 lg:px-12">
+    <article className="font-sans bg-sage-50 min-h-screen pt-24 pb-20 px-4 sm:px-6 lg:px-12">
       <div className="max-w-7xl mx-auto">
-        {/* Popin pour messages */}
         {popinMsg && (
           <Popin message={popinMsg} onClose={() => setPopinMsg(null)} />
         )}
 
-        {/* Les invités peuvent également créer/modifier un panier, pas de modal de connexion */}
+        <button
+          onClick={() => navigate("/products")}
+          className="mb-8 text-sm font-medium text-sage-600 hover:text-sage-800 transition-colors flex items-center gap-2"
+        >
+          &larr; Retour à la boutique
+        </button>
 
-        {/* Title large */}
-        <header className="mb-8 md:mb-12">
-          <h1 className="text-4xl md:text-6xl font-serif font-bold text-gray-900 leading-tight max-w-3xl">
-            {product.name}
-          </h1>
-          <div className="mt-6 w-24 h-1 bg-yellow-400 rounded mx-0"></div>
-        </header>
-
-        {/* Main grid: image left, info right */}
-        <section className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-          {/* Left: image (spans 7 on md) */}
-          <div className="md:col-span-7 flex items-start justify-center">
-            <div className="w-full max-w-md md:max-w-none">
-              <img
-                src={product.imageUrl}
-                alt={product.name}
-                className="w-full h-auto object-contain rounded-md shadow"
-              />
-            </div>
-          </div>
-
-          {/* Right: price, actions, small meta */}
-          <aside className="md:col-span-5">
-            {/* Price centered and big */}
-            <div className="flex flex-col items-center md:items-stretch md:text-left">
-              <div className="mb-6 md:mb-8">
-                {priceString ? (
-                  <div className="text-center md:text-left">
-                    <div className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900">
-                      {priceString}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-lg text-gray-600">
-                    Prix non disponible
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-2">
+            
+            {/* Left: Image */}
+            <div className="p-8 lg:p-12 flex items-center justify-center bg-gray-50/50 border-b lg:border-b-0 lg:border-r border-gray-100">
+              <div className="relative w-full max-w-md aspect-square bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center justify-center">
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className="w-full h-full object-contain mix-blend-multiply"
+                />
+                {isOutOfStock && (
+                  <div className="absolute top-4 right-4 bg-red-100 text-red-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                    Épuisé
                   </div>
                 )}
               </div>
+            </div>
 
-              {/* Actions (Add to cart, payment placeholders) */}
-              <div className="flex flex-col gap-3 items-center md:items-stretch mb-6">
+            {/* Right: Details & Actions */}
+            <div className="p-8 lg:p-12 flex flex-col justify-center">
+              <div className="mb-2">
+                <span className="text-xs font-semibold text-sage-600 uppercase tracking-widest">
+                  {product.category}
+                </span>
+              </div>
+              
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-gray-900 mb-6 leading-tight">
+                {product.name}
+              </h1>
+
+              <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8">
+                {priceString ? priceString : <span className="text-lg text-gray-500">Prix indisponible</span>}
+              </div>
+
+              <div className="prose prose-sage prose-sm text-gray-600 mb-10 max-w-none">
+                {renderFullDescription(product.description)}
+              </div>
+
+              <div className="space-y-4 mb-10">
                 <button
                   onClick={handleAdd}
                   disabled={isOutOfStock || adding}
-                  className={`w-64 md:w-full max-w-xs md:max-w-none px-6 py-3 rounded-full text-white font-semibold transition ${isOutOfStock || adding
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-green-600 hover:opacity-95"
-                    }`}
+                  className={`w-full py-4 rounded-xl text-white font-semibold text-lg transition-all shadow-sm ${
+                    isOutOfStock || adding
+                      ? "bg-gray-300 cursor-not-allowed text-gray-500 shadow-none"
+                      : "bg-sage-600 hover:bg-sage-700 hover:shadow-md hover:-translate-y-0.5"
+                  }`}
                 >
                   {isOutOfStock
-                    ? "Indisponible"
+                    ? "Indisponible actuellement"
                     : adding
-                      ? "Ajout..."
+                      ? "Ajout en cours..."
                       : "Ajouter au panier"}
                 </button>
+              </div>
 
-                {/* Placeholder pour options de paiement (inspiré visuel) */}
-                <div className="w-64 md:w-full max-w-xs md:max-w-none space-y-3 mt-2">
-                  <div className="h-10 bg-black rounded-md flex items-center justify-center text-white font-medium">
-                    Buy with  Pay
-                  </div>
-                  <div className="h-10 bg-black rounded-md flex items-center justify-center text-white font-medium">
-                    G Pay • ••• 0249
-                  </div>
-                  <div className="h-10 bg-emerald-500 rounded-md flex items-center justify-center text-white font-medium">
-                    link • VISA 9318
-                  </div>
+              {/* Trust Badges */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-8 border-t border-gray-100">
+                <div className="flex flex-col items-center text-center p-3 bg-sage-50 rounded-xl">
+                  <span className="text-xl mb-2">🌿</span>
+                  <span className="text-xs font-medium text-sage-800">100% Naturel</span>
+                </div>
+                <div className="flex flex-col items-center text-center p-3 bg-sage-50 rounded-xl">
+                  <span className="text-xl mb-2">🚚</span>
+                  <span className="text-xs font-medium text-sage-800">Livraison Rapide</span>
+                </div>
+                <div className="flex flex-col items-center text-center p-3 bg-sage-50 rounded-xl">
+                  <span className="text-xl mb-2">🔒</span>
+                  <span className="text-xs font-medium text-sage-800">Paiement Sécurisé</span>
                 </div>
               </div>
 
-              {/* Category / small meta (stock caché) */}
-              <div className="text-sm text-gray-600 mt-2 md:mt-4 text-center md:text-left">
-                <div>Catégorie: {product.category}</div>
-              </div>
             </div>
-          </aside>
-
-          {/* Full width description: align under left column on md+ */}
-          <div className="md:col-span-7 mt-6">
-            <div className="prose prose-sm text-gray-800 max-w-none">
-              <h2 className="sr-only">Description</h2>
-              {renderFullDescription(product.description)}
-            </div>
-          </div>
-        </section>
-
-        {/* Additional info / back button */}
-        <div className="mt-12 flex flex-col md:flex-row md:justify-between items-center md:items-start gap-4">
-          <div className="flex gap-3">
-            <button
-              onClick={() => navigate("/products")}
-              className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-full font-semibold transition"
-            >
-              ⬅️ Retour
-            </button>
           </div>
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 

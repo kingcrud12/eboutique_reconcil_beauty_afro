@@ -51,16 +51,19 @@ function Footer() {
             <h4 className="font-semibold text-sm uppercase tracking-wider mb-4">Informations</h4>
             <ul className="space-y-2.5">
               <li>
-                <span className="text-sage-200 text-sm">Livraison</span>
+                <span className="text-sage-200 text-sm cursor-pointer hover:text-white transition-colors">Livraison</span>
               </li>
               <li>
-                <span className="text-sage-200 text-sm">Retours</span>
+                <span className="text-sage-200 text-sm cursor-pointer hover:text-white transition-colors">Retours</span>
               </li>
               <li>
-                <span className="text-sage-200 text-sm">CGV</span>
+                <span className="text-sage-200 text-sm cursor-pointer hover:text-white transition-colors">CGV</span>
               </li>
               <li>
-                <span className="text-sage-200 text-sm">Confidentialité</span>
+                <Link to="/products" className="text-sage-200 text-sm hover:text-white transition-colors">Huile de Chébé pure</Link>
+              </li>
+              <li>
+                <Link to="/products" className="text-sage-200 text-sm hover:text-white transition-colors">Soins à l'Huile de Carthame</Link>
               </li>
             </ul>
           </div>
