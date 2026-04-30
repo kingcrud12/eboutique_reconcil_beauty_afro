@@ -397,27 +397,48 @@ function Orders() {
     }
   };
 
-  if (loading) return <p className="p-6 text-center">Chargement...</p>;
+  if (loading) return (
+    <div className="min-h-screen bg-sage-50 py-20 flex justify-center">
+      <p className="text-gray-500 font-medium">Chargement de vos commandes...</p>
+    </div>
+  );
 
   if (!orders.length) {
     return (
-      <div className="p-6 text-center pt-8">
-        <p>Aucune commande trouvée.</p>
-        <button
-          onClick={() => navigate("/")}
-          className="mt-4 px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
-        >
-          Retour à la boutique
-        </button>
+      <div className="min-h-screen bg-sage-50 py-10 md:py-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-10">
+          <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+            <span className="text-3xl">📦</span>
+          </div>
+          <h1 className="text-3xl font-serif text-gray-900 mb-4">Mes commandes</h1>
+          <p className="text-gray-500 mb-8 max-w-md mx-auto">Vous n'avez pas encore passé de commande. Découvrez notre sélection de produits naturels pour vos cheveux.</p>
+          <button
+            onClick={() => navigate("/products")}
+            className="px-8 py-3 bg-sage-600 text-white font-medium rounded-lg hover:bg-sage-700 transition-colors"
+          >
+            Découvrir nos produits
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto pt-8 space-y-8">
-      <h1 className="text-2xl font-bold">Mes commandes</h1>
+    <div className="min-h-screen bg-sage-50 py-10 md:py-16">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl md:text-4xl font-serif text-gray-900">Mes commandes</h1>
+          <button onClick={() => navigate("/account")} className="text-sm text-sage-600 hover:text-sage-800 font-medium transition-colors">
+            &larr; Retour au profil
+          </button>
+        </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && (
+          <div className="bg-red-50 text-red-700 border border-red-200 p-4 rounded-xl text-sm font-medium">
+            {error}
+          </div>
+        )}
 
       {orders.map((order) => {
         const itemsSubtotal = computeItemsSubtotal(order);
@@ -430,23 +451,23 @@ function Orders() {
         return (
           <div
             key={order.id}
-            className="border rounded-lg p-4 shadow-sm bg-white"
+            className="bg-white border border-gray-100 rounded-2xl p-6 md:p-8 shadow-sm"
           >
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-              <div className="flex items-center gap-3">
-                <span className="font-semibold">Commande {order.id}</span>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-6 border-b border-gray-50">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="font-serif text-lg text-gray-900 font-medium">Commande #{order.id}</span>
                 <span
-                  className={`text-xs px-2 py-1 rounded ${
+                  className={`text-xs px-3 py-1 rounded-full font-medium ${
                     isPending
-                      ? "bg-yellow-100 text-yellow-700"
+                      ? "bg-amber-50 text-amber-700"
                       : isPaid
-                      ? "bg-green-100 text-green-700"
+                      ? "bg-sage-100 text-sage-800"
                       : "bg-gray-100 text-gray-600"
                   }`}
                 >
                   {translateStatus(order.status)}
                 </span>
-                <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">
+                <span className="text-xs px-3 py-1 rounded-full bg-blue-50 text-blue-700 font-medium">
                   {translateDeliveryMode(order.deliveryMode)}
                 </span>
               </div>
@@ -455,11 +476,11 @@ function Orders() {
                 <button
                   onClick={() => handlePay(order.id, order.status)}
                   disabled={!isPending || isPaying}
-                  className={`px-3 py-2 rounded text-white text-sm transition
+                  className={`px-5 py-2.5 rounded-lg text-white text-sm font-medium transition-colors
                     ${
                       isPending && !isPaying
-                        ? "bg-black hover:bg-gray-800"
-                        : "bg-gray-400 cursor-not-allowed"
+                        ? "bg-sage-600 hover:bg-sage-700"
+                        : "bg-gray-300 cursor-not-allowed"
                     }`}
                   title={
                     isPending
@@ -467,7 +488,7 @@ function Orders() {
                       : "Le paiement n’est possible que pour les commandes en attente"
                   }
                 >
-                  {isPaying ? "Redirection..." : "Payer"}
+                  {isPaying ? "Redirection..." : "Payer la commande"}
                 </button>
 
                 <button
@@ -478,10 +499,10 @@ function Orders() {
                       ? "Commande payée — modification désactivée"
                       : "Modifier la commande"
                   }
-                  className={`px-3 py-2 rounded border text-sm ${
+                  className={`px-5 py-2.5 rounded-lg border text-sm font-medium transition-colors ${
                     isPaid
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:bg-gray-50"
+                      ? "opacity-50 cursor-not-allowed border-gray-200 text-gray-400"
+                      : "border-gray-200 text-gray-700 hover:bg-gray-50"
                   }`}
                 >
                   Modifier
@@ -489,59 +510,66 @@ function Orders() {
               </div>
             </div>
 
-            <p className="mb-3 text-sm text-gray-600">
-              📦 Livraison : {order.deliveryAddress}
-            </p>
+            <div className="mb-6">
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Adresse de Livraison</h3>
+              <p className="text-sm text-gray-700">{order.deliveryAddress}</p>
+            </div>
 
-            <ul className="space-y-3">
-              {order.items.map((it) => {
-                const p = it.product;
-                const unit = Number(it.unitPrice);
-                const lineTotal = (unit * it.quantity).toFixed(2);
+            <div className="mb-6">
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Articles commandés</h3>
+              <ul className="space-y-4">
+                {order.items.map((it) => {
+                  const p = it.product;
+                  const unit = Number(it.unitPrice);
+                  const lineTotal = (unit * it.quantity).toFixed(2);
 
-                return (
-                  <li key={it.id} className="flex items-center gap-4">
-                    {p?.imageUrl ? (
-                      <img
-                        src={p.imageUrl}
-                        alt={p?.name ?? `Produit #${it.productId}`}
-                        className="w-12 h-12 object-cover rounded"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 rounded bg-gray-200 grid place-items-center text-xs text-gray-600">
-                        N/A
+                  return (
+                    <li key={it.id} className="flex items-center gap-4 p-3 bg-gray-50/50 rounded-xl border border-gray-50">
+                      {p?.imageUrl ? (
+                        <img
+                          src={p.imageUrl}
+                          alt={p?.name ?? `Produit #${it.productId}`}
+                          className="w-16 h-16 object-contain rounded bg-white p-1 border border-gray-100 flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 rounded bg-gray-100 border border-gray-200 flex items-center justify-center text-xs text-gray-400 font-medium">
+                          N/A
+                        </div>
+                      )}
+
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 line-clamp-1">
+                          {p?.name ?? `Produit #${it.productId}`}
+                        </p>
+                        <p className="text-sm text-gray-500 mt-0.5">
+                          Quantité : {it.quantity} &times; {unit.toFixed(2)} €
+                        </p>
                       </div>
-                    )}
 
-                    <div className="flex-1">
-                      <p className="font-medium">
-                        {p?.name ?? `Produit #${it.productId}`}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        Quantité : {it.quantity}
-                      </p>
-                    </div>
-
-                    <p className="font-semibold">{lineTotal} €</p>
-                  </li>
-                );
-              })}
-            </ul>
+                      <p className="font-semibold text-gray-900">{lineTotal} €</p>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
 
             {/* Récap pricing */}
-            <div className="mt-4 text-right space-y-1">
-              <div className="text-sm text-gray-600">
-                Sous-total articles : {itemsSubtotal.toFixed(2)} €
+            <div className="mt-4 pt-4 border-t border-gray-50 text-sm space-y-2 flex flex-col items-end">
+              <div className="flex justify-between w-full sm:w-64 text-gray-600">
+                <span>Sous-total articles :</span>
+                <span>{itemsSubtotal.toFixed(2)} €</span>
               </div>
-              <div className="text-sm text-gray-600">
-                Frais de livraison : {shippingFee.toFixed(2)} €
+              <div className="flex justify-between w-full sm:w-64 text-gray-600">
+                <span>Frais de livraison :</span>
+                <span>{shippingFee.toFixed(2)} €</span>
               </div>
-              <div className="font-bold">
-                Total (avec livraison) : {grandTotal.toFixed(2)} €
+              <div className="flex justify-between w-full sm:w-64 font-serif text-lg font-semibold text-gray-900 pt-2 border-t border-gray-100">
+                <span>Total :</span>
+                <span>{grandTotal.toFixed(2)} €</span>
               </div>
 
               {Number(order.total) !== grandTotal && (
-                <div className="text-xs text-amber-600">
+                <div className="text-xs text-amber-600 w-full sm:w-64 text-right mt-1">
                   (Total serveur : {Number(order.total).toFixed(2)} €)
                 </div>
               )}
@@ -552,10 +580,10 @@ function Orders() {
 
       {/* Modal Produits */}
       {productsModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-lg max-w-3xl w-full p-6 relative">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-[999] p-4">
+          <div className="bg-white rounded-2xl max-w-3xl w-full p-6 sm:p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
             <button
-              className="absolute top-2 right-2 text-gray-600 hover:text-black"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-full p-2 transition-colors"
               onClick={() => {
                 setProductsModalOpen(false);
                 setSelectedOrderId(null);
@@ -563,64 +591,55 @@ function Orders() {
             >
               ✕
             </button>
-            <h3 className="text-lg font-bold mb-4">
-              Ajouter un produit à la commande #{selectedOrderId}
+            <h3 className="text-2xl font-serif text-gray-900 mb-6">
+              Ajouter un produit
             </h3>
 
             {products.length === 0 ? (
-              <p className="text-sm text-gray-600">Aucun produit disponible.</p>
+              <p className="text-sm text-gray-500 text-center py-10">Aucun produit disponible.</p>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {products.map((p) => (
                   <div
                     key={p.id}
                     onClick={() => handleAddProductToOrder(p.id)}
-                    className="border rounded p-2 cursor-pointer hover:shadow transition"
+                    className="group border border-gray-100 bg-gray-50/50 rounded-xl p-3 cursor-pointer hover:shadow-md hover:border-sage-200 transition-all text-center relative overflow-hidden"
                     title="Ajouter ce produit"
                   >
-                    <img
-                      src={p.imageUrl}
-                      alt={p.name}
-                      className="h-24 mx-auto mb-2 object-contain"
-                    />
-                    <p className="text-center text-sm font-medium">{p.name}</p>
-                    <p className="text-center text-xs text-gray-500">
+                    <div className="aspect-square bg-white rounded-lg mb-3 p-2 flex items-center justify-center border border-gray-100">
+                      <img
+                        src={p.imageUrl || ""}
+                        alt={p.name}
+                        className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform"
+                      />
+                    </div>
+                    <p className="text-sm font-medium text-gray-900 line-clamp-2 leading-tight h-10 mb-1">{p.name}</p>
+                    <p className="text-sm font-semibold text-sage-600">
                       {typeof p.price === "number"
                         ? p.price.toFixed(2)
                         : p.price}{" "}
                       €
                     </p>
+                    
                     {addingProductId === p.id && (
-                      <p className="text-xs text-center text-blue-600 mt-1">
-                        Ajout…
-                      </p>
+                      <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center">
+                        <span className="text-xs font-semibold text-sage-600 bg-sage-50 px-3 py-1.5 rounded-full animate-pulse">Ajout...</span>
+                      </div>
                     )}
                   </div>
                 ))}
               </div>
             )}
-
-            <div className="mt-6 text-right">
-              <button
-                onClick={() => {
-                  setProductsModalOpen(false);
-                  setSelectedOrderId(null);
-                }}
-                className="px-4 py-2 rounded border"
-              >
-                Fermer
-              </button>
-            </div>
           </div>
         </div>
       )}
 
       {/* Modal Profile (smart) */}
       {profileModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-lg max-w-md w-full p-6 relative">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-[999] p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 sm:p-8 relative shadow-2xl">
             <button
-              className="absolute top-2 right-2 text-gray-600 hover:text-black"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-full p-2 transition-colors"
               onClick={() => {
                 setProfileModalOpen(false);
                 setPendingPaymentAfterProfile(null);
@@ -629,19 +648,17 @@ function Orders() {
               ✕
             </button>
 
-            <h3 className="text-lg font-bold mb-2">
+            <h3 className="text-2xl font-serif text-gray-900 mb-2">
               Complétez vos informations
             </h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Avant de payer, merci de renseigner les informations manquantes de
-              votre profil.
+            <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+              Avant de valider votre paiement, veuillez vérifier et compléter ces informations nécessaires à la livraison.
             </p>
 
-            {/* On affiche uniquement les champs manquants : si user.adress absent => champ adresse, idem pour phone */}
-            <div className="space-y-3">
+            <div className="space-y-4">
               {!user?.adress && (
                 <div>
-                  <label className="block text-sm font-medium mb-1">
+                  <label className="block text-sm text-gray-700 mb-1.5 font-medium">
                     Adresse
                   </label>
                   <div className="relative">
@@ -652,27 +669,28 @@ function Orders() {
                         setProfileForm((s) => ({ ...s, adress: val }));
                         setAddressQuery(val);
                       }}
-                      className="w-full border rounded p-2 text-sm"
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage-500 focus:bg-white transition-colors text-sm"
                       placeholder="N° et voie, code postal, ville"
                       disabled={profileSubmitting}
                     />
                     {addressLoading && (
-                      <div className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500">
-                        …
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex space-x-1">
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
                       </div>
                     )}
                     {addressSuggestions.length > 0 && (
-                      <ul className="absolute z-10 mt-1 w-full bg-white border rounded shadow max-h-56 overflow-auto text-sm">
+                      <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-100 rounded-xl shadow-lg max-h-56 overflow-auto text-sm">
                         {addressSuggestions.map((sug) => (
                           <li
                             key={sug}
-                            className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                            className="px-4 py-2.5 hover:bg-sage-50 cursor-pointer border-b border-gray-50 last:border-0"
                             onClick={() => {
                               setProfileForm((s) => ({ ...s, adress: sug }));
                               setAddressQuery(sug);
                               setAddressSuggestions([]);
                             }}
-                            title={sug}
                           >
                             {sug}
                           </li>
@@ -685,7 +703,7 @@ function Orders() {
 
               {!user?.phone && (
                 <div>
-                  <label className="block text-sm font-medium mb-1">
+                  <label className="block text-sm text-gray-700 mb-1.5 font-medium">
                     Téléphone
                   </label>
                   <input
@@ -694,28 +712,28 @@ function Orders() {
                     onChange={(e) =>
                       setProfileForm((s) => ({ ...s, phone: e.target.value }))
                     }
-                    className="w-full border rounded p-2 text-sm"
-                    placeholder="0744576854"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage-500 focus:bg-white transition-colors text-sm"
+                    placeholder="Ex: 0612345678"
                     disabled={profileSubmitting}
                   />
                 </div>
               )}
             </div>
 
-            <div className="mt-5 flex justify-end gap-3">
+            <div className="mt-8 flex flex-col-reverse sm:flex-row gap-3">
               <button
                 onClick={() => {
                   setProfileModalOpen(false);
                   setPendingPaymentAfterProfile(null);
                 }}
-                className="px-4 py-2 rounded border"
+                className="w-full sm:w-auto px-6 py-3 rounded-xl border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
                 disabled={profileSubmitting}
               >
                 Annuler
               </button>
               <button
                 onClick={handleSubmitProfile}
-                className="px-4 py-2 rounded bg-black text-white disabled:opacity-60"
+                className="w-full sm:flex-1 px-6 py-3 rounded-xl bg-sage-600 text-white font-medium hover:bg-sage-700 transition-colors disabled:opacity-60"
                 disabled={profileSubmitting}
               >
                 {profileSubmitting
@@ -726,6 +744,7 @@ function Orders() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

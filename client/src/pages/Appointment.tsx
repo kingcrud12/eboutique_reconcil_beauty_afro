@@ -155,7 +155,61 @@ export default function Appointment() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-800 font-sans">
+    <div className="min-h-screen bg-sage-50 text-gray-800 font-sans pb-16">
+      <style dangerouslySetInnerHTML={{__html: `
+        .react-calendar {
+          width: 100%;
+          border: none !important;
+          font-family: inherit;
+          background: transparent;
+        }
+        .react-calendar__navigation button {
+          min-width: 44px;
+          background: none;
+          font-size: 1.125rem;
+          margin-top: 8px;
+          border-radius: 8px;
+        }
+        .react-calendar__navigation button:enabled:hover,
+        .react-calendar__navigation button:enabled:focus {
+          background-color: #f3f4f6;
+        }
+        .react-calendar__month-view__weekdays {
+          text-transform: uppercase;
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #9ca3af;
+          padding: 8px 0;
+        }
+        .react-calendar__month-view__weekdays__weekday abbr {
+          text-decoration: none;
+        }
+        .react-calendar__tile {
+          border-radius: 8px;
+          padding: 10px 6px;
+        }
+        .react-calendar__tile:enabled:hover,
+        .react-calendar__tile:enabled:focus {
+          background-color: #f3f4f6;
+        }
+        .react-calendar__tile--now {
+          background: #f9fafb;
+          color: #111827;
+          font-weight: bold;
+        }
+        .react-calendar__tile--now:enabled:hover,
+        .react-calendar__tile--now:enabled:focus {
+          background: #f3f4f6;
+        }
+        .react-calendar__tile--active {
+          background: #73806f !important;
+          color: white !important;
+        }
+        .react-calendar__tile--active:enabled:hover,
+        .react-calendar__tile--active:enabled:focus {
+          background: #5d6759 !important;
+        }
+      `}} />
 
       {/* Header */}
       <div className="relative py-14 md:py-20 px-4 md:px-6 bg-sage-700 text-white text-center overflow-hidden">
@@ -297,16 +351,16 @@ export default function Appointment() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Nom</label>
-                        <input value={lastName} onChange={(e) => setLastName(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-sage-500 transition text-sm" placeholder="Doe" />
+                        <input value={lastName} onChange={(e) => setLastName(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-500 focus:bg-white transition-colors text-sm" placeholder="Doe" />
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Prénom</label>
-                        <input value={firstName} onChange={(e) => setFirstName(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-sage-500 transition text-sm" placeholder="John" />
+                        <input value={firstName} onChange={(e) => setFirstName(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-500 focus:bg-white transition-colors text-sm" placeholder="John" />
                       </div>
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Email</label>
-                      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-sage-500 transition text-sm" placeholder="john@example.com" />
+                      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-500 focus:bg-white transition-colors text-sm" placeholder="john@example.com" />
                     </div>
                   </form>
 
