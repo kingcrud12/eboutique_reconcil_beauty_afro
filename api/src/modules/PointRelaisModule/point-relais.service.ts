@@ -41,11 +41,21 @@ export class PointRelaisService {
 
     try {
       const response = await axios.get<SearchPRResponse>(url);
+      
+      if (response.data?.Error) {
+        throw new Error(`Mondial Relay Error on primary URL: ${response.data.Error}`);
+      }
+
       const list = response.data?.PRList ?? [];
 
       if (list.length === 0) {
         const fallbackUrl = this.buildUrl({ postalCode });
         const fallbackResponse = await axios.get<SearchPRResponse>(fallbackUrl);
+        
+        if (fallbackResponse.data?.Error) {
+           throw new Error(`Mondial Relay Error on fallback URL: ${fallbackResponse.data.Error}`);
+        }
+        
         return fallbackResponse.data?.PRList ?? [];
       }
 
@@ -114,7 +124,13 @@ export class PointRelaisService {
     if (!postalCode || postalCode.trim() === '') {
       throw new BadRequestException('Code postal introuvable dans l\'adresse');
     }
-    return parts;
+
+    const cleanPostalCode = postalCode.trim().replace(/\s/g, '');
+    if (!/^\d{5}$/.test(cleanPostalCode)) {
+      throw new BadRequestException(`Code postal invalide: "${postalCode}". Le code postal doit contenir exactement 5 chiffres.`);
+    }
+
+    return [parts[0], cleanPostalCode, parts[2]];
   }
 
   private buildUrl({
@@ -142,11 +158,21 @@ export class PointRelaisService {
 
     try {
       const response = await axios.get<SearchPRResponse>(url);
+      
+      if (response.data?.Error) {
+        throw new Error(`Mondial Relay Error on primary URL: ${response.data.Error}`);
+      }
+
       const list = response.data?.PRList ?? [];
 
       if (list.length === 0) {
         const fallbackUrl = this.buildUrl({ postalCode });
         const fallbackResponse = await axios.get<SearchPRResponse>(fallbackUrl);
+        
+        if (fallbackResponse.data?.Error) {
+           throw new Error(`Mondial Relay Error on fallback URL: ${fallbackResponse.data.Error}`);
+        }
+        
         return fallbackResponse.data?.PRList ?? [];
       }
 
