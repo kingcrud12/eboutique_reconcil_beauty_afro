@@ -1,81 +1,114 @@
 import React from "react";
+import { Link } from "react-router-dom";
+import { Instagram, Facebook, Mail } from "lucide-react";
 
 function Footer() {
   return (
-    <footer className="bg-[#1E1E1E] text-white px-4 sm:px-8 md:px-20 pt-12 pb-6 overflow-hidden">
-      {/* Top section */}
-      <div className="flex flex-col md:flex-row justify-between border-b border-gray-600 pb-10 gap-10">
-        {/* Logo & Description */}
-        <div className="md:max-w-md">
-          <div className="flex items-center gap-2 mb-4">
-            <img src="/AM_LOGO.png" alt="Logo" className="w-[100px] h-[90px]" />
-            <span className="text-2xl font-bold mt-[-10px]">
-              Réconcil' Afro Beauty
-            </span>
+    <footer className="bg-sage-700 text-white">
+      {/* Main footer */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+          {/* Brand */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <img src="/AM_LOGO.png" alt="Logo" className="w-10 h-10 object-contain brightness-0 invert" />
+              <span className="text-xl font-serif font-bold">Reconcil</span>
+            </div>
+            <p className="text-sage-200 text-sm leading-relaxed">
+              Beauté naturelle afro, produits bio et artisanaux pour sublimer vos cheveux.
+            </p>
           </div>
-          <p className="text-gray-300">Texte à trouver pour cet espace</p>
-        </div>
 
-        {/* Liens groupés en responsive */}
-        <div className="flex flex-wrap gap-12 text-gray-300">
-          <div className="min-w-[130px]">
-            <h4 className="text-green-500 font-semibold mb-4">Nos produits</h4>
-            <ul className="space-y-2">
-              <li>Nouveau produit</li>
-              <li>Nos produits populaires</li>
-              <li>Nos best sellers</li>
-            </ul>
-          </div>
-          <div className="min-w-[130px]">
-            <h4 className="text-green-500 font-semibold mb-4">
-              A propos de nous
-            </h4>
-            <ul className="space-y-2">
-              <li>Aide</li>
-              <li>Livraisons</li>
-              <li>Affiliation</li>
-            </ul>
-          </div>
-          <div className="min-w-[130px]">
-            <h4 className="text-green-500 font-semibold mb-4">Info</h4>
-            <ul className="space-y-2">
+          {/* Navigation */}
+          <div>
+            <h4 className="font-semibold text-sm uppercase tracking-wider mb-4">Navigation</h4>
+            <ul className="space-y-2.5">
               <li>
-                <a
-                  href="/contact"
-                  className="hover:text-green-500 transition-colors"
-                >
-                  Contactez nous
-                </a>
+                <Link to="/" className="text-sage-200 text-sm hover:text-white transition-colors">
+                  Accueil
+                </Link>
               </li>
-              <li>Politique de confidentialité</li>
-              <li>Termes & Conditions</li>
+              <li>
+                <Link to="/products" className="text-sage-200 text-sm hover:text-white transition-colors">
+                  Produits
+                </Link>
+              </li>
+              <li>
+                <Link to="/aboutUs" className="text-sage-200 text-sm hover:text-white transition-colors">
+                  À Propos
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="text-sage-200 text-sm hover:text-white transition-colors">
+                  Contact
+                </Link>
+              </li>
             </ul>
+          </div>
+
+          {/* Informations */}
+          <div>
+            <h4 className="font-semibold text-sm uppercase tracking-wider mb-4">Informations</h4>
+            <ul className="space-y-2.5">
+              <li>
+                <span className="text-sage-200 text-sm">Livraison</span>
+              </li>
+              <li>
+                <span className="text-sage-200 text-sm">Retours</span>
+              </li>
+              <li>
+                <span className="text-sage-200 text-sm">CGV</span>
+              </li>
+              <li>
+                <span className="text-sage-200 text-sm">Confidentialité</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Social */}
+          <div>
+            <h4 className="font-semibold text-sm uppercase tracking-wider mb-4">Suivez-nous</h4>
+            <div className="flex gap-3 mb-4">
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noreferrer"
+                className="w-10 h-10 rounded-full border border-sage-500 flex items-center justify-center text-sage-200 hover:bg-sage-600 hover:text-white transition-colors"
+                aria-label="Instagram"
+              >
+                <Instagram className="w-4 h-4" />
+              </a>
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noreferrer"
+                className="w-10 h-10 rounded-full border border-sage-500 flex items-center justify-center text-sage-200 hover:bg-sage-600 hover:text-white transition-colors"
+                aria-label="Facebook"
+              >
+                <Facebook className="w-4 h-4" />
+              </a>
+              <a
+                href="mailto:contact@reconcil-afro-beauty.com"
+                className="w-10 h-10 rounded-full border border-sage-500 flex items-center justify-center text-sage-200 hover:bg-sage-600 hover:text-white transition-colors"
+                aria-label="Email"
+              >
+                <Mail className="w-4 h-4" />
+              </a>
+            </div>
+            <p className="text-sage-300 text-xs">
+              contact@reconcil-afro-beauty.com
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Bottom section */}
-      <div className="mt-6 pt-4 border-t border-gray-700 text-sm text-gray-400 flex flex-col md:flex-row justify-between items-center gap-2">
-        <a
-          href="https://yann-dipita.vercel.app"
-          target="_blank"
-          rel="noreferrer"
-          aria-label="Yann Dipita"
-        >
-          © Yann Dipita All Rights Reserved.
-        </a>
-        <p>
-          Designed with <span className="text-red-500">❤️</span> by{" "}
-          <a
-            href="https://yann-dipita.vercel.app"
-            target="_blank"
-            rel="noreferrer"
-            aria-label="Yann Dipita"
-            className="text-white"
-          >
-            Yann Dipita
-          </a>
-        </p>
+      {/* Bottom bar */}
+      <div className="border-t border-sage-600">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-4 text-center">
+          <p className="text-sage-300 text-xs">
+            © 2026 Reconcil Afro Beauty. Tous droits réservés.
+          </p>
+        </div>
       </div>
     </footer>
   );

@@ -6,8 +6,14 @@ import { createProductSlug } from "../utils/urlUtils";
 import Popin from "../components/Popin";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
+import { Star, ShoppingCart } from "lucide-react";
 
 const categories = ["Tous", "hair", "body"];
+const categoryLabels: Record<string, string> = {
+  Tous: "Tous les produits",
+  hair: "Soins Cheveux",
+  body: "Soins Corps",
+};
 
 const Products = () => {
   const [products, setProducts] = useState<IProduct[]>([]);
@@ -16,199 +22,162 @@ const Products = () => {
   const [popinMsg, setPopinMsg] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("Tous");
 
-  const {
-    fetchCart,
-    fetchGuestCart,
-    createGuestCart,
-    firstCart,
-    updateGuestCart,
-    setCarts,
-  } = useCart();
+  const { fetchCart, fetchGuestCart, createGuestCart, firstCart, updateGuestCart, setCarts } = useCart();
   const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
-    api
-      .get("/products")
+    api.get("/products")
       .then((res) => setProducts(res.data ?? []))
-      .catch((err) => {
-        console.error(err);
-        setPopinMsg("Échec du chargement des produits");
-      })
+      .catch((err) => { console.error(err); setPopinMsg("Échec du chargement des produits"); })
       .finally(() => setLoading(false));
   }, []);
 
-  const truncated = (text: string, max = 120) =>
+  const truncated = (text: string, max = 60) =>
     text?.length > max ? text.slice(0, max).trim() + "…" : text;
 
   const handleAdd = async (productId: number) => {
     const product = products.find((p) => p.id === productId);
     if (!product) return setPopinMsg("Produit introuvable.");
-
     if (Number(product.stock) <= 0) return setPopinMsg("Produit indisponible.");
 
     setAddingId(productId);
-    // Optimistic UI: update cart state immediately
     setCarts((prev) => {
-      const current = prev[0] ?? {
-        id: firstCart?.id ?? 0,
-        createdAt: new Date().toISOString(),
-        items: [],
-      };
+      const current = prev[0] ?? { id: firstCart?.id ?? 0, createdAt: new Date().toISOString(), items: [] };
       const existing = current.items.find((i) => i.product.id === product.id);
       let items;
       if (existing) {
-        items = current.items.map((i) =>
-          i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i
-        );
+        items = current.items.map((i) => i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
       } else {
-        items = [
-          ...current.items,
-          {
-            id: -(Math.floor(Math.random() * 100000) + 1),
-            productId: product.id,
-            quantity: 1,
-            product,
-          },
-        ];
+        items = [...current.items, { id: -(Math.floor(Math.random() * 100000) + 1), productId: product.id, quantity: 1, product }];
       }
       return [{ ...current, items }];
     });
     setPopinMsg("Produit ajouté au panier !");
+
     try {
       if (isAuthenticated && user) {
-        // Utilisateur connecté: garder le flux existant côté API utilisateur
         let cartId: number;
         if (!firstCart) {
-          const res = await api.post("/carts", {
-            userId: user.id,
-            items: [{ productId, quantity: 1 }],
-          });
+          const res = await api.post("/carts", { userId: user.id, items: [{ productId, quantity: 1 }] });
           cartId = res.data.id;
         } else {
           cartId = firstCart.id;
-          await api.patch(`/carts/users/me/${cartId}`, {
-            items: [{ productId, quantity: 1 }],
-          });
+          await api.patch(`/carts/users/me/${cartId}`, { items: [{ productId, quantity: 1 }] });
         }
         await fetchCart();
       } else {
-        // Invité: essayer PATCH d'abord; si échec => POST puis refresh
-        const updated = await updateGuestCart({
-          items: [{ productId, quantity: 1 }],
-        });
-        if (!updated) {
-          await createGuestCart({ items: [{ productId, quantity: 1 }] });
-        }
+        const updated = await updateGuestCart({ items: [{ productId, quantity: 1 }] });
+        if (!updated) await createGuestCart({ items: [{ productId, quantity: 1 }] });
         await fetchGuestCart();
       }
     } catch (err) {
       console.error("Erreur ajout article :", err);
-      setPopinMsg("Impossible d’ajouter l’article");
-      // Re-sync in case optimistic update was wrong
-      if (isAuthenticated && user) await fetchCart();
-      else await fetchGuestCart();
+      setPopinMsg("Impossible d'ajouter l'article");
+      if (isAuthenticated && user) await fetchCart(); else await fetchGuestCart();
     } finally {
       setAddingId(null);
     }
   };
 
-  const filtered =
-    selectedCategory === "Tous"
-      ? products
-      : products.filter((p) => p.category === selectedCategory);
+  const filtered = selectedCategory === "Tous" ? products : products.filter((p) => p.category === selectedCategory);
 
-  if (loading)
-    return <div className="py-16 text-center">Chargement des produits...</div>;
+  if (loading) return (
+    <div className="py-20 text-center">
+      <div className="w-8 h-8 border-2 border-sage-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+      <p className="text-gray-500 text-sm">Chargement des produits...</p>
+    </div>
+  );
 
   return (
-    <div className="py-16 px-4 sm:px-6 lg:px-8 bg-white mt-[80px] font-sans">
-      {popinMsg && (
-        <Popin message={popinMsg} onClose={() => setPopinMsg(null)} />
-      )}
+    <div className="bg-white min-h-screen">
+      {popinMsg && <Popin message={popinMsg} onClose={() => setPopinMsg(null)} />}
 
-      {/* La modal de connexion est retirée: les invités peuvent créer/modifier un panier */}
-
-      <div className="mb-8 flex justify-center">
-        <select
-          className="border border-gray-300 px-4 py-2 rounded-md shadow-sm text-sm"
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-        >
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat === "hair"
-                ? "Produits capillaires"
-                : cat === "body"
-                  ? "Produits corporels"
-                  : "Tous"}
-            </option>
-          ))}
-        </select>
+      {/* Header */}
+      <div className="bg-sage-50 py-12 text-center">
+        <h1 className="text-3xl font-serif font-bold text-gray-800 mb-3">Nos Produits</h1>
+        <p className="text-gray-500 text-base max-w-lg mx-auto">
+          Découvrez notre gamme de soins naturels pour cheveux afro & bouclés
+        </p>
       </div>
 
-      <div className="flex gap-4 sm:gap-6 overflow-x-auto px-2 py-4 scroll-smooth snap-x snap-mandatory">
-        {filtered.map((p) => {
-          const isOutOfStock = Number(p.stock) <= 0;
-          const isAdding = addingId === p.id;
-          const disabled = isAdding || isOutOfStock;
-
-          return (
-            <article
-              key={p.id}
-              className="snap-start flex-shrink-0 w-[80%] sm:w-[320px] md:w-[360px] lg:w-[400px] flex flex-col bg-white rounded-3xl border border-gray-200 shadow-2xl overflow-hidden transition-transform duration-300 hover:-translate-y-1"
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-8">
+        {/* Category filter */}
+        <div className="flex justify-center gap-3 mb-10">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
+                selectedCategory === cat
+                  ? "bg-sage-600 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
             >
-              <div className="w-full h-60 sm:h-72 flex items-center justify-center bg-white">
+              {categoryLabels[cat]}
+            </button>
+          ))}
+        </div>
+
+        {/* Product Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filtered.map((p) => {
+            const isOutOfStock = Number(p.stock) <= 0;
+            const isAdding = addingId === p.id;
+
+            return (
+              <article key={p.id} className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
+                {/* Image */}
                 <Link
                   to={`/product/${createProductSlug(p.id, p.name)}`}
-                  className="w-full h-full flex items-center justify-center"
+                  className="block w-full aspect-square bg-gray-50 flex items-center justify-center p-6 relative overflow-hidden"
                 >
-                  <img
-                    src={p.imageUrl}
-                    alt={p.name}
-                    className="max-h-48 sm:max-h-56 object-contain block"
-                    style={{
-                      mixBlendMode: "multiply",
-                      background: "transparent",
-                    }}
-                  />
+                  <img src={p.imageUrl} alt={p.name} loading="lazy"
+                    className="max-w-[75%] max-h-[75%] object-contain mx-auto transition-transform duration-500 group-hover:scale-105"
+                    style={{ mixBlendMode: "multiply" }} />
+                  {isOutOfStock && (
+                    <span className="absolute top-3 left-3 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded">Épuisé</span>
+                  )}
                 </Link>
-              </div>
 
-              <div className="p-4 sm:p-6 flex-1 flex flex-col justify-between text-center">
-                <div>
+                {/* Body */}
+                <div className="p-4 sm:p-5">
                   <Link to={`/product/${createProductSlug(p.id, p.name)}`}>
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 line-clamp-2">
+                    <h3 className="text-sm font-semibold text-gray-800 mb-1 line-clamp-1 group-hover:text-sage-700 transition-colors">
                       {p.name}
                     </h3>
-                    <h3 className="text-lg sm:text-xl font-bold text-green-600 mb-2 line-clamp-2">
-                      {Number(p.price).toFixed(2)} €
-                    </h3>
-                    <p className="text-sm text-slate-600 mt-1 min-h-[3.6rem] line-clamp-3">
-                      {truncated(p.description)}
-                    </p>
                   </Link>
-                </div>
+                  <p className="text-xs text-gray-400 mb-2 line-clamp-2">{truncated(p.description)}</p>
 
-                <div className="mt-4 flex flex-col items-center">
+                  {/* Stars */}
+                  <div className="flex items-center gap-0.5 mb-3">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star key={s} className={`w-3 h-3 ${s <= 4 ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200"}`} />
+                    ))}
+                  </div>
+
+                  {/* Price */}
+                  <p className="text-lg font-bold text-gray-800 mb-3">{Number(p.price).toFixed(2)}€</p>
+
+                  {/* CTA */}
                   <button
                     onClick={() => handleAdd(p.id)}
-                    disabled={disabled}
-                    className={`px-6 sm:px-8 py-3 rounded-full text-white font-semibold ${disabled
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-green-600 hover:opacity-95 transition"
-                      }`}
+                    disabled={isAdding || isOutOfStock}
+                    className={`w-full py-2 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors ${
+                      isOutOfStock
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : isAdding
+                          ? "bg-gray-200 text-gray-500 cursor-wait"
+                          : "bg-sage-600 text-white hover:bg-sage-700"
+                    }`}
                   >
-                    {isOutOfStock
-                      ? "Indisponible"
-                      : isAdding
-                        ? "Ajout..."
-                        : "Ajouter au panier"}
+                    <ShoppingCart className="w-4 h-4" />
+                    {isOutOfStock ? "Indisponible" : isAdding ? "Ajout..." : "Ajouter au panier"}
                   </button>
                 </div>
-              </div>
-            </article>
-          );
-        })}
+              </article>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

@@ -189,7 +189,7 @@ function Account() {
       : null;
 
   return (
-    <div className="relative p-6 max-w-6xl mx-auto mt-[160px] mb-[100px]">
+    <div className="relative p-6 max-w-6xl mx-auto pt-8 mb-[100px]">
       <h1 className="text-2xl font-bold text-center mb-[80px]">
         Bienvenue {user?.firstName} !
       </h1>

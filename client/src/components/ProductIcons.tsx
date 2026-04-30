@@ -1,140 +1,82 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   Leaf,
-  FlaskConical,
-  Heart,
-  Sparkles,
-  Atom,
-  Recycle,
+  Truck,
+  ShieldCheck,
+  CreditCard,
 } from "lucide-react";
 
-const initialIcons = [
+const values = [
   {
-    id: 1,
-    icon: <Leaf className="w-12 h-12 text-green-600" />,
-    label: "ORGANIC",
-    description: "Produits biologiques",
+    icon: <Leaf className="w-6 h-6 text-sage-600" />,
+    title: "Ingrédients naturels",
+    subtitle: "100% bio certifiés",
   },
   {
-    id: 2,
-    icon: <FlaskConical className="w-12 h-12 text-pink-500" />,
-    label: "NO CHEMICALS",
-    description: "Sans produits chimiques",
+    icon: <Truck className="w-6 h-6 text-sage-600" />,
+    title: "Livraison rapide",
+    subtitle: "Offerte dès 35€",
   },
   {
-    id: 3,
-    icon: <Heart className="w-12 h-12 text-red-500" />,
-    label: "CRUELTY FREE",
-    description: "Non testé sur les animaux",
+    icon: <ShieldCheck className="w-6 h-6 text-sage-600" />,
+    title: "Qualité garantie",
+    subtitle: "Fabrication artisanale",
   },
   {
-    id: 4,
-    icon: <Sparkles className="w-12 h-12 text-blue-500" />,
-    label: "VEGAN FRIENDLY",
-    description: "Compatible végan",
-  },
-  {
-    id: 5,
-    icon: <Atom className="w-12 h-12 text-purple-600" />,
-    label: "NO PARABENS",
-    description: "Sans parabènes",
-  },
-  {
-    id: 6,
-    icon: <Recycle className="w-12 h-12 text-green-500" />,
-    label: "RECYCLABLE PLASTIC",
-    description: "Emballage recyclable",
+    icon: <CreditCard className="w-6 h-6 text-sage-600" />,
+    title: "Paiement sécurisé",
+    subtitle: "CB, PayPal, Virement",
   },
 ];
 
+const ingredients = [
+  { name: "Beurre de Karité", latin: "Butyrospermum parkii", benefit: "Nourrissant, protecteur" },
+  { name: "Huile de Coco", latin: "Cocos nucifera", benefit: "Hydratant, fortifiant" },
+  { name: "Huile de Ricin", latin: "Ricinus communis", benefit: "Croissance, épaississement" },
+  { name: "Aloe Vera", latin: "Aloe barbadensis", benefit: "Apaisant, hydratant" },
+  { name: "Huile d'Argan", latin: "Argania spinosa", benefit: "Brillance, douceur" },
+];
+
 const ProductIcons = () => {
-  const [icons, setIcons] = useState(initialIcons);
-  const [showRabbit, setShowRabbit] = useState(false);
-
-  useEffect(() => {
-    const cycle = () => {
-      // 1. Show Icons for 4 seconds
-      setShowRabbit(false);
-
-      // Shuffle icons continuously while visible
-      const shuffleInterval = setInterval(() => {
-        setIcons((prev) => [...prev].sort(() => Math.random() - 0.5));
-      }, 2000);
-
-      setTimeout(() => {
-        clearInterval(shuffleInterval);
-        // 2. Show Rabbit for 3 seconds
-        setShowRabbit(true);
-      }, 5000);
-    };
-
-    cycle(); // Initial start
-    const mainLoop = setInterval(cycle, 8000); // 5s icons + 3s rabbit = 8s loop
-
-    return () => {
-      clearInterval(mainLoop);
-    };
-  }, []);
-
-  if (showRabbit) {
-    return (
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-16 flex items-center justify-center overflow-hidden gap-8 animate-fade-in">
-        <div className="flex flex-col items-center animate-bounce-slow">
-          <img
-            src="/rabbit_anim.jpg"
-            alt="Cruelty Free Rabbit"
-            className="w-32 h-32 object-contain rounded-full shadow-lg border-4 border-green-100"
-          />
-          <span className="font-bold text-green-700 mt-2">100% Cruelty Free</span>
-        </div>
-        <div className="text-4xl">💚</div>
-        <div className="flex flex-col items-center animate-bounce-slow" style={{ animationDelay: '0.2s' }}>
-          <img
-            src="/products_anim.png"
-            alt="Natural Products"
-            className="w-32 h-32 object-contain rounded-full shadow-lg border-4 border-yellow-100"
-          />
-          <span className="font-bold text-yellow-700 mt-2">Natural Ingredients</span>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="w-full mb-2">
-      {/* Desktop: une seule ligne */}
-      <div className="hidden sm:flex justify-between items-center px-4 sm:px-8 lg:px-16 h-40 transition-all duration-500">
-        {icons.map((item) => (
-          <div
-            key={item.id}
-            className="flex flex-col items-center group transition-all duration-700 ease-in-out transform"
-          >
-            <div className="bg-white rounded-full p-4 sm:p-5 shadow-xl border-2 border-gray-100 group-hover:border-gray-200 animate-spin-slow">
-              {item.icon}
-            </div>
-            <span className="text-xs sm:text-sm font-semibold text-gray-700 mt-3 text-center max-w-[100px] leading-tight">
-              {item.label}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* Mobile: une seule rangée de trois icônes (élégant & épuré) */}
-      <div className="sm:hidden h-40 flex items-center justify-center transition-all duration-500">
-        <div className="flex justify-evenly items-center w-full px-4 gap-4">
-          {icons.slice(0, 3).map((item) => (
-            <div key={item.id} className="flex flex-col items-center group w-1/3">
-              <div className="bg-white rounded-full p-4 shadow-lg border border-gray-100 animate-spin-slow">
-                {item.icon}
+    <>
+      {/* Values Bar */}
+      <div className="w-full bg-white border-b border-gray-100">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-5">
+            {values.map((v, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <div className="w-10 h-10 flex items-center justify-center rounded-full bg-sage-50 flex-shrink-0">
+                  {v.icon}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-800">{v.title}</p>
+                  <p className="text-xs text-gray-500">{v.subtitle}</p>
+                </div>
               </div>
-              <span className="text-[10px] font-medium text-gray-600 mt-3 text-center tracking-wide leading-tight uppercase">
-                {item.label}
-              </span>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Ingredients Section */}
+      <div className="w-full bg-white py-10 md:py-14">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-8">
+          <div className="flex flex-wrap justify-center gap-8 md:gap-14">
+            {ingredients.map((ing, i) => (
+              <div key={i} className="flex flex-col items-center text-center group w-[130px]">
+                <div className="w-16 h-16 rounded-full bg-sage-50 border-2 border-sage-200 flex items-center justify-center mb-3 group-hover:border-sage-400 transition-colors">
+                  <Leaf className="w-7 h-7 text-sage-500" />
+                </div>
+                <p className="text-sm font-semibold text-gray-800">{ing.name}</p>
+                <p className="text-[11px] text-gray-400 italic">{ing.latin}</p>
+                <p className="text-xs text-sage-600 font-medium mt-1">{ing.benefit}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
   );
 };
 

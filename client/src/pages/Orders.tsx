@@ -401,7 +401,7 @@ function Orders() {
 
   if (!orders.length) {
     return (
-      <div className="p-6 text-center mt-[150px]">
+      <div className="p-6 text-center pt-8">
         <p>Aucune commande trouvée.</p>
         <button
           onClick={() => navigate("/")}
@@ -414,7 +414,7 @@ function Orders() {
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto mt-[150px] space-y-8">
+    <div className="p-6 max-w-5xl mx-auto pt-8 space-y-8">
       <h1 className="text-2xl font-bold">Mes commandes</h1>
 
       {error && <p className="text-sm text-red-600">{error}</p>}

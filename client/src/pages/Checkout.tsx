@@ -432,7 +432,7 @@ function Checkout() {
   );
 
   return (
-    <div className="checkout p-6 max-w-5xl mx-auto mt-[180px] space-y-10">
+    <div className="checkout p-6 max-w-5xl mx-auto pt-8 space-y-10">
       <h1 className="text-xl font-bold mb-4">Adresse de livraison</h1>
 
       {/* Champ adresse + suggestions BAN */}

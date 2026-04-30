@@ -1,34 +1,29 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { AlertTriangle } from "lucide-react";
 
-export default function CancelPage() {
+const CancelPage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="mt-[150px] px-6 max-w-2xl mx-auto text-center">
-      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-100 mb-4">
-        <span className="text-2xl" role="img" aria-label="Annulé">⚠️</span>
+    <div className="px-6 max-w-lg mx-auto text-center py-20">
+      <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-5">
+        <AlertTriangle className="w-8 h-8 text-amber-500" />
       </div>
-
-      <h1 className="text-2xl font-bold mb-2">Paiement annulé</h1>
-      <p className="text-gray-700">
-        Votre paiement a été annulé. Vous pouvez réessayer ou revenir à vos commandes.
+      <h1 className="text-2xl font-serif font-bold text-gray-800 mb-3">
+        Paiement annulé
+      </h1>
+      <p className="text-gray-500 text-sm mb-8 leading-relaxed">
+        Votre paiement a été annulé. Aucun montant n'a été débité. Vous pouvez réessayer à tout moment.
       </p>
-
-      <div className="mt-6 flex items-center gap-3 justify-center">
-        <button
-          onClick={() => navigate("/orders")}
-          className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
-        >
-          Retour à mes commandes
-        </button>
-        <button
-          onClick={() => navigate("/")}
-          className="px-4 py-2 border rounded hover:bg-gray-50"
-        >
-          Continuer mes achats
-        </button>
-      </div>
+      <button
+        onClick={() => navigate("/")}
+        className="px-6 py-2.5 bg-sage-600 text-white rounded-lg text-sm font-medium hover:bg-sage-700 transition-colors"
+      >
+        Retour à la boutique
+      </button>
     </div>
   );
-}
+};
+
+export default CancelPage;

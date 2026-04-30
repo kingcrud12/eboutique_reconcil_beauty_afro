@@ -1,33 +1,32 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import Slider from "react-slick";
-
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 
 const slides = [
   {
-    image: "ban_2.png",
-    mobileImage: "ban_2_mobile.png",
-    title: "L'Élégance Naturelle",
-    subtitle: "Penser pour aimer et révéler la beauté de vos cheveux au quotidien",
-    cta: "Voir",
+    image: "bannerAlph_square.png",
+    tag: "Nouveauté",
+    title: "Gamme Hydratation Intense",
+    titleGreen: "Pour cheveux afro & bouclés",
+    subtitle: "Découvrez notre nouvelle collection aux huiles précieuses et beurre de karité pur",
+    cta: "Découvrir la gamme",
     link: "/products",
   },
   {
-    image: "bannerAlph.png",
-    mobileImage: "bannerAlph_mobile.png",
-    title: "Duo Éclat & Douceur",
-    subtitle: "Un duo naturel qui respecte la vraie nature de vos cheveux",
-    cta: "Découvrir le Duo",
+    image: "ban_1_square.png",
+    tag: "Best-seller",
+    title: "Nos Huiles Naturelles",
+    titleGreen: "100% bio & artisanales",
+    subtitle: "Ricin, argan, coco — des soins ancestraux pour nourrir et sublimer vos cheveux",
+    cta: "Voir la collection",
     link: "/products",
   },
   {
-    image: "cinematic_hero.png",
-    mobileImage: "cinematic_hero_mobile.png",
-    title: "L'Essence de la Nature",
-    subtitle: "Plongez dans un univers où la beauté rencontre l'authenticité.",
-    cta: "Explorer la Collection",
+    image: "banner_carthame_desktop.png",
+    tag: "Sélection",
+    title: "Ingrédients Purs",
+    titleGreen: "Directement de la nature",
+    subtitle: "Beurre de karité brut, aloe vera, huile de coco vierge — le meilleur pour vos cheveux",
+    cta: "Explorer",
     link: "/products",
   },
 ];
@@ -35,84 +34,78 @@ const slides = [
 function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const settings = {
-    dots: true,
-    infinite: true,
-    speed: 800,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 6000,
-    fade: true,
-    arrows: false,
-    beforeChange: (_: number, newIndex: number) => setCurrentSlide(newIndex),
-    appendDots: (dots: React.ReactNode) => (
-      <div
-        style={{
-          position: "absolute",
-          bottom: "20px",
-          width: "100%",
-          display: "flex",
-          justifyContent: "center",
-          zIndex: 40,
-        }}
-      >
-        <ul className="flex gap-2 m-0 p-0"> {dots} </ul>
-      </div>
-    ),
-    customPaging: (i: number) => (
-      <div
-        className={`w-3 h-3 rounded-full transition-all duration-300 border border-white/50 backdrop-blur-sm ${i === currentSlide
-          ? "bg-white scale-125"
-          : "bg-transparent opacity-40 hover:opacity-100"
-          }`}
-      ></div>
-    ),
-  };
+  const goTo = (index: number) => setCurrentSlide(index);
+  const goNext = () => setCurrentSlide((prev) => (prev + 1) % slides.length);
+
+  // Auto-advance
+  React.useEffect(() => {
+    const timer = setInterval(goNext, 5000);
+    return () => clearInterval(timer);
+  }, [currentSlide]);
+
+  const slide = slides[currentSlide];
 
   return (
-    <div className="w-full relative overflow-hidden bg-neutral-900 mt-[90px]">
-      <Slider {...settings} className="w-full h-full">
-        {slides.map((slide, index) => (
-          <div
-            key={index}
-            className="relative w-full h-[65vh] md:h-[80vh] lg:h-screen outline-none group overflow-hidden"
-          >
-            <Link to={slide.link} className="block w-full h-full relative cursor-pointer">
-              <picture className="w-full h-full block relative">
-                <source
-                  media="(max-width: 768px)"
-                  srcSet={slide.mobileImage || slide.image}
-                />
-                <img
-                  src={slide.image}
-                  alt={slide.title}
-                  className={`absolute inset-0 w-full h-full object-cover object-center transform transition-transform ease-out will-change-transform filter brightness-105 ${index === currentSlide ? "scale-105 duration-[10000ms]" : "scale-100 duration-[10000ms]"
-                    }`}
-                />
-              </picture>
+    <section className="w-full bg-sage-50">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-10 md:py-16">
+        <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
 
-              {/* Text Overlay */}
-              <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center text-center px-4 py-8 sm:px-6 sm:py-12 md:px-12">
-                <div className="max-w-4xl space-y-4 md:space-y-6 animate-fade-in-up">
-                  <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-playfair text-white drop-shadow-lg font-bold leading-tight">
-                    {slide.title}
-                  </h2>
-                  <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-open-sans text-white/95 drop-shadow-md font-medium max-w-3xl mx-auto leading-relaxed px-2 sm:px-0">
-                    {slide.subtitle}
-                  </p>
-                  <div className="pt-4 sm:pt-6">
-                    <span className="inline-block px-6 py-2 sm:px-8 sm:py-3 bg-purple-900 text-white font-semibold rounded-full hover:bg-white hover:text-purple-900 transition-all duration-300 transform hover:scale-105 shadow-lg border border-transparent hover:border-purple-900 text-sm md:text-base">
-                      {slide.cta}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </Link>
+          {/* Left — Text */}
+          <div className="flex-1 space-y-5 text-center md:text-left">
+            <span className="inline-block bg-sage-100 text-sage-700 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide">
+              {slide.tag}
+            </span>
+
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif text-gray-800 leading-tight">
+              {slide.title}
+              <br />
+              <span className="text-sage-600">{slide.titleGreen}</span>
+            </h1>
+
+            <p className="text-gray-500 text-base md:text-lg max-w-lg mx-auto md:mx-0 leading-relaxed">
+              {slide.subtitle}
+            </p>
+
+            <div className="pt-2">
+              <Link
+                to={slide.link}
+                className="inline-block px-7 py-3 bg-sage-600 text-white font-medium rounded-lg hover:bg-sage-700 transition-colors duration-200 text-sm sm:text-base"
+              >
+                {slide.cta}
+              </Link>
+            </div>
+
+            {/* Dots */}
+            <div className="flex gap-2 pt-4 justify-center md:justify-start">
+              {slides.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => goTo(i)}
+                  className={`rounded-full transition-all duration-300 ${
+                    i === currentSlide
+                      ? "w-8 h-2 bg-sage-600"
+                      : "w-2 h-2 bg-gray-300 hover:bg-gray-400"
+                  }`}
+                  aria-label={`Slide ${i + 1}`}
+                />
+              ))}
+            </div>
           </div>
-        ))}
-      </Slider>
-    </div>
+
+          {/* Right — Product Image */}
+          <div className="flex-1 flex justify-center">
+            <div className="w-full max-w-md md:max-w-lg aspect-square rounded-2xl overflow-hidden bg-sage-50">
+              <img
+                src={`/${slide.image}`}
+                alt={slide.title}
+                className="w-full h-full object-cover transition-opacity duration-500"
+                key={currentSlide}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
