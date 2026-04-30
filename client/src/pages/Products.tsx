@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import api from "../connect_to_api/api";
 import { IProduct } from "../connect_to_api/product.interface";
-import { Link } from "react-router-dom";
-import { createProductSlug } from "../utils/urlUtils";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { createProductSlug, createSlug } from "../utils/urlUtils";
 import Popin from "../components/Popin";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
@@ -15,12 +15,32 @@ const categoryLabels: Record<string, string> = {
   body: "Soins Corps",
 };
 
+// Mappe les slugs aux valeurs internes
+const slugToCategory: Record<string, string> = {
+  "soins-cheveux": "hair",
+  "soins-corps": "body"
+};
+
 const Products = () => {
+  const { categoryFilter } = useParams();
+  const navigate = useNavigate();
+
   const [products, setProducts] = useState<IProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [addingId, setAddingId] = useState<number | null>(null);
   const [popinMsg, setPopinMsg] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState("Tous");
+  
+  // Utilise categoryFilter si présent, sinon "Tous"
+  const initialCategory = categoryFilter && slugToCategory[categoryFilter] ? slugToCategory[categoryFilter] : "Tous";
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+
+  useEffect(() => {
+    if (categoryFilter && slugToCategory[categoryFilter]) {
+      setSelectedCategory(slugToCategory[categoryFilter]);
+    } else if (!categoryFilter) {
+      setSelectedCategory("Tous");
+    }
+  }, [categoryFilter]);
 
   const { fetchCart, fetchGuestCart, createGuestCart, firstCart, updateGuestCart, setCarts } = useCart();
   const { isAuthenticated, user } = useAuth();
@@ -103,19 +123,25 @@ const Products = () => {
       <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-8">
         {/* Category filter */}
         <div className="flex justify-center gap-3 mb-10">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
-                selectedCategory === cat
-                  ? "bg-sage-600 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }`}
-            >
-              {categoryLabels[cat]}
-            </button>
-          ))}
+          {categories.map((cat) => {
+            // Find the slug for this category
+            const slug = Object.keys(slugToCategory).find(key => slugToCategory[key] === cat);
+            const path = cat === "Tous" ? "/shop/products" : `/shop/products/${slug}`;
+            
+            return (
+              <button
+                key={cat}
+                onClick={() => navigate(path)}
+                className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
+                  selectedCategory === cat
+                    ? "bg-sage-600 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                {categoryLabels[cat]}
+              </button>
+            );
+          })}
         </div>
 
         {/* Product Grid */}
@@ -128,7 +154,7 @@ const Products = () => {
               <article key={p.id} className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
                 {/* Image */}
                 <Link
-                  to={`/product/${createProductSlug(p.id, p.name)}`}
+                  to={`/shop/product/${createSlug(p.category)}/${createProductSlug(p.id, p.name)}`}
                   className="block w-full aspect-square bg-gray-50 flex items-center justify-center p-6 relative overflow-hidden"
                 >
                   <img src={p.imageUrl} alt={p.name} loading="lazy"
@@ -141,7 +167,7 @@ const Products = () => {
 
                 {/* Body */}
                 <div className="p-4 sm:p-5">
-                  <Link to={`/product/${createProductSlug(p.id, p.name)}`}>
+                  <Link to={`/shop/product/${createSlug(p.category)}/${createProductSlug(p.id, p.name)}`}>
                     <h3 className="text-sm font-semibold text-gray-800 mb-1 line-clamp-1 group-hover:text-sage-700 transition-colors">
                       {p.name}
                     </h3>

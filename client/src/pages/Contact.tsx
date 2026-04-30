@@ -13,7 +13,7 @@ export default function Contact() {
     if (!name || !email || !message) { alert("Merci de remplir tous les champs"); return; }
     setStatus("loading");
     try {
-      await api.post("/contact", { name, email, message });
+      await api.post("/shop/contact", { name, email, message });
       setStatus("success");
       setName(""); setEmail(""); setMessage("");
     } catch (err) {

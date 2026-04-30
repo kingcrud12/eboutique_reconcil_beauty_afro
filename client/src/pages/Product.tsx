@@ -168,7 +168,7 @@ function Product() {
         )}
 
         <button
-          onClick={() => navigate("/products")}
+          onClick={() => navigate("/shop/products")}
           className="mb-8 text-sm font-medium text-sage-600 hover:text-sage-800 transition-colors flex items-center gap-2"
         >
           &larr; Retour à la boutique

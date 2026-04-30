@@ -6,7 +6,7 @@ function CheckEmail() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const id = setTimeout(() => navigate("/login"), 3000);
+    const id = setTimeout(() => navigate("/shop/login"), 3000);
     return () => clearTimeout(id);
   }, [navigate]);
 

@@ -5,7 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../contexts/CartContext";
 import api from "../connect_to_api/api";
 import { IProduct } from "../connect_to_api/product.interface";
-import { createProductSlug } from "../utils/urlUtils";
+import { createProductSlug, createSlug } from "../utils/urlUtils";
 
 function Appbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -73,11 +73,11 @@ function Appbar() {
   };
 
   const navLinks = [
-    { to: "/products", label: "Soins Cheveux" },
-    { to: "/products", label: "Soins Corps" },
-    { to: "/prenez-un-rendez-vous-pour-une-coiffure-afro", label: "Nos Services" },
-    { to: "/products", label: "Nos Ingrédients" },
-    { to: "/contact", label: "Contact" },
+    { to: "/shop/products/soins-cheveux", label: "Soins Cheveux" },
+    { to: "/shop/products/soins-corps", label: "Soins Corps" },
+    { to: "/shop/services", label: "Nos Services" },
+    { to: "/shop/products", label: "Nos Ingrédients" },
+    { to: "/shop/contact", label: "Contact" },
   ];
 
   return (
@@ -125,7 +125,7 @@ function Appbar() {
                 className="flex-1 ml-2.5 text-sm text-gray-700 outline-none bg-transparent placeholder:text-gray-400"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    navigate("/products");
+                    navigate("/shop/products");
                     setIsSearchFocused(false);
                   }
                 }}
@@ -138,7 +138,7 @@ function Appbar() {
                 {searchResults.map(product => (
                   <Link 
                     key={product.id}
-                    to={`/product/${createProductSlug(product.id, product.name)}`}
+                    to={`/shop/product/${createSlug(product.category)}/${createProductSlug(product.id, product.name)}`}
                     onClick={() => {
                       setIsSearchFocused(false);
                       setSearchQuery("");
@@ -161,7 +161,7 @@ function Appbar() {
             {/* Mon compte */}
             <div className="relative group" ref={userRef}>
               <Link
-                to={isAuthenticated ? "/account" : "/login"}
+                to={isAuthenticated ? "/shop/account" : "/shop/login"}
                 className="flex items-center gap-1.5 text-gray-700 hover:text-gray-900 transition-colors py-2"
               >
                 <User className="w-5 h-5" />
@@ -173,13 +173,13 @@ function Appbar() {
                 {isAuthenticated ? (
                   <>
                     <Link
-                      to="/account"
+                      to="/shop/account"
                       className="block px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
                     >
                       Profil
                     </Link>
                     <Link
-                      to="/orders"
+                      to="/shop/orders"
                       className="block px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
                     >
                       Mes commandes
@@ -195,13 +195,13 @@ function Appbar() {
                 ) : (
                   <>
                     <Link
-                      to="/login"
+                      to="/shop/login"
                       className="block px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
                     >
                       Se connecter
                     </Link>
                     <Link
-                      to="/register"
+                      to="/shop/register"
                       className="block px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
                     >
                       Créer un compte
@@ -213,7 +213,7 @@ function Appbar() {
 
             {/* Panier */}
             <button
-              onClick={() => navigate("/cart")}
+              onClick={() => navigate("/shop/cart")}
               className="flex items-center gap-1.5 text-gray-700 hover:text-gray-900 transition-colors"
             >
               <ShoppingCart className="w-5 h-5" />
@@ -231,7 +231,7 @@ function Appbar() {
               <User className="w-5 h-5" />
             </button>
             <button
-              onClick={() => navigate("/cart")}
+              onClick={() => navigate("/shop/cart")}
               className="relative text-gray-600"
               aria-label="Panier"
             >
@@ -265,7 +265,7 @@ function Appbar() {
             ))}
             <li>
               <Link
-                to="/products"
+                to="/shop/products"
                 className="text-[14px] text-sage-600 font-medium hover:text-sage-700 transition-colors"
               >
                 Promotions
@@ -306,7 +306,7 @@ function Appbar() {
                   className="flex-1 ml-2 text-sm text-gray-700 outline-none bg-transparent placeholder:text-gray-400"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") { 
-                      navigate("/products"); 
+                      navigate("/shop/products"); 
                       setIsSearchFocused(false);
                       setMenuOpen(false); 
                     }
@@ -320,7 +320,7 @@ function Appbar() {
                   {searchResults.map(product => (
                     <Link 
                       key={product.id}
-                      to={`/product/${createProductSlug(product.id, product.name)}`}
+                      to={`/shop/product/${createSlug(product.category)}/${createProductSlug(product.id, product.name)}`}
                       onClick={() => {
                         setIsSearchFocused(false);
                         setSearchQuery("");
@@ -365,7 +365,7 @@ function Appbar() {
                 ))}
                 <li>
                   <Link
-                    to="/products"
+                    to="/shop/products"
                     className="block py-3 px-3 rounded text-sm text-sage-600 font-medium hover:bg-sage-50"
                     onClick={() => setMenuOpen(false)}
                   >
@@ -379,10 +379,10 @@ function Appbar() {
             <div className="border-t border-gray-100 p-4 mt-auto">
               {isAuthenticated ? (
                 <div className="space-y-2">
-                  <Link to="/account" className="block text-sm text-gray-600 py-2" onClick={() => setMenuOpen(false)}>
+                  <Link to="/shop/account" className="block text-sm text-gray-600 py-2" onClick={() => setMenuOpen(false)}>
                     Mon compte
                   </Link>
-                  <Link to="/orders" className="block text-sm text-gray-600 py-2" onClick={() => setMenuOpen(false)}>
+                  <Link to="/shop/orders" className="block text-sm text-gray-600 py-2" onClick={() => setMenuOpen(false)}>
                     Mes commandes
                   </Link>
                   <button className="block text-sm text-red-500 py-2" onClick={handleLogout}>
@@ -392,7 +392,7 @@ function Appbar() {
               ) : (
                 <button
                   className="w-full py-2.5 bg-sage-600 text-white rounded-lg text-sm font-medium"
-                  onClick={() => { setMenuOpen(false); navigate("/login"); }}
+                  onClick={() => { setMenuOpen(false); navigate("/shop/login"); }}
                 >
                   Se connecter
                 </button>
@@ -407,10 +407,10 @@ function Appbar() {
         <div className="md:hidden fixed top-14 right-3 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1" ref={userRef}>
           {isAuthenticated ? (
             <>
-              <Link to="/account" className="block px-4 py-2.5 hover:bg-gray-50 text-sm text-gray-700" onClick={() => setUserModalOpen(false)}>
+              <Link to="/shop/account" className="block px-4 py-2.5 hover:bg-gray-50 text-sm text-gray-700" onClick={() => setUserModalOpen(false)}>
                 Mon compte
               </Link>
-              <Link to="/orders" className="block px-4 py-2.5 hover:bg-gray-50 text-sm text-gray-700" onClick={() => setUserModalOpen(false)}>
+              <Link to="/shop/orders" className="block px-4 py-2.5 hover:bg-gray-50 text-sm text-gray-700" onClick={() => setUserModalOpen(false)}>
                 Mes commandes
               </Link>
               <hr className="my-1 border-gray-100" />
@@ -420,10 +420,10 @@ function Appbar() {
             </>
           ) : (
             <>
-              <button className="block w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm text-gray-700" onClick={() => { setUserModalOpen(false); navigate("/login"); }}>
+              <button className="block w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm text-gray-700" onClick={() => { setUserModalOpen(false); navigate("/shop/login"); }}>
                 Se connecter
               </button>
-              <Link to="/register" className="block px-4 py-2.5 hover:bg-gray-50 text-sm text-gray-700" onClick={() => setUserModalOpen(false)}>
+              <Link to="/shop/register" className="block px-4 py-2.5 hover:bg-gray-50 text-sm text-gray-700" onClick={() => setUserModalOpen(false)}>
                 Créer un compte
               </Link>
             </>

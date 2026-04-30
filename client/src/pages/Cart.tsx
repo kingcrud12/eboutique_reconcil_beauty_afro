@@ -109,7 +109,7 @@ function Cart() {
           <ShoppingBag className="w-16 h-16 text-gray-200 mx-auto mb-4" />
           <p className="text-gray-500 text-lg mb-2">Votre panier est vide</p>
           <p className="text-gray-400 text-sm mb-6">Ajoutez des produits pour les voir apparaître ici</p>
-          <button onClick={() => navigate("/products")} className="px-6 py-2.5 bg-sage-600 text-white rounded-lg text-sm font-medium hover:bg-sage-700 transition-colors">
+          <button onClick={() => navigate("/shop/products")} className="px-6 py-2.5 bg-sage-600 text-white rounded-lg text-sm font-medium hover:bg-sage-700 transition-colors">
             Découvrir nos produits
           </button>
         </div>
@@ -157,7 +157,7 @@ function Cart() {
                 <button onClick={() => openModal(cart.id)} className="text-sm text-sage-600 font-medium hover:text-sage-700 transition-colors">
                   + Ajouter des articles
                 </button>
-                <button onClick={() => isAuthenticated ? navigate("/delivery") : setShowAuthModal(true)}
+                <button onClick={() => isAuthenticated ? navigate("/shop/checkout") : setShowAuthModal(true)}
                   className="px-6 py-2.5 bg-sage-600 text-white rounded-lg text-sm font-medium hover:bg-sage-700 transition-colors">
                   Valider le panier
                 </button>
@@ -209,7 +209,7 @@ function Cart() {
             <h3 className="text-base font-serif font-semibold mb-2">Connexion requise</h3>
             <p className="text-sm text-gray-500 mb-5">Connectez-vous pour valider votre panier.</p>
             <div className="flex justify-center gap-3">
-              <button onClick={() => navigate("/login", { state: { fromCart: true } })} className="px-5 py-2 bg-sage-600 text-white rounded-lg text-sm font-medium hover:bg-sage-700">Se connecter</button>
+              <button onClick={() => navigate("/shop/login", { state: { fromCart: true } })} className="px-5 py-2 bg-sage-600 text-white rounded-lg text-sm font-medium hover:bg-sage-700">Se connecter</button>
               <button onClick={() => setShowAuthModal(false)} className="px-5 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50">Annuler</button>
             </div>
           </div>

@@ -207,7 +207,7 @@ function Orders() {
         console.error("Erreur récupération commandes :", e);
         // Seulement rediriger vers login si on ne peut vraiment pas récupérer les commandes
         if (e && typeof e === 'object' && 'response' in e && e.response && typeof e.response === 'object' && 'status' in e.response && (e.response.status === 401 || e.response.status === 403)) {
-          navigate("/login");
+          navigate("/shop/login");
         } else {
           setError("Erreur lors du chargement des commandes");
         }
@@ -293,7 +293,7 @@ function Orders() {
         setUser(meRes.data ?? null);
       } catch (e) {
         console.error("Impossible de récupérer le user :", e);
-        navigate("/login");
+        navigate("/shop/login");
         return;
       }
     }
@@ -413,7 +413,7 @@ function Orders() {
           <h1 className="text-3xl font-serif text-gray-900 mb-4">Mes commandes</h1>
           <p className="text-gray-500 mb-8 max-w-md mx-auto">Vous n'avez pas encore passé de commande. Découvrez notre sélection de produits naturels pour vos cheveux.</p>
           <button
-            onClick={() => navigate("/products")}
+            onClick={() => navigate("/shop/products")}
             className="px-8 py-3 bg-sage-600 text-white font-medium rounded-lg hover:bg-sage-700 transition-colors"
           >
             Découvrir nos produits
@@ -429,7 +429,7 @@ function Orders() {
         
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl md:text-4xl font-serif text-gray-900">Mes commandes</h1>
-          <button onClick={() => navigate("/account")} className="text-sm text-sage-600 hover:text-sage-800 font-medium transition-colors">
+          <button onClick={() => navigate("/shop/account")} className="text-sm text-sage-600 hover:text-sage-800 font-medium transition-colors">
             &larr; Retour au profil
           </button>
         </div>

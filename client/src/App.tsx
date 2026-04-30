@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./Layout/Layout";
 import Home from "./pages/Home";
-import About from "./pages/About";
+
 import Appointment from "./pages/Appointment";
 import Account from "./pages/Account";
 import Login from "./pages/Login";
@@ -28,27 +28,30 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
-          <Route path="products" element={<ProductsSEO />} />
-          <Route path="about" element={<About />} />
-          <Route path="prenez-un-rendez-vous-pour-une-coiffure-afro" element={<Appointment />} />
-          <Route path="login" element={<Login />} />
-          <Route path="register" element={<Register />} />
-          <Route path="product/:slug" element={<ProductSEO />} />
-          <Route path="confirm-account" element={<ConfirmAccount />} />
-          <Route path="check" element={<CheckEmail />} />
-          <Route path="reset-password" element={<ResetPassword />} />
-          <Route path="cart" element={<Cart />} />
-          <Route path="delivery" element={<Checkout />} />
-          <Route path="orders" element={<Orders />} />
-          <Route path="checkout/success/slot" element={<SuccessPageSlot />} />
-          <Route path="checkout/success" element={<SuccessPageOrder />} />
-          <Route path="checkout/cancel" element={<CancelPage />} />
+          <Route path="shop/products" element={<ProductsSEO />} />
+          <Route path="shop/products/:categoryFilter" element={<ProductsSEO />} />
+          <Route path="boutique" element={<ProductsSEO />} /> {/* Fallback */}
+          <Route path="shop/about" element={<AboutUs />} />
+          <Route path="aboutUs" element={<AboutUs />} /> {/* Fallback */}
+          <Route path="shop/services" element={<Appointment />} />
+          <Route path="shop/login" element={<Login />} />
+          <Route path="shop/register" element={<Register />} />
+          <Route path="shop/product/:category/:slug" element={<ProductSEO />} />
+          <Route path="boutique/:category/:slug" element={<ProductSEO />} /> {/* Fallback */}
+          <Route path="shop/confirm-account" element={<ConfirmAccount />} />
+          <Route path="shop/check" element={<CheckEmail />} />
+          <Route path="shop/reset-password" element={<ResetPassword />} />
+          <Route path="shop/cart" element={<Cart />} />
+          <Route path="shop/checkout" element={<Checkout />} />
+          <Route path="shop/orders" element={<Orders />} />
+          <Route path="shop/checkout/success/slot" element={<SuccessPageSlot />} />
+          <Route path="shop/checkout/success" element={<SuccessPageOrder />} />
+          <Route path="shop/checkout/cancel" element={<CancelPage />} />
           <Route path="TestPage" element={<TestPage />} />
-          <Route path="contact" element={<Contact />} />
-          <Route path="aboutUs" element={<AboutUs />} />
+          <Route path="shop/contact" element={<Contact />} />
 
           <Route
-            path="account"
+            path="shop/account"
             element={
               <PrivateRoute>
                 <Account />

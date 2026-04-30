@@ -29,17 +29,17 @@ function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/products" className="text-sage-200 text-sm hover:text-white transition-colors">
+                <Link to="/shop/products" className="text-sage-200 text-sm hover:text-white transition-colors">
                   Produits
                 </Link>
               </li>
               <li>
-                <Link to="/aboutUs" className="text-sage-200 text-sm hover:text-white transition-colors">
+                <Link to="/shop/about" className="text-sage-200 text-sm hover:text-white transition-colors">
                   À Propos
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="text-sage-200 text-sm hover:text-white transition-colors">
+                <Link to="/shop/contact" className="text-sage-200 text-sm hover:text-white transition-colors">
                   Contact
                 </Link>
               </li>
@@ -60,10 +60,10 @@ function Footer() {
                 <span className="text-sage-200 text-sm cursor-pointer hover:text-white transition-colors">CGV</span>
               </li>
               <li>
-                <Link to="/products" className="text-sage-200 text-sm hover:text-white transition-colors">Huile de Chébé pure</Link>
+                <Link to="/shop/products" className="text-sage-200 text-sm hover:text-white transition-colors">Huile de Chébé pure</Link>
               </li>
               <li>
-                <Link to="/products" className="text-sage-200 text-sm hover:text-white transition-colors">Soins à l'Huile de Carthame</Link>
+                <Link to="/shop/products" className="text-sage-200 text-sm hover:text-white transition-colors">Soins à l'Huile de Carthame</Link>
               </li>
             </ul>
           </div>

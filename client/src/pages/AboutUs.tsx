@@ -22,64 +22,63 @@ const AboutUs = () => {
           {/* Scrollable Container */}
           <div className="flex-1 overflow-y-auto pr-4 md:pr-6 scrollbar-thin scrollbar-thumb-sage-200 scrollbar-track-transparent" style={{ maxHeight: "500px" }}>
             <p className="text-base leading-relaxed text-gray-600 mb-6">
-              Reconcil' Afro Beauty By <strong className="text-gray-800">Arcenciel Mawema</strong>, est un
-              repère qui encourage et aide les afro et afro-descendants à
-              réconcilier avec leur identité capillaire et beauté. Chez Arcenciel
-              Manwema, nous croyons que vos cheveux ne sont pas seulement une
+              <strong>Reconcil' Afro Beauty By Arcenciel Mawema</strong>, est un
+              repère qui encourage et aide les personnes aux cheveux crépus, frisés et bouclés à
+              se réconcilier avec leur identité capillaire. Chez Arcenciel
+              Mawema, nous croyons que vos cheveux ne sont pas seulement une
               texture, mais un héritage, une force et une fierté. Notre mission :
-              vous accompagner sur le chemin de la réconciliation avec votre
-              identité capillaire.
+              vous accompagner dans votre <strong>routine capillaire naturelle</strong>.
             </p>
 
-            <div className="mb-6">
-              <strong className="text-gray-900 block mb-2 font-serif text-xl">Notre engagement</strong>
+            <section className="mb-8">
+              <h2 className="text-gray-900 mb-3 font-serif text-2xl font-bold">Notre Engagement pour vos Cheveux Afro</h2>
               <p className="text-base leading-relaxed text-gray-600">
-                Arcenciel Manwema est bien plus qu&#39;une simple boutique en ligne.
+                Arcenciel Mawema est bien plus qu&#39;une simple boutique en ligne.
                 C’est un espace dédié à l’éveil, au soin et à la valorisation des
-                cheveux crépus, bouclés et frisés. Nous vous aidons à comprendre,
-                aimer et sublimer vos cheveux au naturel.
+                cheveux texturés. Que vous cherchiez une solution pour l'hydratation, la pousse ou 
+                l'entretien quotidien, nous vous aidons à comprendre, aimer et sublimer vos cheveux au naturel
+                grâce à des ingrédients authentiques comme l'huile de chébé ou le carthame.
               </p>
-            </div>
+            </section>
 
-            <div className="mb-6">
-              <strong className="text-gray-900 block mb-3 font-serif text-xl">Nos services</strong>
+            <section className="mb-8">
+              <h2 className="text-gray-900 mb-4 font-serif text-2xl font-bold">Nos Services & Expertises</h2>
               <ul className="space-y-4 text-base text-gray-600">
                 <li className="pl-4 relative before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:bg-sage-400 before:rounded-full">
-                  <strong className="text-gray-800">Accompagnement personnalisé :</strong> Diagnostic capillaire, coaching individuel ou en groupe pour mieux connaître vos cheveux.
+                  <h3 className="inline font-bold text-gray-800">Accompagnement capillaire personnalisé :</h3> Diagnostic de porosité, coaching individuel ou en groupe pour établir votre routine cheveux crépus idéale.
                 </li>
                 <li className="pl-4 relative before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:bg-sage-400 before:rounded-full">
-                  <strong className="text-gray-800">Conseils &amp; expertise :</strong> Des recommandations adaptées à votre type de cheveux, vos habitudes et vos objectifs.
+                  <h3 className="inline font-bold text-gray-800">Conseils d'experts :</h3> Des recommandations ciblées selon vos besoins (cheveux secs, cassants, cuir chevelu sensible) et vos objectifs de longueur.
                 </li>
                 <li className="pl-4 relative before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:bg-sage-400 before:rounded-full">
-                  <strong className="text-gray-800">Coiffure :</strong> Des prestations en salon ou à domicile, avec des coiffures protectrices, naturelles ou créatives.
+                  <h3 className="inline font-bold text-gray-800">Salon de coiffure :</h3> Des prestations en salon ou à domicile, spécialisées dans les coiffures protectrices (tresses, twists) et les soins profonds.
                 </li>
                 <li className="pl-4 relative before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:bg-sage-400 before:rounded-full">
-                  <strong className="text-gray-800">Boutique en ligne :</strong> Une sélection rigoureuse de produits capillaires naturels, éthiques et adaptés aux besoins des cheveux afro.
+                  <h3 className="inline font-bold text-gray-800">Boutique de cosmétiques naturels :</h3> Une sélection rigoureuse de produits (huiles pures, beurres, shampoings doux) éthiques et parfaitement adaptés à la fibre afro.
                 </li>
               </ul>
-            </div>
+            </section>
 
-            <div className="mb-6">
-              <strong className="text-gray-900 block mb-2 font-serif text-xl">Notre vision</strong>
+            <section className="mb-8">
+              <h2 className="text-gray-900 mb-3 font-serif text-2xl font-bold">Notre Vision de la Beauté Naturelle</h2>
               <p className="text-base leading-relaxed text-gray-600">
                 Nous œuvrons pour une beauté libre, authentique et consciente. Nous
                 croyons que se reconnecter à ses racines, c’est aussi se reconnecter
-                à soi. C’est pourquoi Arcenciel Manwema s’adresse à toutes les
-                personnes afro et afro-descendantes qui souhaitent renouer avec leur
-                patrimoine capillaire, en toute fierté.
+                à soi. C’est pourquoi nous nous adressons à toutes les
+                personnes souhaitant renouer avec leur patrimoine capillaire, en abandonnant les produits chimiques pour des soins naturels, en toute fierté.
               </p>
-            </div>
+            </section>
 
-            <div>
-              <strong className="text-gray-900 block mb-2 font-serif text-xl">Rejoignez le mouvement</strong>
+            <section>
+              <h2 className="text-gray-900 mb-3 font-serif text-2xl font-bold">Rejoignez le mouvement</h2>
               <p className="text-base leading-relaxed text-gray-600">
-                Découvrez nos conseils, nos produits, nos ateliers et nos
-                accompagnements. Que vous soyez en transition, en quête de soin ou
-                simplement en recherche d’inspiration, Arcenciel Manwema est là pour
-                vous guider, vous soutenir et vous célébrer. Reconcil’ Afro Beauty
-                by Arcenciel Manwema – La beauté de vos racines, révélée avec amour.
+                Découvrez nos conseils d'entretien, nos cosmétiques bio, nos ateliers et nos
+                accompagnements. Que vous soyez en phase de transition capillaire (retour au naturel), en quête d'hydratation ou
+                simplement en recherche d’inspiration, l'équipe est là pour
+                vous guider. Reconcil’ Afro Beauty
+                by Arcenciel Mawema – La beauté de vos racines, révélée avec amour.
               </p>
-            </div>
+            </section>
           </div>
         </div>
       </div>
