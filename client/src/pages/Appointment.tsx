@@ -1,11 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import Slider from "react-slick";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock } from "lucide-react";
 import api from "../connect_to_api/api";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 
 type Service = {
   id: number;
@@ -145,32 +142,6 @@ export default function Appointment() {
   const serviceName = (id: number) => services.find(s => s.id === id)?.name ?? `Service #${id}`;
   const servicePrice = (id: number) => services.find(s => s.id === id)?.price ?? undefined;
 
-  const carouselSettings = {
-    dots: true,
-    infinite: false,
-    speed: 500,
-    slidesToShow: 3,
-    slidesToScroll: 1,
-    arrows: true,
-    responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-        }
-      },
-      {
-        breakpoint: 768,
-        settings: {
-          slidesToShow: 1,
-          slidesToScroll: 1,
-          arrows: false,
-        }
-      }
-    ],
-  };
-
   return (
     <div className="min-h-screen bg-sage-50 text-gray-800 font-sans pb-16">
       <style dangerouslySetInnerHTML={{__html: `
@@ -245,33 +216,17 @@ export default function Appointment() {
         .react-calendar__tile {
           width: auto !important;
         }
-        /* Slick slider responsive fixes */
-        .slick-slider {
-          margin: 0 -8px;
+        
+        .custom-scrollbar::-webkit-scrollbar {
+          height: 4px;
         }
-        .slick-list {
-          overflow: visible !important;
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
         }
-        .slick-slide {
-          padding: 0 8px;
-        }
-        @media (max-width: 768px) {
-          .slick-slider {
-            margin: 0;
-          }
-          .slick-slide {
-            padding: 0;
-          }
-        }
-        .slick-dots {
-          bottom: -40px;
-        }
-        .slick-dots li button:before {
-          font-size: 10px;
-          color: #73806f;
-        }
-        .slick-dots li.slick-active button:before {
-          color: #73806f;
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #73806f;
+          border-radius: 10px;
         }
       `}} />
 
@@ -303,14 +258,16 @@ export default function Appointment() {
           {servicesByCategory.map(([category, items]) => (
             <div key={category} className="mb-12 md:mb-20">
               <h3 className="text-xs font-bold mb-8 px-2 text-sage-600 uppercase tracking-[0.2em] text-center md:text-left border-l-4 border-sage-500 md:pl-4 ml-2 md:ml-0">{category}</h3>
-              <Slider {...carouselSettings} className="pb-10 md:-mx-3">
+              
+              {/* Desktop Grid / Mobile Horizontal Scroll */}
+              <div className="flex md:grid md:grid-cols-2 xl:grid-cols-3 gap-6 overflow-x-auto md:overflow-visible pb-12 px-4 -mx-4 md:mx-0 snap-x snap-mandatory custom-scrollbar">
                 {items.map((srv) => (
-                  <div key={srv.id} className="px-2 md:px-3 h-full">
+                  <div key={srv.id} className="min-w-full sm:min-w-[300px] md:min-w-0 snap-center px-2">
                     <div
                       onClick={() => handleServiceSelectFromCard(srv.id)}
                       className={`group bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-500 cursor-pointer h-full flex flex-col ${selectedService === srv.id ? 'ring-2 ring-sage-500 ring-offset-4' : ''}`}
                     >
-                      <div className="relative h-56 sm:h-64 md:h-72 overflow-hidden">
+                      <div className="relative h-64 sm:h-72 md:h-80 overflow-hidden">
                         <img 
                           src={srv.imageUrl || "/placeholder.png"} 
                           alt={srv.name} 
@@ -333,7 +290,7 @@ export default function Appointment() {
                     </div>
                   </div>
                 ))}
-              </Slider>
+              </div>
             </div>
           ))}
         </div>

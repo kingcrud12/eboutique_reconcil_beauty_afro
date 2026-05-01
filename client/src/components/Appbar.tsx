@@ -30,7 +30,7 @@ function Appbar() {
         setUserModalOpen(false);
       }
       if (searchRef.current && !searchRef.current.contains(event.target as Node) &&
-          mobileSearchRef.current && !mobileSearchRef.current.contains(event.target as Node)) {
+        mobileSearchRef.current && !mobileSearchRef.current.contains(event.target as Node)) {
         setIsSearchFocused(false);
       }
     };
@@ -54,8 +54,8 @@ function Appbar() {
   useEffect(() => {
     if (searchQuery.trim().length >= 2) {
       const query = searchQuery.toLowerCase();
-      const results = products.filter(p => 
-        p.name.toLowerCase().includes(query) || 
+      const results = products.filter(p =>
+        p.name.toLowerCase().includes(query) ||
         p.description.toLowerCase().includes(query)
       );
       setSearchResults(results.slice(0, 5));
@@ -136,7 +136,7 @@ function Appbar() {
             {isSearchFocused && searchResults.length > 0 && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-lg shadow-xl z-[999] overflow-hidden">
                 {searchResults.map(product => (
-                  <Link 
+                  <Link
                     key={product.id}
                     to={`/product/${createSlug(product.category)}/${createProductSlug(product.id, product.name)}`}
                     onClick={() => {
@@ -255,8 +255,8 @@ function Appbar() {
                 <Link
                   to={link.to}
                   className={`text-[14px] transition-colors whitespace-nowrap ${location.pathname === link.to
-                      ? "text-gray-900 font-medium"
-                      : "text-gray-600 hover:text-gray-900"
+                    ? "text-gray-900 font-medium"
+                    : "text-gray-600 hover:text-gray-900"
                     }`}
                 >
                   {link.label}
@@ -288,7 +288,7 @@ function Appbar() {
             <div className="p-5 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <img src="/AM_LOGO.png" alt="Logo" className="h-8 w-auto" />
-                <span className="font-bold text-gray-900">RECONCIL</span>
+                <span className="font-bold text-gray-900">RECONCIL AFRO BEAUTY</span>
               </div>
               <button onClick={() => setMenuOpen(false)} className="text-gray-400">
                 <X className="w-5 h-5" />
@@ -307,10 +307,10 @@ function Appbar() {
                   placeholder="Rechercher..."
                   className="flex-1 ml-2 text-sm text-gray-700 outline-none bg-transparent placeholder:text-gray-400"
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") { 
-                      navigate("/products"); 
+                    if (e.key === "Enter") {
+                      navigate("/products");
                       setIsSearchFocused(false);
-                      setMenuOpen(false); 
+                      setMenuOpen(false);
                     }
                   }}
                 />
@@ -320,7 +320,7 @@ function Appbar() {
               {isSearchFocused && searchResults.length > 0 && (
                 <div className="absolute top-full left-4 right-4 mt-1 bg-white border border-gray-100 rounded-lg shadow-xl z-[999] overflow-hidden">
                   {searchResults.map(product => (
-                    <Link 
+                    <Link
                       key={product.id}
                       to={`/product/${createSlug(product.category)}/${createProductSlug(product.id, product.name)}`}
                       onClick={() => {
