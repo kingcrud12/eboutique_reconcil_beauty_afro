@@ -146,11 +146,28 @@ export default function Appointment() {
   const servicePrice = (id: number) => services.find(s => s.id === id)?.price ?? undefined;
 
   const carouselSettings = {
-    dots: true, infinite: true, speed: 800, slidesToShow: 3, slidesToScroll: 1,
-    autoplay: true, autoplaySpeed: 4000, pauseOnHover: true,
+    dots: true,
+    infinite: false,
+    speed: 500,
+    slidesToShow: 3,
+    slidesToScroll: 1,
+    arrows: true,
     responsive: [
-      { breakpoint: 1024, settings: { slidesToShow: 2 } },
-      { breakpoint: 640, settings: { slidesToShow: 1 } },
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 1,
+        }
+      },
+      {
+        breakpoint: 768,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1,
+          arrows: false,
+        }
+      }
     ],
   };
 
@@ -163,12 +180,19 @@ export default function Appointment() {
           font-family: inherit;
           background: transparent;
         }
+        .react-calendar__navigation {
+          margin-bottom: 1rem;
+        }
         .react-calendar__navigation button {
           min-width: 44px;
           background: none;
-          font-size: 1.125rem;
-          margin-top: 8px;
+          font-size: 1rem;
           border-radius: 8px;
+        }
+        @media (min-width: 768px) {
+          .react-calendar__navigation button {
+            font-size: 1.125rem;
+          }
         }
         .react-calendar__navigation button:enabled:hover,
         .react-calendar__navigation button:enabled:focus {
@@ -176,17 +200,29 @@ export default function Appointment() {
         }
         .react-calendar__month-view__weekdays {
           text-transform: uppercase;
-          font-size: 0.75rem;
+          font-size: 0.7rem;
           font-weight: 600;
           color: #9ca3af;
           padding: 8px 0;
+        }
+        @media (min-width: 768px) {
+          .react-calendar__month-view__weekdays {
+            font-size: 0.75rem;
+          }
         }
         .react-calendar__month-view__weekdays__weekday abbr {
           text-decoration: none;
         }
         .react-calendar__tile {
           border-radius: 8px;
-          padding: 10px 6px;
+          padding: 8px 4px;
+          font-size: 0.875rem;
+        }
+        @media (min-width: 768px) {
+          .react-calendar__tile {
+            padding: 12px 8px;
+            font-size: 1rem;
+          }
         }
         .react-calendar__tile:enabled:hover,
         .react-calendar__tile:enabled:focus {
@@ -197,60 +233,101 @@ export default function Appointment() {
           color: #111827;
           font-weight: bold;
         }
-        .react-calendar__tile--now:enabled:hover,
-        .react-calendar__tile--now:enabled:focus {
-          background: #f3f4f6;
-        }
         .react-calendar__tile--active {
           background: #73806f !important;
           color: white !important;
         }
-        .react-calendar__tile--active:enabled:hover,
-        .react-calendar__tile--active:enabled:focus {
-          background: #5d6759 !important;
+        /* Fix for smaller screens to prevent overflow */
+        .react-calendar__month-view__days {
+          display: grid !important;
+          grid-template-columns: repeat(7, 1fr);
+        }
+        .react-calendar__tile {
+          width: auto !important;
+        }
+        /* Slick slider responsive fixes */
+        .slick-slider {
+          margin: 0 -8px;
+        }
+        .slick-list {
+          overflow: visible !important;
+        }
+        .slick-slide {
+          padding: 0 8px;
+        }
+        @media (max-width: 768px) {
+          .slick-slider {
+            margin: 0;
+          }
+          .slick-slide {
+            padding: 0;
+          }
+        }
+        .slick-dots {
+          bottom: -40px;
+        }
+        .slick-dots li button:before {
+          font-size: 10px;
+          color: #73806f;
+        }
+        .slick-dots li.slick-active button:before {
+          color: #73806f;
         }
       `}} />
 
       {/* Header */}
-      <div className="relative py-14 md:py-20 px-4 md:px-6 bg-sage-700 text-white text-center overflow-hidden">
+      <div className="relative py-12 md:py-24 px-4 bg-sage-700 text-white text-center">
         <div className="relative z-10 max-w-4xl mx-auto">
-          <h1 className="text-3xl md:text-5xl font-serif font-bold mb-4 md:mb-6">
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-serif font-bold mb-4 md:mb-8 tracking-tight">
             Nos Services Coiffure
           </h1>
-          <p className="text-base md:text-xl font-light text-sage-100 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg md:text-xl font-light text-sage-100 max-w-2xl mx-auto leading-relaxed px-2">
             Réservez votre moment de détente et de beauté. Nos expertes subliment vos cheveux avec passion et savoir-faire.
           </p>
         </div>
+        {/* Subtle background pattern */}
+        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: "radial-gradient(#fff 1px, transparent 1px)", backgroundSize: "20px 20px" }}></div>
       </div>
 
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-10 md:py-14">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
 
         {/* Services Carousel */}
-        <div className="mb-12 md:mb-20">
-          <h2 className="text-2xl md:text-3xl font-serif font-bold text-center mb-10 text-gray-800">
-            Nos Prestations Exclusives
-          </h2>
+        <div className="mb-16 md:mb-24">
+          <div className="text-center mb-10 md:mb-14">
+            <h2 className="text-2xl md:text-4xl font-serif font-bold text-gray-900 mb-4">
+              Nos Prestations Exclusives
+            </h2>
+            <div className="w-16 h-1 bg-sage-500 mx-auto rounded-full"></div>
+          </div>
 
           {servicesByCategory.map(([category, items]) => (
-            <div key={category} className="mb-10 md:mb-16">
-              <h3 className="text-sm font-semibold mb-6 px-2 text-sage-600 uppercase tracking-[0.15em] text-center md:text-left">{category}</h3>
-              <Slider {...carouselSettings} className="pb-8">
+            <div key={category} className="mb-12 md:mb-20">
+              <h3 className="text-xs font-bold mb-8 px-2 text-sage-600 uppercase tracking-[0.2em] text-center md:text-left border-l-4 border-sage-500 md:pl-4 ml-2 md:ml-0">{category}</h3>
+              <Slider {...carouselSettings} className="pb-10 md:-mx-3">
                 {items.map((srv) => (
-                  <div key={srv.id} className="px-3 py-2 h-full">
+                  <div key={srv.id} className="px-2 md:px-3 h-full">
                     <div
                       onClick={() => handleServiceSelectFromCard(srv.id)}
-                      className={`bg-white rounded-xl overflow-hidden border border-gray-100 hover:shadow-md transition-all duration-300 cursor-pointer h-full flex flex-col ${selectedService === srv.id ? 'ring-2 ring-sage-500 ring-offset-2' : ''}`}
+                      className={`group bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-500 cursor-pointer h-full flex flex-col ${selectedService === srv.id ? 'ring-2 ring-sage-500 ring-offset-4' : ''}`}
                     >
-                      <div className="relative h-64 overflow-hidden group">
-                        <img src={srv.imageUrl || "/placeholder.png"} alt={srv.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                        <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sage-700 font-bold text-sm">
+                      <div className="relative h-56 sm:h-64 md:h-72 overflow-hidden">
+                        <img 
+                          src={srv.imageUrl || "/placeholder.png"} 
+                          alt={srv.name} 
+                          className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" 
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-md px-4 py-1.5 rounded-full text-sage-700 font-bold text-sm shadow-lg">
                           {srv.price} €
                         </div>
                       </div>
-                      <div className="p-5 flex-1 flex flex-col justify-between text-center">
-                        <h4 className="text-base font-semibold text-gray-800 mb-2 font-serif">{srv.name}</h4>
-                        <button className="text-xs font-medium text-sage-600 hover:text-sage-700 mt-2 uppercase tracking-wider transition-colors">
-                          Choisir ce soin →
+                      <div className="p-6 flex-1 flex flex-col justify-between text-center md:text-left">
+                        <div>
+                          <h4 className="text-lg font-bold text-gray-900 mb-3 font-serif leading-tight">{srv.name}</h4>
+                        </div>
+                        <button className="text-[11px] font-bold text-sage-600 group-hover:text-sage-700 mt-4 uppercase tracking-[0.15em] transition-all flex items-center justify-center md:justify-start gap-2">
+                          Choisir ce soin
+                          <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
                         </button>
                       </div>
                     </div>
@@ -262,14 +339,16 @@ export default function Appointment() {
         </div>
 
         {/* Calendar + Reservation Form */}
-        <div id="calendar-section" className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start scroll-mt-24">
+        <div id="calendar-section" className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10 lg:gap-14 items-start scroll-mt-24">
 
           {/* Left: Selector + Calendar */}
-          <div className="lg:col-span-7 space-y-6 md:space-y-8 order-1">
+          <div className="lg:col-span-7 space-y-6 md:space-y-10 order-1">
 
-            <div className="bg-white p-6 md:p-8 rounded-xl border border-gray-100">
-              <label htmlFor="prestation" className="block text-base font-serif font-bold mb-4 text-gray-800 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-sage-600" />
+            <div className="bg-white p-6 md:p-10 rounded-2xl border border-gray-100 shadow-sm">
+              <label htmlFor="prestation" className="block text-lg font-serif font-bold mb-6 text-gray-900 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-sage-100 flex items-center justify-center text-sage-600">
+                  <Clock className="w-4 h-4" />
+                </div>
                 Confirmez votre prestation
               </label>
               <div className="relative">
@@ -277,7 +356,7 @@ export default function Appointment() {
                   id="prestation"
                   value={selectedService ?? ""}
                   onChange={(e) => handleServiceChange(e.target.value)}
-                  className="w-full appearance-none bg-gray-50 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded-lg focus:outline-none focus:border-sage-500 transition-colors cursor-pointer text-sm font-medium"
+                  className="w-full appearance-none bg-gray-50 border border-gray-200 text-gray-800 py-4 px-5 pr-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage-500/20 focus:border-sage-500 transition-all cursor-pointer text-sm md:text-base font-medium"
                 >
                   <option value="">-- Sélectionnez une prestation --</option>
                   {servicesByCategory.map(([category, items]) => (
@@ -288,102 +367,126 @@ export default function Appointment() {
                     </optgroup>
                   ))}
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                  <ChevronRight className="w-4 h-4 rotate-90" />
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-5 text-gray-400">
+                  <ChevronRight className="w-5 h-5 rotate-90" />
                 </div>
               </div>
             </div>
 
             {selectedService && (
-              <div className="bg-white p-4 md:p-8 rounded-xl border border-gray-100 transition-all duration-500 overflow-x-hidden">
-                <h2 className="text-base font-serif font-bold mb-4 md:mb-6 text-gray-800 flex items-center gap-2">
-                  <CalendarIcon className="w-5 h-5 text-sage-600" />
+              <div className="bg-white p-5 md:p-10 rounded-2xl border border-gray-100 shadow-sm transition-all duration-500 overflow-hidden">
+                <h2 className="text-lg font-serif font-bold mb-8 text-gray-900 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-sage-100 flex items-center justify-center text-sage-600">
+                    <CalendarIcon className="w-4 h-4" />
+                  </div>
                   Choisissez une date
                 </h2>
-                <Calendar
-                  value={selectedDate}
-                  onClickDay={handleClickDay}
-                  minDetail="month"
-                  next2Label={null}
-                  prev2Label={null}
-                  nextLabel={<ChevronRight className="w-5 h-5 text-sage-600" />}
-                  prevLabel={<ChevronLeft className="w-5 h-5 text-sage-600" />}
-                  tileContent={({ date }) => {
-                    const key = localDateKeyFromDate(date);
-                    return (openCountByDay[key] ?? 0) > 0 ? (
-                      <div className="absolute top-1 right-1 w-2 h-2 bg-sage-500 rounded-full ring-2 ring-white"></div>
-                    ) : null;
-                  }}
-                  tileDisabled={({ date }) => {
-                    const key = localDateKeyFromDate(date);
-                    const today = new Date(); today.setHours(0, 0, 0, 0);
-                    return (openCountByDay[key] ?? 0) === 0 || date < today;
-                  }}
-                  tileClassName="h-10 md:h-14 flex items-center justify-center relative font-medium text-sm md:text-base"
-                />
-                <p className="mt-4 text-xs text-gray-400 text-center">* Les points verts indiquent les jours disponibles.</p>
+                <div className="px-1 sm:px-4">
+                  <Calendar
+                    value={selectedDate}
+                    onClickDay={handleClickDay}
+                    minDetail="month"
+                    next2Label={null}
+                    prev2Label={null}
+                    nextLabel={<ChevronRight className="w-6 h-6 text-sage-600" />}
+                    prevLabel={<ChevronLeft className="w-6 h-6 text-sage-600" />}
+                    tileContent={({ date }) => {
+                      const key = localDateKeyFromDate(date);
+                      return (openCountByDay[key] ?? 0) > 0 ? (
+                        <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-sage-500 rounded-full ring-2 ring-white shadow-sm"></div>
+                      ) : null;
+                    }}
+                    tileDisabled={({ date }) => {
+                      const key = localDateKeyFromDate(date);
+                      const today = new Date(); today.setHours(0, 0, 0, 0);
+                      return (openCountByDay[key] ?? 0) === 0 || date < today;
+                    }}
+                    tileClassName="h-12 sm:h-16 md:h-20 flex items-center justify-center relative font-medium transition-all duration-200"
+                  />
+                </div>
+                <div className="mt-8 flex items-center justify-center gap-4 text-[10px] sm:text-xs text-gray-400 uppercase tracking-widest font-semibold">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-sage-500 rounded-full"></div>
+                    <span>Disponible</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
+                    <span>Complet</span>
+                  </div>
+                </div>
               </div>
             )}
           </div>
 
           {/* Right: Checkout Form */}
-          <div className={`lg:col-span-5 transition-all duration-500 order-2 ${selectedSlot ? 'opacity-100' : 'opacity-50 grayscale pointer-events-none'} lg:sticky lg:top-28`}>
-            <div className="bg-white p-6 md:p-8 rounded-xl border border-gray-100 border-t-4 border-t-sage-600">
-              <h2 className="text-xl md:text-2xl font-serif font-bold mb-6 text-gray-800">
+          <div className={`lg:col-span-5 transition-all duration-700 order-2 ${selectedSlot ? 'opacity-100' : 'opacity-40 grayscale pointer-events-none'} lg:sticky lg:top-28 pb-10`}>
+            <div className="bg-white p-6 md:p-10 rounded-2xl border border-gray-100 shadow-xl border-t-[6px] border-t-sage-600">
+              <h2 className="text-2xl font-serif font-bold mb-8 text-gray-900">
                 Votre Réservation
               </h2>
 
               {selectedSlot ? (
-                <div className="space-y-6">
-                  <div className="p-4 bg-sage-50 rounded-lg border border-sage-100">
-                    <p className="text-xs text-sage-700 font-semibold uppercase tracking-wider mb-2">Créneau sélectionné</p>
-                    <span className="text-lg font-bold text-gray-800 capitalize">{formatDateFr(new Date(selectedSlot.startAt))}</span>
-                    <div className="text-base text-gray-600 mt-1">
+                <div className="space-y-8">
+                  <div className="p-5 bg-sage-50 rounded-2xl border border-sage-100 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-sage-400"></div>
+                    <p className="text-[10px] text-sage-600 font-bold uppercase tracking-[0.2em] mb-3">Créneau sélectionné</p>
+                    <span className="text-xl font-bold text-gray-900 capitalize block mb-1">{formatDateFr(new Date(selectedSlot.startAt))}</span>
+                    <div className="text-base text-gray-600 font-medium flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-sage-400" />
                       {timeFR(selectedSlot.startAt)} — {timeFR(selectedSlot.endAt)}
                     </div>
-                    <div className="mt-3 pt-3 border-t border-sage-200">
-                      <p className="font-medium text-gray-800">{serviceName(selectedSlot.serviceId)}</p>
-                      <p className="text-gray-500">{servicePrice(selectedSlot.serviceId)?.toFixed(2)} €</p>
+                    <div className="mt-5 pt-5 border-t border-sage-200/60">
+                      <p className="font-bold text-gray-900 text-lg leading-tight mb-1">{serviceName(selectedSlot.serviceId)}</p>
+                      <p className="text-sage-600 font-bold">{servicePrice(selectedSlot.serviceId)?.toFixed(2)} €</p>
                     </div>
                   </div>
 
-                  <form className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Nom</label>
-                        <input value={lastName} onChange={(e) => setLastName(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-500 focus:bg-white transition-colors text-sm" placeholder="Doe" />
+                  <form className="space-y-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <div className="space-y-1.5">
+                        <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider ml-1">Nom</label>
+                        <input value={lastName} onChange={(e) => setLastName(e.target.value)} className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage-500/20 focus:border-sage-500 focus:bg-white transition-all text-sm md:text-base" placeholder="Votre nom" />
                       </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Prénom</label>
-                        <input value={firstName} onChange={(e) => setFirstName(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-500 focus:bg-white transition-colors text-sm" placeholder="John" />
+                      <div className="space-y-1.5">
+                        <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider ml-1">Prénom</label>
+                        <input value={firstName} onChange={(e) => setFirstName(e.target.value)} className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage-500/20 focus:border-sage-500 focus:bg-white transition-all text-sm md:text-base" placeholder="Votre prénom" />
                       </div>
                     </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-500 uppercase mb-1">Email</label>
-                      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-500 focus:bg-white transition-colors text-sm" placeholder="john@example.com" />
+                    <div className="space-y-1.5">
+                      <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider ml-1">Email</label>
+                      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage-500/20 focus:border-sage-500 focus:bg-white transition-all text-sm md:text-base" placeholder="votre@email.com" />
                     </div>
                   </form>
 
                   {selectedServiceObj && (
-                    <div className="text-sm bg-amber-50 text-amber-800 p-4 rounded-lg border border-amber-200 space-y-1">
-                      <div className="flex justify-between font-bold"><span>Total</span><span>{selectedServiceObj.price} €</span></div>
-                      <div className="flex justify-between text-amber-700"><span>Acompte (30%)</span><span>{euro(depositAmount)}</span></div>
-                      <p className="text-xs opacity-80 mt-1">Le reste sera à régler sur place.</p>
+                    <div className="text-sm bg-gray-50 text-gray-800 p-6 rounded-2xl border border-gray-200 space-y-3">
+                      <div className="flex justify-between font-bold text-base"><span>Total prestation</span><span className="text-gray-900">{selectedServiceObj.price} €</span></div>
+                      <div className="flex justify-between text-sage-700 font-bold"><span>Acompte à régler (30%)</span><span>{euro(depositAmount)}</span></div>
+                      <div className="pt-3 border-t border-gray-200 text-[11px] text-gray-400 leading-relaxed italic text-center">
+                        Le solde restants sera à régler directement au salon le jour du rendez-vous.
+                      </div>
                     </div>
                   )}
 
                   <button
                     onClick={handleConfirm}
                     disabled={loading || !firstName || !lastName || !email}
-                    className="w-full bg-sage-600 text-white py-3.5 rounded-lg font-semibold text-base hover:bg-sage-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-gray-900 text-white py-5 rounded-xl font-bold text-base hover:bg-sage-700 transition-all shadow-lg hover:shadow-sage-700/20 disabled:opacity-30 disabled:cursor-not-allowed group flex items-center justify-center gap-3"
                   >
-                    {loading ? "Traitement..." : `Réserver • ${euro(depositAmount)}`}
+                    {loading ? "Chargement..." : (
+                      <>
+                        Confirmer & Régler l'accompte
+                        <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                      </>
+                    )}
                   </button>
                 </div>
               ) : (
-                <div className="py-10 flex flex-col items-center text-center text-gray-400">
-                  <CalendarIcon className="w-14 h-14 mb-4 opacity-20" />
-                  <p className="text-base font-medium">Sélectionnez une date et un créneau pour continuer.</p>
+                <div className="py-16 flex flex-col items-center text-center text-gray-300">
+                  <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
+                    <CalendarIcon className="w-10 h-10 opacity-30" />
+                  </div>
+                  <p className="text-base font-medium max-w-[200px] mx-auto text-gray-400">Sélectionnez une date et un créneau pour continuer.</p>
                 </div>
               )}
             </div>
@@ -392,37 +495,46 @@ export default function Appointment() {
 
         {/* Slot Modal */}
         {showSlotModal && selectedDate && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl w-full max-w-md shadow-2xl overflow-hidden">
-              <div className="bg-sage-700 p-5 flex justify-between items-center text-white">
-                <h3 className="text-lg font-serif font-bold capitalize">{formatDateFr(selectedDate)}</h3>
-                <button className="text-white/80 hover:text-white transition" onClick={() => setShowSlotModal(false)}>✕</button>
+          <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 sm:p-6 animate-in fade-in zoom-in duration-300">
+            <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden border border-white/20">
+              <div className="bg-sage-700 p-6 flex justify-between items-center text-white">
+                <div className="flex items-center gap-3">
+                  <CalendarIcon className="w-5 h-5 text-sage-200" />
+                  <h3 className="text-xl font-serif font-bold capitalize">{formatDateFr(selectedDate)}</h3>
+                </div>
+                <button className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition text-white" onClick={() => setShowSlotModal(false)}>✕</button>
               </div>
-              <div className="p-5 max-h-[60vh] overflow-y-auto">
+              <div className="p-6 max-h-[70vh] overflow-y-auto custom-scrollbar bg-gray-50/50">
                 {modalSlots.length === 0 ? (
-                  <p className="text-center text-gray-500 py-8">Aucun créneau disponible.</p>
+                  <div className="text-center py-12">
+                    <Clock className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+                    <p className="text-gray-500 font-medium">Aucun créneau disponible pour ce jour.</p>
+                  </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {modalSlots.map((sl) => (
                       <button
                         key={sl.id}
                         onClick={() => { setSelectedSlot(sl); setShowSlotModal(false); }}
-                        className={`w-full group flex items-center justify-between p-4 rounded-lg border transition-all duration-200 ${selectedSlot?.id === sl.id ? 'border-sage-500 bg-sage-50 ring-1 ring-sage-500' : 'border-gray-100 hover:border-sage-300 hover:bg-gray-50'}`}
+                        className={`w-full group flex items-center justify-between p-5 rounded-2xl border bg-white shadow-sm transition-all duration-300 ${selectedSlot?.id === sl.id ? 'border-sage-500 ring-2 ring-sage-500/20' : 'border-gray-100 hover:border-sage-300 hover:shadow-md'}`}
                       >
                         <div className="text-left">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 mb-1">
                             <Clock className="w-4 h-4 text-sage-600" />
-                            <span className="font-bold text-gray-800 text-sm">{timeFR(sl.startAt)}</span>
+                            <span className="font-bold text-gray-900 text-lg">{timeFR(sl.startAt)}</span>
                           </div>
-                          <span className="text-xs text-gray-500 block mt-1">Fin à {timeFR(sl.endAt)}</span>
+                          <span className="text-xs text-gray-400 font-medium block">Fin prévue à {timeFR(sl.endAt)}</span>
                         </div>
-                        <div className="bg-white text-sage-700 text-sm font-semibold px-4 py-2 rounded-lg shadow-sm group-hover:bg-sage-600 group-hover:text-white transition-colors">
-                          Réserver
+                        <div className="bg-sage-50 text-sage-700 text-xs font-bold px-5 py-2.5 rounded-xl group-hover:bg-sage-600 group-hover:text-white transition-all shadow-sm">
+                          Sélectionner
                         </div>
                       </button>
                     ))}
                   </div>
                 )}
+              </div>
+              <div className="p-5 border-t border-gray-100 bg-white text-center">
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Choisissez votre heure de passage</p>
               </div>
             </div>
           </div>
