@@ -22,6 +22,25 @@ const ProductSEO = () => {
     }
   }, [slug]);
 
+  const jsonLd = product ? {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": product.name,
+    "image": product.imageUrl || "https://eboutique-reconcil-beauty-afro.vercel.app/bannerAlph.png",
+    "description": product.description,
+    "brand": {
+      "@type": "Brand",
+      "name": "Reconcil' Afro Beauty"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": `https://eboutique-reconcil-beauty-afro.vercel.app${window.location.pathname}`,
+      "priceCurrency": "EUR",
+      "price": product.price,
+      "availability": Number(product.stock) > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+    }
+  } : null;
+
   return (
     <>
       {/* SEO */}
@@ -31,25 +50,32 @@ const ProductSEO = () => {
           href={`https://eboutique-reconcil-beauty-afro.vercel.app${window.location.pathname}`}
         />
         <title>
-          {product ? `${product.name} - Achetez en ligne` : "Produit"} -
-          Reconcil' Afro Beauty
+          {product ? `${product.name} | Reconcil' Afro Beauty` : "Produit | Reconcil' Afro Beauty"}
         </title>
         <meta
           name="description"
           content={
-            product
-              ? product.description.slice(0, 160)
-              : "Page produit de notre boutique"
+            (product && typeof product === 'object' && product.description)
+              ? `${product.name} - ${String(product.description).slice(0, 150)}... Découvrez nos soins naturels pour cheveux afro.`
+              : "Découvrez notre produit sur Reconcil' Afro Beauty, spécialiste des soins capillaires naturels."
           }
         />
         {product && product.imageUrl && (
           <meta property="og:image" content={product.imageUrl} />
+        )}
+        {product && product.name && (
+          <meta property="og:title" content={`${product.name} | Reconcil' Afro Beauty`} />
         )}
         {product && product.price && (
           <meta
             property="product:price:amount"
             content={String(product.price)}
           />
+        )}
+        {jsonLd && (
+          <script type="application/ld+json">
+            {JSON.stringify(jsonLd)}
+          </script>
         )}
       </Helmet>
 

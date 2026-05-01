@@ -1,4 +1,3 @@
-// src/modules/payments/payment.service.ts
 import {
   Injectable,
   NotFoundException,
@@ -17,9 +16,6 @@ export class PaymentService {
     @Inject(STRIPE_CLIENT) private readonly stripe: Stripe,
   ) {}
 
-  /**
-   * Paiement d'une commande classique
-   */
   async createPaymentIntent(orderId: number, userId: number) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
@@ -32,7 +28,6 @@ export class PaymentService {
     if (order.status !== 'pending')
       throw new ForbiddenException('Commande déjà payée ou invalide');
 
-    // ⚠️ Désormais on se base sur le total stocké (incluant shippingFee)
     const amountCents = Math.round(Number(order.total) * 100);
 
     const pi = await this.stripe.paymentIntents.create(
@@ -55,9 +50,6 @@ export class PaymentService {
     return { clientSecret: pi.client_secret, paymentIntentId: pi.id };
   }
 
-  /**
-   * Paiement de l'acompte pour un slot
-   */
   async createSlotCheckout(slotId: number) {
     const slot = await this.prisma.slot.findUnique({
       where: { id: slotId },
@@ -80,8 +72,6 @@ export class PaymentService {
     const session = await this.stripe.checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card'],
-      // ✅ on laisse Stripe collecter l’email
-      // customer_email: undefined,
 
       line_items: [
         {
@@ -96,16 +86,13 @@ export class PaymentService {
         },
       ],
 
-      // ✅ on garde le slotId (plus de userId)
       metadata: {
         slotId: String(slot.id),
       },
 
-      // ✅ succès: comme avant (ou adapte si besoin)
       success_url: `${FRONTEND_URL_SLOT}/checkout/success/slot?session_id={CHECKOUT_SESSION_ID}`,
 
-      // ✅ abandon: redirige vers la page publique demandée
-      cancel_url: `https://eboutique-reconcil-beauty-afro.vercel.app/appointment`,
+      cancel_url: `https://reconcil-afro-beauty.com/appointment`,
     });
 
     await this.prisma.slot.update({

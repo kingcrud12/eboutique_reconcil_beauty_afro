@@ -4,13 +4,12 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { IUserCreate, IUserUpdate } from '../Interfaces/user.interface';
 import * as bcrypt from 'bcrypt';
 
-// Mock bcrypt
 jest.mock('bcrypt');
 const mockedBcrypt = bcrypt as jest.Mocked<typeof bcrypt>;
 
 describe('UserService', () => {
   let service: UserService;
-  let prismaService: PrismaService;
+  let PrismaService: PrismaService;
 
   const mockUser = {
     id: 1,

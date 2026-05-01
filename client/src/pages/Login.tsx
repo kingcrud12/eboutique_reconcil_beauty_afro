@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import api from "../connect_to_api/api";
 import { useAuth } from "../contexts/AuthContext";
 import { useState } from "react";
@@ -13,6 +13,7 @@ const Login = () => {
   const [resetSent, setResetSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -29,7 +30,9 @@ const Login = () => {
       login(token);
 
       const guestCart = localStorage.getItem(GUEST_STORAGE_KEY);
-      if (guestCart) {
+      if (location.state?.fromCart) {
+        navigate("/checkout");
+      } else if (guestCart) {
         navigate("/cart");
       } else {
         navigate("/");
@@ -37,7 +40,6 @@ const Login = () => {
     } catch (error: any) {
       console.error("Erreur de connexion :", error.response?.data || error);
       setErrorMessage("Email ou mot de passe incorrect.");
-      // Afficher le lien de réinitialisation à chaque erreur de connexion
       setShowResetLink(true);
     }
   };
@@ -48,65 +50,48 @@ const Login = () => {
       setResetSent(true);
       setShowResetLink(false);
     } catch (error: any) {
-      console.error(
-        "Erreur d'envoi de l'e-mail de réinitialisation :",
-        error.response?.data || error
-      );
-      setErrorMessage("Impossible d’envoyer l’e-mail. Veuillez réessayer.");
+      console.error("Erreur d'envoi :", error.response?.data || error);
+      setErrorMessage("Impossible d'envoyer l'e-mail. Veuillez réessayer.");
     }
   };
 
   return (
-    <div className="mt-[90px] flex items-center justify-center min-h-screen bg-gray-50 px-4">
-      <div className="bg-white shadow-md rounded-lg w-full max-w-md p-8">
-        <h2 className="text-2xl font-bold mb-6 text-center text-slate-800">
+    <div className="flex items-center justify-center min-h-[80vh] bg-white px-4 py-12">
+      <div className="bg-white border border-gray-100 rounded-xl w-full max-w-md p-8 shadow-sm">
+        <h2 className="text-2xl font-serif font-bold mb-2 text-center text-gray-800">
           Connexion
         </h2>
+        <p className="text-sm text-gray-400 text-center mb-8">
+          Connectez-vous à votre espace Reconcil
+        </p>
 
-        <form
-          onSubmit={handleLogin}
-          className="space-y-5"
-          data-testid="login-form"
-        >
+        <form onSubmit={handleLogin} className="space-y-5" data-testid="login-form">
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="email" className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
               Adresse email
             </label>
             <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
+              id="email" type="email" value={email}
+              onChange={(e) => setEmail(e.target.value)} required
               data-testid="login-email"
-              className="mt-1 w-full px-4 py-2 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-slate-500"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-sm focus:outline-none focus:border-sage-500 transition-colors"
             />
           </div>
 
           <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="password" className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
               Mot de passe
             </label>
             <div className="relative">
               <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+                id="password" type={showPassword ? "text" : "password"}
+                value={password} onChange={(e) => setPassword(e.target.value)} required
                 data-testid="login-password"
-                className="mt-1 w-full px-4 py-2 pr-10 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-slate-500"
+                className="w-full px-4 py-2.5 pr-10 border border-gray-200 rounded-lg bg-gray-50 text-sm focus:outline-none focus:border-sage-500 transition-colors"
               />
               <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+                type="button" onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
                 data-testid="toggle-password-visibility"
               >
                 {showPassword ? "🙈" : "👁️"}
@@ -115,52 +100,36 @@ const Login = () => {
           </div>
 
           <button
-            type="submit"
-            data-testid="login-submit"
-            className="w-full bg-slate-800 text-white py-2 rounded-md hover:bg-slate-700 transition duration-200 font-semibold"
+            type="submit" data-testid="login-submit"
+            className="w-full bg-sage-600 text-white py-2.5 rounded-lg hover:bg-sage-700 transition-colors font-medium text-sm"
           >
             Se connecter
           </button>
         </form>
 
         {errorMessage && (
-          <p
-            className="mt-4 text-sm text-red-600 text-center font-medium"
-            data-testid="login-error"
-          >
+          <p className="mt-4 text-sm text-red-500 text-center" data-testid="login-error">
             {errorMessage}
           </p>
         )}
 
         {showResetLink && (
-          <p className="mt-4 text-sm text-center">
-            <button
-              onClick={handleSendResetLink}
-              className="text-blue-600 hover:underline"
-              data-testid="login-reset-link"
-            >
-              Mot de passe oublié ? Cliquez ici pour recevoir un lien de
-              réinitialisation.
+          <p className="mt-3 text-sm text-center">
+            <button onClick={handleSendResetLink} className="text-sage-600 hover:underline" data-testid="login-reset-link">
+              Mot de passe oublié ? Réinitialiser
             </button>
           </p>
         )}
 
         {resetSent && (
-          <p
-            className="mt-4 text-sm text-green-600 text-center font-medium"
-            data-testid="login-reset-sent"
-          >
+          <p className="mt-3 text-sm text-sage-600 text-center" data-testid="login-reset-sent">
             Un e-mail de réinitialisation a été envoyé si le compte existe.
           </p>
         )}
 
-        <p className="text-sm text-center mt-6 text-gray-600">
+        <p className="text-sm text-center mt-8 text-gray-500">
           Pas encore de compte ?{" "}
-          <Link
-            to="/register"
-            className="text-slate-800 font-medium hover:underline"
-            data-testid="login-register-link"
-          >
+          <Link to="/register" className="text-sage-600 font-medium hover:underline" data-testid="login-register-link">
             Créer un compte
           </Link>
         </p>

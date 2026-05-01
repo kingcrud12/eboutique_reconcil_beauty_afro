@@ -3,40 +3,14 @@ import React, { useEffect, useState, useRef } from "react";
 import api from "../connect_to_api/api";
 import { IProduct } from "../connect_to_api/product.interface";
 import { Link, useNavigate } from "react-router-dom";
-import { createProductSlug } from "../utils/urlUtils";
+import { createProductSlug, createSlug } from "../utils/urlUtils";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
 import Popin from "../components/Popin";
 import ProductIcons from "./ProductIcons";
+import { ArrowRight, Star } from "lucide-react";
 
-function AnimatedIcon({
-  title,
-  children,
-  className = "",
-  delay = "0s",
-}: {
-  title: string;
-  children: React.ReactNode;
-  className?: string;
-  delay?: string;
-}) {
-  return (
-    <div className="flex flex-col items-center gap-2 w-28 sm:w-32">
-      <div
-        className={`w-14 h-14 flex items-center justify-center rounded-full bg-white shadow-sm transform transition-all duration-300 ${className}`}
-        style={{ animationDelay: delay }}
-        aria-hidden
-      >
-        {children}
-      </div>
-      <span className="text-xs text-gray-600 uppercase tracking-wide text-center">
-        {title}
-      </span>
-    </div>
-  );
-}
-
-function truncateText(text?: string | null, max = 120) {
+function truncateText(text?: string | null, max = 80) {
   if (!text) return "";
   if (text.length <= max) return text;
   return text.slice(0, max - 1).trimEnd() + "…";
@@ -180,26 +154,12 @@ function Product() {
       setPopinMsg("Produit ajouté au panier !");
     } catch (err) {
       console.error("Erreur ajout panier :", err);
-      setPopinMsg("Impossible d’ajouter au panier.");
+      setPopinMsg("Impossible d'ajouter au panier.");
       await fetchCart();
     } finally {
       setAddingToCart(null);
     }
   };
-
-  if (loading) {
-    return <div className="py-16 text-center">Chargement des produits...</div>;
-  }
-
-  const displayed = products.slice(0, 3);
-
-  const bgVariants = [
-    "bg-[#fef5e7]",
-    "bg-[#fbe8d3]",
-    "bg-[#f5e0dc]",
-    "bg-[#f3e7d3]",
-    "bg-[#f6ede2]",
-  ];
 
   const handleImageClickOnTouch = (
     e: React.MouseEvent | React.TouchEvent,
@@ -216,115 +176,141 @@ function Product() {
     setActiveProductId(productId);
   };
 
+  if (loading) {
+    return (
+      <div className="py-20 text-center">
+        <div className="w-8 h-8 border-2 border-sage-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-gray-500 text-sm">Chargement des produits...</p>
+      </div>
+    );
+  }
+
+  const displayed = products.slice(0, 3);
+
   return (
-    <div
-      ref={containerRef}
-      className="pt-2 pb-16 md:py-16 px-1 sm:px-2 lg:px-3 bg-white font-sans"
-    >
+    <div ref={containerRef} className="bg-white">
       {popinMsg && (
         <Popin message={popinMsg} onClose={() => setPopinMsg(null)} />
       )}
 
-      <div className="w-full mx-auto">
-        <div className="text-center mb-4">
-          <ProductIcons />
-          <h2 className="text-3xl font-extrabold text-gray-900">
-            Nos Produits
+      {/* Values Bar + Ingredients */}
+      <ProductIcons />
+
+      {/* Section: Nos meilleures ventes */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-10 md:py-14">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-2xl sm:text-3xl font-serif font-bold text-gray-800">
+            Nos meilleures ventes
           </h2>
-          <p className="text-gray-500 mt-2 mb-6 text-sm sm:text-base">
-            Commandez pour vous ou vos proches
-          </p>
+          <Link
+            to="/products"
+            className="hidden sm:inline-flex items-center gap-1.5 text-sage-600 font-medium text-sm hover:text-sage-700 transition-colors group"
+          >
+            Voir tous les produits
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+          </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {displayed.map((product, idx) => {
+        {/* Product Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {displayed.map((product) => {
             const isOutOfStock = Number(product.stock) <= 0;
-            const isMiddle = idx === 1;
-            const isActive = activeProductId === product.id;
+            const isAdding = addingToCart === product.id;
+            const productPath = `/product/${createSlug(product.category)}/${createProductSlug(product.id, product.name)}`;
 
             return (
               <article
                 key={product.id}
-                className={`group relative w-full flex flex-col bg-white rounded-3xl border border-gray-200 shadow-2xl transition-transform duration-300 ${isActive
-                  ? "z-50 -translate-y-2 shadow-2xl"
-                  : "hover:-translate-y-2 hover:z-10"
-                  }`}
+                className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300"
               >
-                {/* IMAGE BLOCK */}
-                <div
-                  className={`w-full h-[420px] sm:h-[460px] md:h-96 flex items-center justify-center ${isMiddle ? "bg-white" : ""
-                    } overflow-visible`}
+                {/* Image */}
+                <Link
+                  to={productPath}
+                  className="block w-full aspect-square bg-gray-50 flex items-center justify-center p-6 relative overflow-hidden"
                 >
-                  <Link
-                    to={`/product/${createProductSlug(product.id, product.name)}`}
-                    onClick={(e) => {
-                      if (isTouch) {
-                        handleImageClickOnTouch(
-                          e as any,
-                          product.id,
-                          `/product/${createProductSlug(product.id, product.name)}`
-                        );
-                      }
-                    }}
-                    className="w-full h-full flex items-center justify-center px-4"
-                    aria-label={`Voir ${product.name}`}
-                  >
-                    <img
-                      src={product.imageUrl}
-                      alt={product.name}
-                      loading="lazy"
-                      className={`w-11/12 sm:w-10/12 md:w-9/12 lg:w-8/12 max-w-none h-auto object-contain block desktop-img ${isActive ? "mobile-active" : ""
-                        }`}
-                      style={{
-                        mixBlendMode: "multiply",
-                        background: "transparent",
-                      }}
-                    />
+                  <img
+                    src={product.imageUrl}
+                    alt={product.name}
+                    loading="lazy"
+                    className="max-w-[75%] max-h-[75%] object-contain mx-auto transition-transform duration-500 group-hover:scale-105"
+                    style={{ mixBlendMode: "multiply" }}
+                  />
+                  {/* Badge */}
+                  {!isOutOfStock && (
+                    <span className="absolute top-3 left-3 bg-sage-600 text-white text-[10px] font-bold px-2 py-1 rounded">
+                      Bio
+                    </span>
+                  )}
+                  {isOutOfStock && (
+                    <span className="absolute top-3 left-3 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded">
+                      Épuisé
+                    </span>
+                  )}
+                </Link>
+
+                {/* Body */}
+                <div className="p-4 sm:p-5">
+                  <Link to={productPath}>
+                    <h3 className="text-base font-semibold text-gray-800 mb-1 line-clamp-1 group-hover:text-sage-700 transition-colors">
+                      {product.name}
+                    </h3>
                   </Link>
-                </div>
 
-                {/* CARD BODY */}
-                <div className="p-8 flex-1 flex flex-col justify-between">
-                  <div>
-                    <Link to={`/product/${createProductSlug(product.id, product.name)}`}>
-                      <h3 className="text-xl sm:text-2xl font-extrabold text-gray-800 mb-3 line-clamp-2">
-                        {product.name}
-                      </h3>
+                  <p className="text-xs text-gray-400 mb-2">{truncateText(product.description, 50)}</p>
 
-                      <p
-                        className="text-sm sm:text-base text-slate-600 mt-1 min-h-[4rem] line-clamp-3"
-                        aria-label={product.description}
-                      >
-                        {truncateText(product.description, 160)}
-                      </p>
-                    </Link>
+                  {/* Stars */}
+                  <div className="flex items-center gap-1 mb-3">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star
+                        key={s}
+                        className={`w-3.5 h-3.5 ${s <= 4 ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200"}`}
+                      />
+                    ))}
+                    <span className="text-xs text-gray-400 ml-1">(127)</span>
                   </div>
 
-                  <div className="mt-6">
-                    <div className="mb-4 flex items-center justify-center">
-                      {isOutOfStock && (
-                        <span className="inline-block px-3 py-1 text-sm font-semibold text-red-700 bg-red-100 rounded-full">
-                          Indisponible
-                        </span>
-                      )}
-                    </div>
+                  {/* Price */}
+                  <p className="text-lg font-bold text-gray-800 mb-4">
+                    {Number(product.price).toFixed(2)}€
+                  </p>
 
-                    <div className="flex items-center justify-center">
-                      {!isOutOfStock ? (
-                        <Link to="/products">
-                          <button className="inline-block px-10 py-3 rounded-full bg-green-600 text-white text-base sm:text-lg font-semibold hover:opacity-95 transition">
-                            Découvrir
-                          </button>
-                        </Link>
-                      ) : (
-                        <div style={{ height: 52 }} />
-                      )}
-                    </div>
-                  </div>
+                  {/* CTA Button */}
+                  {!isOutOfStock ? (
+                    <button
+                      onClick={() => handleAddToCart(product)}
+                      disabled={isAdding}
+                      className={`w-full py-2.5 rounded-lg font-medium text-sm transition-colors ${
+                        isAdding
+                          ? "bg-gray-200 text-gray-500 cursor-wait"
+                          : "bg-sage-600 text-white hover:bg-sage-700"
+                      }`}
+                    >
+                      {isAdding ? "Ajout..." : "Ajouter au panier"}
+                    </button>
+                  ) : (
+                    <button
+                      disabled
+                      className="w-full py-2.5 rounded-lg font-medium text-sm bg-gray-100 text-gray-400 cursor-not-allowed"
+                    >
+                      Indisponible
+                    </button>
+                  )}
                 </div>
               </article>
             );
           })}
+        </div>
+
+        {/* Mobile: See all link */}
+        <div className="sm:hidden text-center mt-6">
+          <Link
+            to="/products"
+            className="inline-flex items-center gap-1.5 text-sage-600 font-medium text-sm group"
+          >
+            Voir tous les produits
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+          </Link>
         </div>
       </div>
     </div>

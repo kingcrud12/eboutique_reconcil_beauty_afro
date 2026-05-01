@@ -1,12 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { UserService } from '../user/Services/user.service';
 import axios from 'axios';
 import { ParcelShop, SearchPRResponse } from './types/types';
 
 @Injectable()
 export class PointRelaisService {
-  private readonly apiBaseUrl = process.env.apiBaseUrl;
-  private readonly brand = process.env.brand;
+  private readonly apiBaseUrl =
+    process.env.apiBaseUrl ||
+    'https://widget.mondialrelay.com/parcelshop-picker/v4_0/services/parcelshop-picker.svc/SearchPR';
+  private readonly brand = process.env.brand || 'CC228Q2R';
   private readonly deliveryMode = '24R';
 
   constructor(private readonly usersService: UserService) {}
@@ -15,7 +21,7 @@ export class PointRelaisService {
     const user = await this.usersService.get(userId);
 
     if (!user.adress) {
-      throw new Error('Adresse utilisateur non renseignée');
+      throw new BadRequestException('Adresse utilisateur non renseignée');
     }
 
     let postalCode: string;
@@ -28,41 +34,53 @@ export class PointRelaisService {
       city = parsedCity;
       url = this.buildUrl({ postalCode, city });
     } catch {
-      throw new Error(
+      throw new BadRequestException(
         `Format d'adresse invalide. Format attendu : "rue, code postal, ville". Adresse actuelle : "${user.adress}"`,
       );
     }
 
     try {
       const response = await axios.get<SearchPRResponse>(url);
+      
+      if (response.data?.Error) {
+        throw new Error(`Mondial Relay Error on primary URL: ${response.data.Error}`);
+      }
+
       const list = response.data?.PRList ?? [];
 
       if (list.length === 0) {
         const fallbackUrl = this.buildUrl({ postalCode });
         const fallbackResponse = await axios.get<SearchPRResponse>(fallbackUrl);
+        
+        if (fallbackResponse.data?.Error) {
+           throw new Error(`Mondial Relay Error on fallback URL: ${fallbackResponse.data.Error}`);
+        }
+        
         return fallbackResponse.data?.PRList ?? [];
       }
 
       return list;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error('Mondial Relay API error:', error.response?.data);
+        console.error(`Mondial Relay API error for URL ${url}:`, error.response?.data);
       } else {
-        console.error('Unexpected error:', (error as Error).message);
+        console.error(`Unexpected error for URL ${url}:`, (error as Error).message);
       }
-      throw new Error('Erreur lors de la récupération des points relais');
+      throw new InternalServerErrorException(
+        'Erreur lors de la récupération des points relais',
+      );
     }
   }
 
   private parseAddress(address: string): [string, string, string] {
     if (!address || typeof address !== 'string') {
-      throw new Error('Adresse manquante ou invalide');
+      throw new BadRequestException('Adresse manquante ou invalide');
     }
 
     // Format avec virgules : "rue, code postal, ville"
     const commaParts = address.split(',').map((p) => p.trim());
     if (commaParts.length >= 3) {
-      return [commaParts[0], commaParts[1], commaParts[2]];
+      return this.validateExtracted([commaParts[0], commaParts[1], commaParts[2]]);
     }
 
     // Format standard français : "12 Rue Lecourbe 75015 Paris"
@@ -70,7 +88,7 @@ export class PointRelaisService {
     const postalCodeMatch = address.match(/^(.+?)\s+(\d{5})\s+(.+)$/);
     if (postalCodeMatch) {
       const [, street, postalCode, city] = postalCodeMatch;
-      return [street.trim(), postalCode, city.trim()];
+      return this.validateExtracted([street.trim(), postalCode, city.trim()]);
     }
 
     // Tentative de parsing avec d'autres séparateurs
@@ -82,7 +100,7 @@ export class PointRelaisService {
 
     for (const format of alternativeFormats) {
       if (format.length >= 3) {
-        return [format[0].trim(), format[1].trim(), format[2].trim()];
+        return this.validateExtracted([format[0].trim(), format[1].trim(), format[2].trim()]);
       }
     }
 
@@ -92,13 +110,27 @@ export class PointRelaisService {
       const secondPart = commaParts[1];
       const postalCodeMatch = secondPart.match(/^(\d{5})\s*(.+)$/);
       if (postalCodeMatch) {
-        return [commaParts[0], postalCodeMatch[1], postalCodeMatch[2]];
+        return this.validateExtracted([commaParts[0], postalCodeMatch[1], postalCodeMatch[2]]);
       }
     }
 
-    throw new Error(
+    throw new BadRequestException(
       `Adresse invalide. Formats acceptés : "rue, code postal, ville" ou "12 Rue Lecourbe 75015 Paris". Adresse reçue : "${address}"`,
     );
+  }
+
+  private validateExtracted(parts: [string, string, string]): [string, string, string] {
+    const [, postalCode] = parts;
+    if (!postalCode || postalCode.trim() === '') {
+      throw new BadRequestException('Code postal introuvable dans l\'adresse');
+    }
+
+    const cleanPostalCode = postalCode.trim().replace(/\s/g, '');
+    if (!/^\d{5}$/.test(cleanPostalCode)) {
+      throw new BadRequestException(`Code postal invalide: "${postalCode}". Le code postal doit contenir exactement 5 chiffres.`);
+    }
+
+    return [parts[0], cleanPostalCode, parts[2]];
   }
 
   private buildUrl({
@@ -126,11 +158,21 @@ export class PointRelaisService {
 
     try {
       const response = await axios.get<SearchPRResponse>(url);
+      
+      if (response.data?.Error) {
+        throw new Error(`Mondial Relay Error on primary URL: ${response.data.Error}`);
+      }
+
       const list = response.data?.PRList ?? [];
 
       if (list.length === 0) {
         const fallbackUrl = this.buildUrl({ postalCode });
         const fallbackResponse = await axios.get<SearchPRResponse>(fallbackUrl);
+        
+        if (fallbackResponse.data?.Error) {
+           throw new Error(`Mondial Relay Error on fallback URL: ${fallbackResponse.data.Error}`);
+        }
+        
         return fallbackResponse.data?.PRList ?? [];
       }
 
@@ -138,13 +180,13 @@ export class PointRelaisService {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error(
-          'Mondial Relay API error (address):',
+          `Mondial Relay API error (address) for URL ${url}:`,
           error.response?.data,
         );
       } else {
-        console.error('Unexpected error (address):', (error as Error).message);
+        console.error(`Unexpected error (address) for URL ${url}:`, (error as Error).message);
       }
-      throw new Error(
+      throw new InternalServerErrorException(
         'Erreur lors de la récupération des points relais avec adresse saisie',
       );
     }

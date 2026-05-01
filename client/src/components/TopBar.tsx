@@ -7,13 +7,13 @@ type TopbarProps = {
 
 const Topbar: React.FC<TopbarProps> = ({
   promoCode = "EXTRALIV",
-  href = `/products/offres-az?copy=EXTRALIV`,
+  href = `/products`,
 }) => {
   return (
-    <div className="w-full bg-indigo-600 text-black py-2 flex justify-center">
+    <div className="w-full bg-sage-600 text-white py-2 text-center text-xs sm:text-sm tracking-wide">
       <a
         href={href}
-        className="px-4 py-2 bg-white text-indigo-600 font-semibold rounded-md hover:bg-gray-100 transition"
+        className="hover:underline transition-colors duration-200"
         aria-label={`Copier code promo ${promoCode}`}
       >
         Livraison offerte* avec le code :{" "}

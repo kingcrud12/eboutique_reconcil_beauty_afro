@@ -432,7 +432,7 @@ function Checkout() {
   );
 
   return (
-    <div className="checkout p-6 max-w-5xl mx-auto mt-[180px] space-y-10">
+    <div className="checkout p-6 max-w-5xl mx-auto pt-8 space-y-10">
       <h1 className="text-xl font-bold mb-4">Adresse de livraison</h1>
 
       {/* Champ adresse + suggestions BAN */}
@@ -487,7 +487,7 @@ function Checkout() {
       {/* Boutons d’action */}
       <div className="flex flex-wrap items-center gap-3">
         <button
-          className="bg-black text-white px-4 py-2 rounded disabled:opacity-60"
+          className="bg-sage-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-sage-700 transition-colors disabled:opacity-60"
           onClick={handleFindRelais}
           disabled={loading || !user}
         >
@@ -495,14 +495,13 @@ function Checkout() {
         </button>
 
         <button
-          className="px-4 py-2 rounded border hover:bg-gray-50 disabled:opacity-60"
+          className="px-5 py-2.5 rounded-lg border border-gray-200 font-medium hover:bg-gray-50 transition-colors disabled:opacity-60"
           onClick={() => createHomeOrder("home")}
           disabled={!user || ordering !== null}
           title="Livraison standard à l'adresse saisie"
         >
           {ordering === "home" ? "Création..." : "Livraison à domicile (Colissimo)"}
         </button>
-
       </div>
 
       {parcelShops.length > 0 && (
@@ -681,7 +680,7 @@ function Checkout() {
               Ajouter un produit au panier
             </h3>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto p-2 custom-scrollbar">
               {products.map((p) => (
                 <div
                   key={p.id}
