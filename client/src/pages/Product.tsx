@@ -78,7 +78,7 @@ function Product() {
   };
 
   if (loading) return <div className="p-6 text-center">Chargement...</div>;
-  if (!product)
+  if (!product || typeof product !== 'object')
     return (
       <div className="p-6 text-red-600 text-center">Produit introuvable</div>
     );

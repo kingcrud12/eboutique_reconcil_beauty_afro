@@ -55,8 +55,8 @@ const ProductSEO = () => {
         <meta
           name="description"
           content={
-            product
-              ? `${product.name} - ${product.description.slice(0, 150)}... Découvrez nos soins naturels pour cheveux afro.`
+            (product && typeof product === 'object' && product.description)
+              ? `${product.name} - ${String(product.description).slice(0, 150)}... Découvrez nos soins naturels pour cheveux afro.`
               : "Découvrez notre produit sur Reconcil' Afro Beauty, spécialiste des soins capillaires naturels."
           }
         />

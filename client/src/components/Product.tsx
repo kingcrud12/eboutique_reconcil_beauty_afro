@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import api from "../connect_to_api/api";
 import { IProduct } from "../connect_to_api/product.interface";
 import { Link, useNavigate } from "react-router-dom";
-import { createProductSlug } from "../utils/urlUtils";
+import { createProductSlug, createSlug } from "../utils/urlUtils";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
 import Popin from "../components/Popin";
@@ -217,7 +217,7 @@ function Product() {
           {displayed.map((product) => {
             const isOutOfStock = Number(product.stock) <= 0;
             const isAdding = addingToCart === product.id;
-            const productPath = `/product/${createProductSlug(product.id, product.name)}`;
+            const productPath = `/product/${createSlug(product.category)}/${createProductSlug(product.id, product.name)}`;
 
             return (
               <article
