@@ -276,14 +276,14 @@ function Checkout() {
         deliveryMode: "HOME"
       });
       
-      const response = await api.post("/shop/orders", {
+      const response = await api.post("/orders", {
         deliveryAddress: cleanAddress,
         userId: user.id,
         deliveryMode: "HOME",
       });
       
       console.log("Commande créée avec succès:", response.data);
-      navigate("/shop/orders");
+      navigate("/orders");
     } catch (e) {
       console.error("Erreur création commande (domicile) :", e);
       if (e && typeof e === "object" && "response" in e) {
@@ -362,14 +362,14 @@ function Checkout() {
         deliveryMode: isLocker ? "LOCKER" : "RELAY"
       });
       
-      const response = await api.post("/shop/orders", {
+      const response = await api.post("/orders", {
         deliveryAddress,
         userId: user.id,
         deliveryMode: isLocker ? "LOCKER" : "RELAY", // 👈 envoie LOCKER si besoin
       });
       
       console.log("Commande créée avec succès:", response.data);
-      navigate("/shop/orders");
+      navigate("/orders");
     } catch (error) {
       console.error("Erreur création commande (relais/locker) :", error);
       if (error && typeof error === "object" && "response" in error) {

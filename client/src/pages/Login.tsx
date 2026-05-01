@@ -31,9 +31,9 @@ const Login = () => {
 
       const guestCart = localStorage.getItem(GUEST_STORAGE_KEY);
       if (location.state?.fromCart) {
-        navigate("/shop/checkout");
+        navigate("/checkout");
       } else if (guestCart) {
-        navigate("/shop/cart");
+        navigate("/cart");
       } else {
         navigate("/");
       }
@@ -129,7 +129,7 @@ const Login = () => {
 
         <p className="text-sm text-center mt-8 text-gray-500">
           Pas encore de compte ?{" "}
-          <Link to="/shop/register" className="text-sage-600 font-medium hover:underline" data-testid="login-register-link">
+          <Link to="/register" className="text-sage-600 font-medium hover:underline" data-testid="login-register-link">
             Créer un compte
           </Link>
         </p>

@@ -8,17 +8,21 @@ import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
 import { Star, ShoppingCart } from "lucide-react";
 
-const categories = ["Tous", "hair", "body"];
+const categories = ["Tous", "hair", "body", "ingredients", "promotions"];
 const categoryLabels: Record<string, string> = {
   Tous: "Tous les produits",
   hair: "Soins Cheveux",
   body: "Soins Corps",
+  ingredients: "Nos Ingrédients",
+  promotions: "Promotions",
 };
 
 // Mappe les slugs aux valeurs internes
 const slugToCategory: Record<string, string> = {
   "soins-cheveux": "hair",
-  "soins-corps": "body"
+  "soins-corps": "body",
+  "ingredients": "ingredients",
+  "promotions": "promotions"
 };
 
 const Products = () => {
@@ -126,7 +130,7 @@ const Products = () => {
           {categories.map((cat) => {
             // Find the slug for this category
             const slug = Object.keys(slugToCategory).find(key => slugToCategory[key] === cat);
-            const path = cat === "Tous" ? "/shop/products" : `/shop/products/${slug}`;
+            const path = cat === "Tous" ? "/products" : `/products/${slug}`;
             
             return (
               <button
@@ -154,7 +158,7 @@ const Products = () => {
               <article key={p.id} className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
                 {/* Image */}
                 <Link
-                  to={`/shop/product/${createSlug(p.category)}/${createProductSlug(p.id, p.name)}`}
+                  to={`/product/${createSlug(p.category)}/${createProductSlug(p.id, p.name)}`}
                   className="block w-full aspect-square bg-gray-50 flex items-center justify-center p-6 relative overflow-hidden"
                 >
                   <img src={p.imageUrl} alt={p.name} loading="lazy"
@@ -167,7 +171,7 @@ const Products = () => {
 
                 {/* Body */}
                 <div className="p-4 sm:p-5">
-                  <Link to={`/shop/product/${createSlug(p.category)}/${createProductSlug(p.id, p.name)}`}>
+                  <Link to={`/product/${createSlug(p.category)}/${createProductSlug(p.id, p.name)}`}>
                     <h3 className="text-sm font-semibold text-gray-800 mb-1 line-clamp-1 group-hover:text-sage-700 transition-colors">
                       {p.name}
                     </h3>

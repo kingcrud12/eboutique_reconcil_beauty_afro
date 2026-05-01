@@ -27,7 +27,7 @@ function ResetPassword() {
     try {
       await api.patch(`/users/reset-password?token=${token}`, { password });
       setMessage("Mot de passe mis à jour avec succès !");
-      setTimeout(() => navigate("/shop/login"), 3000);
+      setTimeout(() => navigate("/login"), 3000);
     } catch (err: any) {
       setError("Une erreur est survenue. Lien invalide ou expiré.");
     } finally { setLoading(false); }

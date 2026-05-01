@@ -20,7 +20,7 @@ function ConfirmAccount() {
     api.patch(`/auth/confirm-account?token=${token}`)
       .then(() => {
         setMessage("Votre compte a bien été confirmé !");
-        setTimeout(() => navigate("/shop/login"), 3000);
+        setTimeout(() => navigate("/login"), 3000);
       })
       .catch(() => {
         setMessage("Erreur lors de la confirmation du compte.");

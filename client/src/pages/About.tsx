@@ -43,7 +43,7 @@ const About = () => {
             </p>
 
             <Link
-              to="/shop/about"
+              to="/about"
               className="inline-flex items-center gap-2 px-6 py-2.5 border-2 border-sage-600 text-sage-600 font-medium rounded-lg hover:bg-sage-600 hover:text-white transition-all duration-300 text-sm group"
             >
               En savoir plus

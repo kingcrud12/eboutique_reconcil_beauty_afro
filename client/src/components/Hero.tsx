@@ -9,7 +9,7 @@ const slides = [
     titleGreen: "L'élixir pour la pousse des cheveux afro",
     subtitle: "Découvrez notre secret traditionnel tchadien pour des cheveux longs, forts et nourris en profondeur.",
     cta: "Découvrir la gamme",
-    link: "/shop/products",
+    link: "/products",
   },
   {
     image: "ban_1_square.png",
@@ -18,7 +18,7 @@ const slides = [
     titleGreen: "100% pures & artisanales",
     subtitle: "Ricin, argan, coco — des soins ancestraux pour nourrir et sublimer vos cheveux naturellement.",
     cta: "Voir la collection",
-    link: "/shop/products",
+    link: "/products",
   },
   {
     image: "banner_carthame_desktop.png",
@@ -27,7 +27,7 @@ const slides = [
     titleGreen: "Légèreté & Nutrition",
     subtitle: "Idéale pour sceller l'hydratation de vos boucles sans les alourdir. L'indispensable de votre routine capillaire.",
     cta: "Explorer",
-    link: "/shop/products",
+    link: "/products",
   },
 ];
 
