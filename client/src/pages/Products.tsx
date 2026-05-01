@@ -8,21 +8,21 @@ import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
 import { Star, ShoppingCart } from "lucide-react";
 
-const categories = ["Tous", "hair", "body", "ingredients", "promotions"];
+const categories = ["Tous", "hair" /*, "body", "ingredients", "promotions" */];
 const categoryLabels: Record<string, string> = {
   Tous: "Tous les produits",
   hair: "Soins Cheveux",
-  body: "Soins Corps",
-  ingredients: "Nos Ingrédients",
-  promotions: "Promotions",
+  // body: "Soins Corps",
+  // ingredients: "Nos Ingrédients",
+  // promotions: "Promotions",
 };
 
 // Mappe les slugs aux valeurs internes
 const slugToCategory: Record<string, string> = {
   "soins-cheveux": "hair",
-  "soins-corps": "body",
-  "ingredients": "ingredients",
-  "promotions": "promotions"
+  // "soins-corps": "body",
+  // "ingredients": "ingredients",
+  // "promotions": "promotions"
 };
 
 const Products = () => {

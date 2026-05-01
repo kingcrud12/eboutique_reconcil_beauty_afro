@@ -74,9 +74,9 @@ function Appbar() {
 
   const navLinks = [
     { to: "/products/soins-cheveux", label: "Soins Cheveux" },
-    { to: "/products/soins-corps", label: "Soins Corps" },
+    // { to: "/products/soins-corps", label: "Soins Corps" },
     { to: "/services", label: "Nos Services" },
-    { to: "/products/ingredients", label: "Nos Ingrédients" },
+    // { to: "/products/ingredients", label: "Nos Ingrédients" },
     { to: "/contact", label: "Contact" },
   ];
 
@@ -263,6 +263,7 @@ function Appbar() {
                 </Link>
               </li>
             ))}
+            {/*
             <li>
               <Link
                 to="/products/promotions"
@@ -271,6 +272,7 @@ function Appbar() {
                 Promotions
               </Link>
             </li>
+            */}
           </ul>
         </div>
       </nav>
@@ -363,6 +365,7 @@ function Appbar() {
                     </Link>
                   </li>
                 ))}
+                {/*
                 <li>
                   <Link
                     to="/products/promotions"
@@ -372,6 +375,7 @@ function Appbar() {
                     Promotions
                   </Link>
                 </li>
+                */}
               </ul>
             </nav>
 

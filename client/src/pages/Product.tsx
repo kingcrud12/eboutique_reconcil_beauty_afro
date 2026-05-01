@@ -176,21 +176,19 @@ function Product() {
           Retour à la boutique
         </button>
 
-        <div className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/50 overflow-hidden lg:h-[750px] flex flex-col">
-          <div className="grid grid-cols-1 lg:grid-cols-2 flex-1 h-full">
+        <div className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/50 overflow-hidden h-auto lg:h-[750px] flex flex-col">
+          <div className="grid grid-cols-1 lg:grid-cols-2 flex-1 h-full min-h-0">
             
             {/* Left: Image */}
-            <div className="relative p-8 lg:p-16 flex items-center justify-center bg-[#FDFDFC] border-b lg:border-b-0 lg:border-r border-gray-100/50 h-[400px] lg:h-full">
-              <div className="absolute inset-0 bg-gradient-to-br from-sage-50/30 to-transparent"></div>
-              <div className="relative w-full h-full flex items-center justify-center group">
-                <div className="absolute inset-0 bg-sage-100/40 rounded-full blur-3xl scale-90 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+            <div className="relative p-6 lg:p-12 flex items-center justify-center bg-white border-b lg:border-b-0 lg:border-r border-gray-100/50 h-[400px] lg:h-full min-h-0">
+              <div className="relative w-full h-full flex items-center justify-center">
                 <img
                   src={product.imageUrl}
                   alt={product.name}
-                  className="relative z-10 w-full h-full object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-[1.03] drop-shadow-2xl"
+                  className="w-full h-full object-contain mix-blend-multiply transition-transform duration-700 hover:scale-105 drop-shadow-xl"
                 />
                 {isOutOfStock && (
-                  <div className="absolute top-0 left-0 z-20 bg-red-500/90 backdrop-blur-sm text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-lg">
+                  <div className="absolute top-4 left-4 z-20 bg-red-500/90 backdrop-blur-sm text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-lg">
                     Épuisé
                   </div>
                 )}
@@ -198,7 +196,7 @@ function Product() {
             </div>
 
             {/* Right: Details & Actions */}
-            <div className="p-8 lg:p-12 xl:p-16 flex flex-col h-full bg-white">
+            <div className="p-8 lg:p-12 xl:p-16 flex flex-col h-full bg-white min-h-0">
               <div className="flex-shrink-0">
                 <div className="mb-4 flex items-center gap-3">
                   <span className="text-[10px] font-bold text-sage-600 uppercase tracking-[0.25em] bg-sage-50 px-3 py-1 rounded-full">
@@ -219,7 +217,7 @@ function Product() {
               </div>
 
               {/* Scrollable Description */}
-              <div className="flex-1 overflow-y-auto pr-4 mb-8 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+              <div className="flex-1 overflow-y-auto pr-4 mb-8 min-h-0 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
                 <div className="prose prose-sage prose-p:leading-relaxed text-gray-600 max-w-none text-[15px]">
                   {renderFullDescription(product.description)}
                 </div>
