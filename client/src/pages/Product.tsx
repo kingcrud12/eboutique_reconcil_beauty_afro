@@ -176,21 +176,21 @@ function Product() {
           Retour à la boutique
         </button>
 
-        <div className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/50 overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-2">
+        <div className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/50 overflow-hidden lg:h-[750px] flex flex-col">
+          <div className="grid grid-cols-1 lg:grid-cols-2 flex-1 h-full">
             
             {/* Left: Image */}
-            <div className="p-8 lg:p-16 flex items-center justify-center bg-gradient-to-br from-sage-50/50 to-white border-b lg:border-b-0 lg:border-r border-gray-100/50">
-              <div className="relative w-full max-w-lg aspect-square flex items-center justify-center group">
-                {/* Subtle decorative background circle */}
-                <div className="absolute inset-0 bg-sage-100/50 rounded-full blur-3xl scale-75 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+            <div className="relative p-8 lg:p-16 flex items-center justify-center bg-[#FDFDFC] border-b lg:border-b-0 lg:border-r border-gray-100/50 h-[400px] lg:h-full">
+              <div className="absolute inset-0 bg-gradient-to-br from-sage-50/30 to-transparent"></div>
+              <div className="relative w-full h-full flex items-center justify-center group">
+                <div className="absolute inset-0 bg-sage-100/40 rounded-full blur-3xl scale-90 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                 <img
                   src={product.imageUrl}
                   alt={product.name}
-                  className="relative z-10 w-full h-full object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-105 drop-shadow-xl"
+                  className="relative z-10 w-full h-full object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-[1.03] drop-shadow-2xl"
                 />
                 {isOutOfStock && (
-                  <div className="absolute top-4 left-4 z-20 bg-red-500/90 backdrop-blur-sm text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-lg">
+                  <div className="absolute top-0 left-0 z-20 bg-red-500/90 backdrop-blur-sm text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-lg">
                     Épuisé
                   </div>
                 )}
@@ -198,66 +198,74 @@ function Product() {
             </div>
 
             {/* Right: Details & Actions */}
-            <div className="p-8 lg:p-16 flex flex-col justify-center">
-              <div className="mb-4 flex items-center gap-3">
-                <span className="text-xs font-bold text-sage-600 uppercase tracking-[0.2em] bg-sage-50 px-3 py-1 rounded-full">
-                  {product.category}
-                </span>
-              </div>
-              
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif text-gray-900 mb-6 leading-[1.1] tracking-tight">
-                {product.name}
-              </h1>
-
-              <div className="flex items-baseline gap-4 mb-8">
-                <div className="text-3xl sm:text-4xl font-semibold text-gray-900 tracking-tight">
-                  {priceString ? priceString : <span className="text-xl text-gray-500 font-normal">Prix indisponible</span>}
+            <div className="p-8 lg:p-12 xl:p-16 flex flex-col h-full bg-white">
+              <div className="flex-shrink-0">
+                <div className="mb-4 flex items-center gap-3">
+                  <span className="text-[10px] font-bold text-sage-600 uppercase tracking-[0.25em] bg-sage-50 px-3 py-1 rounded-full">
+                    {product.category}
+                  </span>
                 </div>
-                <span className="text-sm text-gray-400 font-medium">TTC</span>
-              </div>
+                
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-gray-900 mb-4 leading-[1.1] tracking-tight">
+                  {product.name}
+                </h1>
 
-              <div className="prose prose-sage prose-p:leading-loose text-gray-600 mb-12 max-w-none text-[15px]">
-                {renderFullDescription(product.description)}
-              </div>
-
-              <div className="space-y-4 mb-14">
-                <button
-                  onClick={handleAdd}
-                  disabled={isOutOfStock || adding}
-                  className={`w-full py-4 sm:py-5 rounded-2xl font-semibold text-lg flex items-center justify-center gap-3 transition-all duration-300 ${
-                    isOutOfStock || adding
-                      ? "bg-gray-100 cursor-not-allowed text-gray-400 shadow-none"
-                      : "bg-gray-900 text-white hover:bg-sage-700 hover:shadow-xl hover:shadow-sage-700/20 hover:-translate-y-0.5"
-                  }`}
-                >
-                  <ShoppingBag className="w-5 h-5" />
-                  {isOutOfStock
-                    ? "Indisponible actuellement"
-                    : adding
-                      ? "Ajout en cours..."
-                      : "Ajouter au panier"}
-                </button>
-              </div>
-
-              {/* Trust Badges */}
-              <div className="grid grid-cols-3 gap-6 pt-10 border-t border-gray-100">
-                <div className="flex flex-col items-center text-center gap-3 group">
-                  <div className="w-12 h-12 rounded-full bg-sage-50 flex items-center justify-center text-sage-600 group-hover:scale-110 group-hover:bg-sage-100 transition-all duration-300">
-                    <Leaf className="w-6 h-6" strokeWidth={1.5} />
+                <div className="flex items-baseline gap-3 mb-6">
+                  <div className="text-3xl font-semibold text-gray-900 tracking-tight">
+                    {priceString ? priceString : <span className="text-lg text-gray-500 font-normal">Prix indisponible</span>}
                   </div>
-                  <span className="text-xs font-medium text-gray-600 tracking-wide">100% Naturel</span>
+                  <span className="text-xs text-gray-400 font-medium">TTC</span>
                 </div>
-                <div className="flex flex-col items-center text-center gap-3 group">
-                  <div className="w-12 h-12 rounded-full bg-sage-50 flex items-center justify-center text-sage-600 group-hover:scale-110 group-hover:bg-sage-100 transition-all duration-300">
-                    <Truck className="w-6 h-6" strokeWidth={1.5} />
-                  </div>
-                  <span className="text-xs font-medium text-gray-600 tracking-wide">Livraison Rapide</span>
+              </div>
+
+              {/* Scrollable Description */}
+              <div className="flex-1 overflow-y-auto pr-4 mb-8 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+                <div className="prose prose-sage prose-p:leading-relaxed text-gray-600 max-w-none text-[15px]">
+                  {renderFullDescription(product.description)}
                 </div>
-                <div className="flex flex-col items-center text-center gap-3 group">
-                  <div className="w-12 h-12 rounded-full bg-sage-50 flex items-center justify-center text-sage-600 group-hover:scale-110 group-hover:bg-sage-100 transition-all duration-300">
-                    <ShieldCheck className="w-6 h-6" strokeWidth={1.5} />
+              </div>
+
+              {/* Fixed Bottom Actions */}
+              <div className="flex-shrink-0 pt-6 border-t border-gray-100/50 mt-auto">
+                <div className="space-y-4 mb-8">
+                  <button
+                    onClick={handleAdd}
+                    disabled={isOutOfStock || adding}
+                    className={`w-full py-4 rounded-xl font-semibold text-[15px] flex items-center justify-center gap-3 transition-all duration-300 ${
+                      isOutOfStock || adding
+                        ? "bg-gray-100 cursor-not-allowed text-gray-400 shadow-none"
+                        : "bg-gray-900 text-white hover:bg-sage-700 hover:shadow-lg hover:shadow-sage-700/20 hover:-translate-y-0.5"
+                    }`}
+                  >
+                    <ShoppingBag className="w-5 h-5" />
+                    {isOutOfStock
+                      ? "Indisponible actuellement"
+                      : adding
+                        ? "Ajout en cours..."
+                        : "Ajouter au panier"}
+                  </button>
+                </div>
+
+                {/* Trust Badges */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="flex flex-col items-center text-center gap-2 group">
+                    <div className="w-10 h-10 rounded-full bg-sage-50 flex items-center justify-center text-sage-600 group-hover:bg-sage-100 transition-colors">
+                      <Leaf className="w-5 h-5" strokeWidth={1.5} />
+                    </div>
+                    <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">100% Naturel</span>
                   </div>
-                  <span className="text-xs font-medium text-gray-600 tracking-wide">Paiement Sécurisé</span>
+                  <div className="flex flex-col items-center text-center gap-2 group">
+                    <div className="w-10 h-10 rounded-full bg-sage-50 flex items-center justify-center text-sage-600 group-hover:bg-sage-100 transition-colors">
+                      <Truck className="w-5 h-5" strokeWidth={1.5} />
+                    </div>
+                    <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Livraison Rapide</span>
+                  </div>
+                  <div className="flex flex-col items-center text-center gap-2 group">
+                    <div className="w-10 h-10 rounded-full bg-sage-50 flex items-center justify-center text-sage-600 group-hover:bg-sage-100 transition-colors">
+                      <ShieldCheck className="w-5 h-5" strokeWidth={1.5} />
+                    </div>
+                    <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Paiement Sécurisé</span>
+                  </div>
                 </div>
               </div>
 
