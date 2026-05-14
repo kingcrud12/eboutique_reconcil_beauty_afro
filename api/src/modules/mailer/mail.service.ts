@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
+import { InvoiceService } from './invoice.service';
 
 type DeliveryMode = 'HOME' | 'RELAY';
 
@@ -28,7 +29,10 @@ interface OrderMailContext {
 
 @Injectable()
 export class MailService {
-  constructor(private readonly mailerService: MailerService) {}
+  constructor(
+    private readonly mailerService: MailerService,
+    private readonly invoiceService: InvoiceService,
+  ) {}
 
   frontend = process.env.FRONTEND_URL;
 
@@ -85,6 +89,14 @@ export class MailService {
       ? '0.00'
       : Number(ctx.total).toFixed(2);
 
+    const pdfBuffer = await this.invoiceService.generateInvoicePdf({
+      ...ctx,
+      items: itemsFormatted,
+      itemsSubtotal,
+      shippingFee,
+      total,
+    });
+
     await this.mailerService.sendMail({
       to,
       subject: `Votre paiement est confirmé – commande #${ctx.orderId}`,
@@ -97,6 +109,12 @@ export class MailService {
         shippingFee,
         total,
       },
+      attachments: [
+        {
+          filename: `facture-${ctx.orderId}.pdf`,
+          content: pdfBuffer,
+        },
+      ],
     });
   }
 
@@ -114,6 +132,29 @@ export class MailService {
       subject: `Réservation confirmée – ${ctx.serviceName}`,
       template: 'slot-booked',
       context: { ...ctx, depositAmountEUR: ctx.depositAmountEUR.toFixed(2) },
+    });
+  }
+
+  async sendOrderApologyEmail(
+    to: string,
+    ctx: Omit<OrderMailContext, 'etaDays'>,
+  ) {
+    const pdfBuffer = await this.invoiceService.generateInvoicePdf(ctx);
+
+    await this.mailerService.sendMail({
+      to,
+      subject: `Nos excuses concernant votre commande #${ctx.orderId}`,
+      template: 'order-apology',
+      context: {
+        ...ctx,
+        year: new Date().getFullYear(),
+      },
+      attachments: [
+        {
+          filename: `facture-${ctx.orderId}.pdf`,
+          content: pdfBuffer,
+        },
+      ],
     });
   }
 }

@@ -30,7 +30,7 @@ import { ContactModule } from './modules/contact/contact.module';
         },
       },
       defaults: {
-        from: '"Reconcil Beauty Afro" <dipitay@gmail.com>',
+        from: '"Reconcil Afro Beauty" <dipitay@gmail.com>',
       },
       template: {
         dir: join(__dirname, '..', 'src', 'templates'),

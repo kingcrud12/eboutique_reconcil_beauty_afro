@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { PrismaService } from '../../prisma/prisma.service';
+import { InvoiceService } from './invoice.service';
 
 type DeliveryMode = 'HOME' | 'RELAY';
 
@@ -35,6 +36,7 @@ export class AdminMailService {
   constructor(
     private readonly mailerService: MailerService,
     private readonly prisma: PrismaService,
+    private readonly invoiceService: InvoiceService,
   ) {}
 
   private estimateDays(mode: DeliveryMode): number {
@@ -91,6 +93,16 @@ export class AdminMailService {
     const shippingFee = Number(ctx.shippingFee).toFixed(2);
     const total = Number(ctx.total).toFixed(2);
 
+    const pdfBuffer = await this.invoiceService.generateInvoicePdf({
+      ...ctx,
+      items,
+      itemsSubtotal,
+      shippingFee,
+      total,
+      phone: resolvedPhone,
+      adress: resolvedAdress,
+    });
+
     await this.mailerService.sendMail({
       to: adminEmails,
       subject: `Nouvelle commande payée #${ctx.orderId}`,
@@ -105,6 +117,39 @@ export class AdminMailService {
         shippingFee,
         total,
       },
+      attachments: [
+        {
+          filename: `facture-${ctx.orderId}.pdf`,
+          content: pdfBuffer,
+        },
+      ],
+    });
+  }
+  async sendOrderApologyToAdmins(ctx: Omit<AdminOrderMailContext, 'etaDays'>) {
+    const admins = await this.prisma.user.findMany({
+      where: { role: 'admin' },
+      select: { email: true },
+    });
+
+    const adminEmails = admins.map((a) => a.email).filter(Boolean);
+    if (adminEmails.length === 0) return;
+
+    const pdfBuffer = await this.invoiceService.generateInvoicePdf(ctx);
+
+    await this.mailerService.sendMail({
+      to: adminEmails,
+      subject: `[COPIE ADMIN] Excuses concernant la commande #${ctx.orderId}`,
+      template: 'order-apology',
+      context: {
+        ...ctx,
+        year: new Date().getFullYear(),
+      },
+      attachments: [
+        {
+          filename: `facture-${ctx.orderId}.pdf`,
+          content: pdfBuffer,
+        },
+      ],
     });
   }
 }
