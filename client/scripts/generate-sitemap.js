@@ -3,7 +3,9 @@ const https = require('https');
 const path = require('path');
 
 const SITE_URL = 'https://reconcil-afro-beauty.com';
-const API_URL = 'https://eboutique-reconcil-beauty-afro.onrender.com/reconcil/api/shop/products';
+const API_URL = process.env.REACT_APP_BASE_URL 
+    ? `${process.env.REACT_APP_BASE_URL}/products`
+    : 'https://eboutique-reconcil-beauty-afro.onrender.com/reconcil/api/shop/products';
 
 const createSlug = (text) => {
     if (!text) return "categorie";
@@ -36,6 +38,9 @@ const staticRoutes = [
 async function fetchProducts() {
     return new Promise((resolve, reject) => {
         https.get(API_URL, (res) => {
+            if (res.statusCode !== 200) {
+                return reject(new Error(`API returned status ${res.statusCode}`));
+            }
             let data = '';
             res.on('data', chunk => data += chunk);
             res.on('end', () => {
@@ -43,7 +48,7 @@ async function fetchProducts() {
                     const products = JSON.parse(data);
                     resolve(products);
                 } catch (e) {
-                    reject(e);
+                    reject(new Error(`Failed to parse JSON: ${e.message}`));
                 }
             });
         }).on('error', reject);
