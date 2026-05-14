@@ -5,7 +5,7 @@ const path = require('path');
 const SITE_URL = 'https://reconcil-afro-beauty.com';
 const API_URL = process.env.REACT_APP_BASE_URL 
     ? `${process.env.REACT_APP_BASE_URL}/products`
-    : 'https://eboutique-reconcil-beauty-afro.onrender.com/reconcil/api/shop/products';
+    : 'https://neo-tech-softwares.com/reconcil/api/shop/products';
 
 const createSlug = (text) => {
     if (!text) return "categorie";
