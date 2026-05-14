@@ -95,7 +95,7 @@ export class InvoiceService {
 
       currentY += 15;
       doc
-        .text('Frais de port:', 340, currentY, { width: 90, align: 'right' })
+        .text('Frais de livraison:', 340, currentY, { width: 90, align: 'right' })
         .text(shippingFee.toFixed(2) + ' €', 440, currentY, { width: 100, align: 'right' });
 
       currentY += 20;
