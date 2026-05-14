@@ -1,48 +1,68 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { User, ShoppingCart, Menu } from "lucide-react";
+import { User, ShoppingCart, Menu, X, Search } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../contexts/CartContext";
+import api from "../connect_to_api/api";
+import { IProduct } from "../connect_to_api/product.interface";
+import { createProductSlug, createSlug } from "../utils/urlUtils";
 
 function Appbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [userModalOpen, setUserModalOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const userRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const mobileSearchRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [products, setProducts] = useState<IProduct[]>([]);
+  const [searchResults, setSearchResults] = useState<IProduct[]>([]);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const { isAuthenticated, logout } = useAuth();
   const { totalQuantity, fetchCart, setCarts } = useCart();
 
-  const isHome = location.pathname === "/";
-
-  // Handle click outside user modal
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (userRef.current && !userRef.current.contains(event.target as Node)) {
         setUserModalOpen(false);
+      }
+      if (searchRef.current && !searchRef.current.contains(event.target as Node) &&
+        mobileSearchRef.current && !mobileSearchRef.current.contains(event.target as Node)) {
+        setIsSearchFocused(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Handle scroll for transparency effect
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
+    if (isAuthenticated) fetchCart();
+  }, [isAuthenticated, fetchCart]);
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
+
+  // Search logic hooks
+  useEffect(() => {
+    api.get<IProduct[]>("/products").then(res => setProducts(res.data)).catch(console.error);
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchCart();
+    if (searchQuery.trim().length >= 2) {
+      const query = searchQuery.toLowerCase();
+      const results = products.filter(p =>
+        p.name.toLowerCase().includes(query) ||
+        p.description.toLowerCase().includes(query)
+      );
+      setSearchResults(results.slice(0, 5));
+    } else {
+      setSearchResults([]);
     }
-  }, [isAuthenticated, fetchCart]);
+  }, [searchQuery, products]);
 
   const handleLogout = () => {
     setCarts([]);
@@ -52,131 +72,369 @@ function Appbar() {
     navigate("/");
   };
 
-  const handleLoginRedirect = () => {
-    setUserModalOpen(false);
-    navigate("/login");
-  };
-
-  // Determine styles based on state
-  // If Home and not scrolled: Transparent background, White text
-  // If Scrolled or Not Home: White/Default background, Black text
-  const isTransparent = isHome && !isScrolled;
-
-  const navBgClass = isTransparent
-    ? "bg-transparent shadow-none"
-    : "bg-white/90 backdrop-blur-md text-black shadow-md";
-
-  // Custom styles for text/icons
-  const textColorClass = "text-black";
-  const iconClass = "text-black hover:text-gray-700";
-
-  // Custom hover styles for animated underline
-  const NavLink = ({ to, children }: { to: string; children: React.ReactNode }) => (
-    <Link to={to} className="relative group py-1">
-      <span className={`text-black transition-colors duration-300 group-hover:text-purple-900`}>{children}</span>
-      <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-purple-900 transition-all duration-300 group-hover:w-full"></span>
-    </Link>
-  );
+  const navLinks = [
+    { to: "/products/soins-cheveux", label: "Soins Cheveux" },
+    // { to: "/products/soins-corps", label: "Soins Corps" },
+    { to: "/services", label: "Nos Services" },
+    // { to: "/products/ingredients", label: "Nos Ingrédients" },
+    { to: "/contact", label: "Contact" },
+  ];
 
   return (
-    <div className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${navBgClass}`}>
+    <>
+      {/* ═══ ROW 1 : Logo | Search | Mon compte + Panier ═══ */}
+      <div className="w-full bg-white border-b border-gray-100">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-6">
 
-
-      {/* Main appbar */}
-      <div className={`w-full px-4 py-2 sm:py-4 transition-colors duration-300 ${textColorClass}`}>
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <div className="flex items-center gap-4">
-            <div className="md:hidden">
-              <button onClick={() => setMenuOpen(!menuOpen)} className={`${iconClass} hover:scale-110 transition-transform`}>
-                <Menu className="w-6 h-6" />
-              </button>
-            </div>
-
-            <Link to="/" className="flex flex-col items-center md:items-start md:flex-row md:gap-2 group">
-              <img src="/AM_LOGO.png" alt="Logo" className="h-10 sm:h-12 w-auto transition-transform duration-300 group-hover:scale-105" />
-              <p className={`text-[10px] sm:text-xs leading-none mt-1 md:mt-0 font-serif tracking-wider text-black hidden md:block group-hover:text-purple-900 transition-colors duration-300`}>
-                Réconcil' Afro Beauty
-              </p>
-            </Link>
-          </div>
-
-          {/* Desktop Navigation with Animated Underline */}
-          <div className={`hidden md:flex items-center space-x-8 text-sm font-medium uppercase tracking-widest`}>
-            <NavLink to="/">Accueil</NavLink>
-            <NavLink to="/products">Nos produits</NavLink>
-            <NavLink to="/prenez-un-rendez-vous-pour-une-coiffure-afro">Nos services</NavLink>
-            <NavLink to="/contact">Contact</NavLink>
-          </div>
-
-          <div className="flex items-center gap-4 relative" ref={userRef}>
-            <User
-              className={`w-6 h-6 cursor-pointer ${iconClass}`}
-              onClick={() => setUserModalOpen(!userModalOpen)}
+          {/* Left — Logo + Brand name */}
+          <Link to="/" className="flex items-center gap-2.5 flex-shrink-0">
+            <img
+              src="/AM_LOGO.png"
+              alt="Réconcil' Afro Beauty"
+              className="h-10 sm:h-12 w-auto object-contain"
             />
+            <div className="hidden sm:block leading-tight">
+              <span className="block text-lg font-bold text-gray-900 tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+                RECONCIL
+              </span>
+              <span className="block text-[11px] text-sage-600 font-medium -mt-0.5">
+                Afro Beauty Naturelle
+              </span>
+            </div>
+          </Link>
 
-            <div
-              className={`relative cursor-pointer ${iconClass}`}
-              onClick={() => navigate("/cart")}
-            >
-              <ShoppingCart className="w-6 h-6" />
-              {totalQuantity > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full px-1 text-xs">
-                  {totalQuantity}
-                </span>
-              )}
+          {/* Burger mobile */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="md:hidden text-gray-600 ml-auto"
+            aria-label="Menu"
+          >
+            {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+
+          {/* Center — Search bar (desktop) */}
+          <div className="hidden md:flex flex-1 max-w-xl mx-auto relative" ref={searchRef}>
+            <div className="flex items-center w-full border border-gray-300 rounded-md px-3 py-2 bg-white hover:border-gray-400 transition-colors focus-within:border-sage-500">
+              <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                placeholder="Rechercher un produit, un ingrédient..."
+                className="flex-1 ml-2.5 text-sm text-gray-700 outline-none bg-transparent placeholder:text-gray-400"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    navigate("/products");
+                    setIsSearchFocused(false);
+                  }
+                }}
+              />
             </div>
 
-            {userModalOpen && (
-              <div className="absolute right-0 top-full mt-2 w-48 bg-white text-black border rounded shadow-lg z-50 py-2">
+            {/* Dropdown de recherche */}
+            {isSearchFocused && searchResults.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-lg shadow-xl z-[999] overflow-hidden">
+                {searchResults.map(product => (
+                  <Link
+                    key={product.id}
+                    to={`/product/${createSlug(product.category)}/${createProductSlug(product.id, product.name)}`}
+                    onClick={() => {
+                      setIsSearchFocused(false);
+                      setSearchQuery("");
+                    }}
+                    className="flex items-center gap-3 p-3 hover:bg-sage-50 border-b border-gray-50 last:border-0 transition-colors"
+                  >
+                    <img src={product.imageUrl} alt={product.name} className="w-12 h-12 object-contain mix-blend-multiply rounded-md bg-gray-50 p-1 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-800 line-clamp-1">{product.name}</p>
+                      <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{product.description}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Right — Mon compte + Panier */}
+          <div className="hidden md:flex items-center gap-5 flex-shrink-0 relative" ref={userRef}>
+            {/* Mon compte */}
+            <div className="relative group" ref={userRef}>
+              <Link
+                to={isAuthenticated ? "/account" : "/login"}
+                className="flex items-center gap-1.5 text-gray-700 hover:text-gray-900 transition-colors py-2"
+              >
+                <User className="w-5 h-5" />
+                <span className="text-sm">Mon compte</span>
+              </Link>
+
+              {/* User dropdown on hover */}
+              <div className="absolute right-0 top-full w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                 {isAuthenticated ? (
                   <>
                     <Link
                       to="/account"
-                      className="block px-4 py-2 hover:bg-gray-100 text-sm"
-                      onClick={() => setUserModalOpen(false)}
+                      className="block px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
                     >
-                      Mon compte
+                      Profil
                     </Link>
+                    <Link
+                      to="/orders"
+                      className="block px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
+                    >
+                      Mes commandes
+                    </Link>
+                    <hr className="my-1 border-gray-100" />
                     <button
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-500"
+                      className="block w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-red-500"
                       onClick={handleLogout}
                     >
                       Déconnexion
                     </button>
                   </>
                 ) : (
-                  <button
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-                    onClick={handleLoginRedirect}
-                  >
-                    Connexion
-                  </button>
+                  <>
+                    <Link
+                      to="/login"
+                      className="block px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
+                    >
+                      Se connecter
+                    </Link>
+                    <Link
+                      to="/register"
+                      className="block px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
+                    >
+                      Créer un compte
+                    </Link>
+                  </>
                 )}
               </div>
-            )}
+            </div>
+
+            {/* Panier */}
+            <button
+              onClick={() => navigate("/cart")}
+              className="flex items-center gap-1.5 text-gray-700 hover:text-gray-900 transition-colors"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              <span className="text-sm">Panier ({totalQuantity})</span>
+            </button>
+          </div>
+
+          {/* Mobile icons (compact) */}
+          <div className="flex md:hidden items-center gap-3">
+            <button
+              onClick={() => setUserModalOpen(!userModalOpen)}
+              className="text-gray-600"
+              aria-label="Mon compte"
+            >
+              <User className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => navigate("/cart")}
+              className="relative text-gray-600"
+              aria-label="Panier"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              {totalQuantity > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-sage-600 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center font-bold">
+                  {totalQuantity}
+                </span>
+              )}
+            </button>
           </div>
         </div>
+      </div>
 
-        {menuOpen && (
-          <div className="md:hidden mt-4 p-4 bg-white text-black rounded shadow-lg absolute left-0 right-0 z-40">
-            <div className="flex flex-col space-y-4 text-sm font-medium">
-              <Link to="/" className="hover:text-gray-600" onClick={() => setMenuOpen(false)}>
-                Accueil
+      {/* ═══ ROW 2 : Navigation links (desktop) ═══ */}
+      <nav className="hidden md:block w-full bg-white border-b border-gray-200">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+          <ul className="flex items-center justify-center gap-8 lg:gap-10 py-2.5">
+            {navLinks.map((link, i) => (
+              <li key={i}>
+                <Link
+                  to={link.to}
+                  className={`text-[14px] transition-colors whitespace-nowrap ${location.pathname === link.to
+                    ? "text-gray-900 font-medium"
+                    : "text-gray-600 hover:text-gray-900"
+                    }`}
+                >
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+            {/*
+            <li>
+              <Link
+                to="/products/promotions"
+                className="text-[14px] text-sage-600 font-medium hover:text-sage-700 transition-colors"
+              >
+                Promotions
               </Link>
-              <Link to="/products" className="hover:text-gray-600" onClick={() => setMenuOpen(false)}>
-                Nos produits
-              </Link>
-              <Link to="/prenez-un-rendez-vous-pour-une-coiffure-afro" className="hover:text-gray-600" onClick={() => setMenuOpen(false)}>
-                Nos services
-              </Link>
-              <Link to="/contact" className="hover:text-gray-600" onClick={() => setMenuOpen(false)}>
-                Contact
-              </Link>
+            </li>
+            */}
+          </ul>
+        </div>
+      </nav>
+
+      {/* ═══ Mobile drawer ═══ */}
+      {menuOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/20 z-40 md:hidden"
+            onClick={() => setMenuOpen(false)}
+          />
+          <div className="fixed top-0 left-0 h-full w-72 bg-white z-50 md:hidden shadow-xl">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <img src="/AM_LOGO.png" alt="Logo" className="h-8 w-auto" />
+                <span className="font-bold text-gray-900">RECONCIL AFRO BEAUTY</span>
+              </div>
+              <button onClick={() => setMenuOpen(false)} className="text-gray-400">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Mobile search */}
+            <div className="p-4 border-b border-gray-100 relative" ref={mobileSearchRef}>
+              <div className="flex items-center border border-gray-300 rounded-md px-3 py-2">
+                <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
+                  placeholder="Rechercher..."
+                  className="flex-1 ml-2 text-sm text-gray-700 outline-none bg-transparent placeholder:text-gray-400"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      navigate("/products");
+                      setIsSearchFocused(false);
+                      setMenuOpen(false);
+                    }
+                  }}
+                />
+              </div>
+
+              {/* Dropdown de recherche (mobile) */}
+              {isSearchFocused && searchResults.length > 0 && (
+                <div className="absolute top-full left-4 right-4 mt-1 bg-white border border-gray-100 rounded-lg shadow-xl z-[999] overflow-hidden">
+                  {searchResults.map(product => (
+                    <Link
+                      key={product.id}
+                      to={`/product/${createSlug(product.category)}/${createProductSlug(product.id, product.name)}`}
+                      onClick={() => {
+                        setIsSearchFocused(false);
+                        setSearchQuery("");
+                        setMenuOpen(false);
+                      }}
+                      className="flex items-center gap-3 p-3 hover:bg-sage-50 border-b border-gray-50 last:border-0 transition-colors"
+                    >
+                      <img src={product.imageUrl} alt={product.name} className="w-10 h-10 object-contain mix-blend-multiply rounded-md bg-gray-50 p-1 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-gray-800 line-clamp-1">{product.name}</p>
+                        <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">{product.description}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <nav className="p-4">
+              <ul className="space-y-1">
+                <li>
+                  <Link
+                    to="/"
+                    className={`block py-3 px-3 rounded text-sm transition-colors ${location.pathname === "/" ? "bg-sage-50 text-sage-700 font-medium" : "text-gray-600 hover:bg-gray-50"
+                      }`}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Accueil
+                  </Link>
+                </li>
+                {navLinks.map((link, i) => (
+                  <li key={i}>
+                    <Link
+                      to={link.to}
+                      className={`block py-3 px-3 rounded text-sm transition-colors ${location.pathname === link.to ? "bg-sage-50 text-sage-700 font-medium" : "text-gray-600 hover:bg-gray-50"
+                        }`}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+                {/*
+                <li>
+                  <Link
+                    to="/products/promotions"
+                    className="block py-3 px-3 rounded text-sm text-sage-600 font-medium hover:bg-sage-50"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Promotions
+                  </Link>
+                </li>
+                */}
+              </ul>
+            </nav>
+
+            {/* Mobile user menu */}
+            <div className="border-t border-gray-100 p-4 mt-auto">
+              {isAuthenticated ? (
+                <div className="space-y-2">
+                  <Link to="/account" className="block text-sm text-gray-600 py-2" onClick={() => setMenuOpen(false)}>
+                    Mon compte
+                  </Link>
+                  <Link to="/orders" className="block text-sm text-gray-600 py-2" onClick={() => setMenuOpen(false)}>
+                    Mes commandes
+                  </Link>
+                  <button className="block text-sm text-red-500 py-2" onClick={handleLogout}>
+                    Déconnexion
+                  </button>
+                </div>
+              ) : (
+                <button
+                  className="w-full py-2.5 bg-sage-600 text-white rounded-lg text-sm font-medium"
+                  onClick={() => { setMenuOpen(false); navigate("/login"); }}
+                >
+                  Se connecter
+                </button>
+              )}
             </div>
           </div>
-        )}
-      </div>
-    </div>
+        </>
+      )}
+
+      {/* Mobile user dropdown (outside drawer) */}
+      {userModalOpen && !menuOpen && (
+        <div className="md:hidden fixed top-14 right-3 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1" ref={userRef}>
+          {isAuthenticated ? (
+            <>
+              <Link to="/account" className="block px-4 py-2.5 hover:bg-gray-50 text-sm text-gray-700" onClick={() => setUserModalOpen(false)}>
+                Mon compte
+              </Link>
+              <Link to="/orders" className="block px-4 py-2.5 hover:bg-gray-50 text-sm text-gray-700" onClick={() => setUserModalOpen(false)}>
+                Mes commandes
+              </Link>
+              <hr className="my-1 border-gray-100" />
+              <button className="block w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm text-red-500" onClick={handleLogout}>
+                Déconnexion
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="block w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm text-gray-700" onClick={() => { setUserModalOpen(false); navigate("/login"); }}>
+                Se connecter
+              </button>
+              <Link to="/register" className="block px-4 py-2.5 hover:bg-gray-50 text-sm text-gray-700" onClick={() => setUserModalOpen(false)}>
+                Créer un compte
+              </Link>
+            </>
+          )}
+        </div>
+      )}
+    </>
   );
 }
 

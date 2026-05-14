@@ -114,8 +114,7 @@ export class OrderItemDto implements IOrderItem {
   @ApiProperty({ description: 'Prix unitaire', example: 8.5 })
   @IsNotEmpty()
   @IsNumber({ maxDecimalPlaces: 2 })
-  unitPrice: number; // ✅ number au lieu de Decimal
-
+  unitPrice: number;
   @ApiProperty({ description: 'ID du produit', example: 3 })
   @IsNotEmpty()
   @IsInt()
@@ -142,7 +141,7 @@ export class OrderDto implements IOrder {
   @ApiProperty({ description: 'Montant total de la commande', example: 17.7 })
   @IsNotEmpty()
   @IsNumber({ maxDecimalPlaces: 2 })
-  total: number; // ✅ number au lieu de Decimal
+  total: number;
 
   @ApiProperty({ enum: OrderStatus, example: OrderStatus.pending })
   @IsEnum(OrderStatus)

@@ -17,5 +17,7 @@ export interface ParcelShop {
 }
 
 export interface SearchPRResponse {
-  PRList: ParcelShop[];
+  Error?: string;
+  PRList: ParcelShop[] | null;
+  Value?: string | null;
 }

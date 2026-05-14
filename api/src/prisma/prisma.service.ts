@@ -18,8 +18,7 @@ const prismaClientOptions = {
 @Injectable()
 export class PrismaService
   extends PrismaClient
-  implements OnModuleInit, OnModuleDestroy
-{
+  implements OnModuleInit, OnModuleDestroy {
   constructor() {
     super(prismaClientOptions);
   }

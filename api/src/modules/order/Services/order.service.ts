@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import {
   ForbiddenException,
   Injectable,
@@ -27,54 +26,47 @@ type PrismaOrderWithItems = Order & {
   })[];
 };
 
-/* =========================
-   Barèmes & helpers frais (dynamiques)
-   ========================= */
-
 type ShippingTables = Record<
-  "RELAY" | "HOME" | "LOCKER",
+  'RELAY' | 'HOME' | 'LOCKER',
   Array<[maxKg: number, priceEUR: number]>
 >;
 
-// Fallback local en cas d'indisponibilité de la source distante
 const SHIPPING_TABLES_FALLBACK: ShippingTables = {
   RELAY: [
-    [0.25, 4.2],
-    [0.5, 4.49],
-    [0.75, 5.69],
-    [1.0, 5.69],
-    [2.0, 6.99],
-    [3.0, 7.69],
-    [4.0, 9.29],
-    [5.0, 12.99],
-    [7.0, 14.99],
+    [0.25, 4.10],
+    [0.5, 4.10],
+    [1.0, 5.99],
+    [2.0, 7.99],
+    [4.0, 7.99],
+    [5.0, 15.99],
+    [7.0, 15.99],
     [10.0, 15.99],
-    [15.0, 23.49],
-    [20.0, 23.99],
-    [25.0, 34.99],
+    [15.0, 25.99],
+    [25.0, 25.99],
   ],
   HOME: [
-    [0.25, 5.25],
-    [0.5, 7.35],
-    [0.75, 8.65],
-    [1.0, 9.4],
-    [2.0, 10.7],
-    [5.0, 16.6],
+    [0.25, 4.99],
+    [0.5, 7.49],
+    [1.0, 9.49],
+    [2.0, 10.99],
+    [4.0, 16.39],
+    [5.0, 16.39],
+    [7.0, 24.99],
+    [10.0, 24.99],
+    [15.0, 31.49],
+    [25.0, 42.99],
   ],
   LOCKER: [
-    [0.25, 3.99],
-    [0.5, 3.99],
-    [0.75, 4.49],
-    [1.0, 4.49],
-    [2.0, 6.19],
-    [3.0, 6.99],
-    [4.0, 8.49],
-    [5.0, 11.99],
-    [7.0, 14.89],
-    [10.0, 15.89],
-    [15.0, 23.39],
-    [20.0, 23.89],
-    [25.0, 34.89],
+    [0.25, 4.10],
+    [0.5, 4.10],
+    [1.0, 5.99],
+    [2.0, 7.99],
+    [4.0, 7.99],
+    [5.0, 15.99],
+    [7.0, 15.99],
+    [10.0, 15.99],
+    [15.0, 25.99],
+    [25.0, 25.99],
   ],
 };
 
@@ -82,15 +74,14 @@ let SHIPPING_TABLES_CACHE: ShippingTables | null = null;
 let SHIPPING_TABLES_LAST_FETCH = 0;
 
 async function loadShippingTables(): Promise<ShippingTables> {
-  const maxAgeMs = 1000 * 60 * 60; // 1h
+  const maxAgeMs = 1000 * 60 * 60;
   const now = Date.now();
   if (SHIPPING_TABLES_CACHE && now - SHIPPING_TABLES_LAST_FETCH < maxAgeMs) {
     return SHIPPING_TABLES_CACHE;
   }
 
-  const url = process.env.SHIPPING_TARIFFS_URL; // doit retourner un JSON compatible
+  const url = process.env.SHIPPING_TARIFFS_URL;
   if (!url) {
-    // Tentative: récupérer dynamiquement depuis Mondial Relay (HTML)
     try {
       const mrRes = await fetch(
         'https://www.mondialrelay.fr/envoi-de-colis/tarifs-expeditions/',
@@ -110,7 +101,7 @@ async function loadShippingTables(): Promise<ShippingTables> {
         }
       }
     } catch {
-      // ignore and fallback
+      /* empty */
     }
     SHIPPING_TABLES_CACHE = {
       RELAY: SHIPPING_TABLES_FALLBACK.RELAY,
@@ -125,7 +116,6 @@ async function loadShippingTables(): Promise<ShippingTables> {
     const res = await fetch(url, { method: 'GET' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
-    // Validation minimale
     if (
       json &&
       typeof json === 'object' &&
@@ -195,64 +185,48 @@ export class OrderService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: IOrderCreate): Promise<IOrder | null> {
-    console.log("OrderService.create - Données reçues:", data);
-    
     if (!data.userId) {
-      console.log("OrderService.create - Aucun userId fourni");
       return null;
     }
 
-    console.log("OrderService.create - Recherche du panier pour userId:", data.userId);
-    // 🔎 IMPORTANT: si la réconciliation vient juste d'avoir lieu, le panier peut encore être sur guestId
-    // On cherche d'abord par userId
     let cart = await this.prisma.cart.findFirst({
-      where: { 
+      where: {
         userId: data.userId,
-        items: { some: {} } // Au moins un item
+        items: { some: {} },
       },
       include: {
         items: {
           include: { product: true },
         },
       },
-      orderBy: { createdAt: 'desc' }, // Le plus récent en premier
+      orderBy: { createdAt: 'desc' },
     });
 
-    console.log("OrderService.create - Panier trouvé par userId:", cart ? `ID ${cart.id}, ${cart.items.length} articles` : "Aucun panier");
-    
-    // Si aucun panier trouvé par userId, chercher les paniers récemment créés/modifiés pour cet utilisateur
-    // (au cas où la réconciliation n'a pas encore mis à jour le userId)
     if (!cart) {
-      console.log("OrderService.create - Aucun panier par userId. Recherche des paniers récents...");
-      // Chercher les paniers créés dans les 5 dernières minutes qui pourraient être en cours de réconciliation
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
       const recentCarts = await this.prisma.cart.findMany({
         where: {
           OR: [
             { userId: data.userId },
-            { 
+            {
               createdAt: { gte: fiveMinutesAgo },
-              items: { some: {} }
-            }
-          ]
+              items: { some: {} },
+            },
+          ],
         },
-        include: { 
-          items: { 
-            include: { product: true } 
-          } 
+        include: {
+          items: {
+            include: { product: true },
+          },
         },
         orderBy: { createdAt: 'desc' },
-        take: 5, // Limiter à 5 paniers récents
+        take: 5,
       });
-      
-      // Prendre le premier panier avec des items
-      cart = recentCarts.find(c => c.items.length > 0) || null;
-      
+
+      cart = recentCarts.find((c) => c.items.length > 0) || null;
+
       if (cart) {
-        console.log("OrderService.create - Panier récent trouvé:", `ID ${cart.id}, ${cart.items.length} articles`);
-        // Si le panier n'a pas encore de userId, le mettre à jour maintenant
         if (!cart.userId) {
-          console.log("OrderService.create - Mise à jour du panier avec userId:", data.userId);
           await this.prisma.cart.update({
             where: { id: cart.id },
             data: { userId: data.userId, guestId: null },
@@ -262,7 +236,6 @@ export class OrderService {
     }
 
     if (!cart || cart.items.length === 0) {
-      console.log("OrderService.create - Aucun panier ou panier vide");
       return null;
     }
 
@@ -276,7 +249,6 @@ export class OrderService {
       totalWeightKg,
     );
 
-    /** ✅ NEW: calcule et persiste le poids total en grammes */
     const totalWeightGrams = computeTotalWeightGrams(cart.items);
 
     const order = await this.prisma.order.create({
@@ -287,7 +259,6 @@ export class OrderService {
         shippingFee,
         total: +(total + shippingFee).toFixed(2),
 
-        /** ✅ NEW: enregistrement en BDD (le champ doit exister côté Prisma) */
         totalWeightGrams,
 
         items: {
@@ -295,7 +266,7 @@ export class OrderService {
             productId: item.productId,
             quantity: item.quantity,
             unitPrice: item.product.price,
-            weight: Number(item.product.weight), // on ne touche pas à l’existant
+            weight: Number(item.product.weight),
           })),
         },
       },
@@ -424,7 +395,7 @@ export class OrderService {
         data: {
           total: +(newTotal + Number(shippingFee)).toFixed(2),
           shippingFee: Number(shippingFee),
-          totalWeightGrams, // ✅ NEW
+          totalWeightGrams,
         },
         include: { items: { include: { product: true } } },
       });
@@ -515,7 +486,6 @@ export class OrderService {
     const shippingFee = await shippingFeePromise;
     const grandTotal = +(itemsSum + Number(shippingFee)).toFixed(2);
 
-    /** ✅ NEW: recalcul du poids total en grammes pour persistance */
     const totalWeightGrams = computeTotalWeightGrams(items);
 
     const updated = await this.prisma.order.update({
@@ -526,7 +496,7 @@ export class OrderService {
         paymentIntentId: data.paymentIntentId ?? undefined,
         shippingFee: Number(shippingFee),
         total: Number(grandTotal),
-        totalWeightGrams, // ✅ NEW
+        totalWeightGrams,
       },
       include: { items: { include: { product: true } } },
     });
@@ -572,14 +542,10 @@ function parseMondialRelayHtml(html: string): {
   RELAY?: Array<[number, number]>;
   LOCKER?: Array<[number, number]>;
 } | null {
-  // Heuristiques simples pour extraire des paires (kg, €)
-  // 1) Normaliser: supprimer espaces multiples, passer en minuscule pour recherches de sections
   const text = html.replace(/\s+/g, ' ');
 
-  // Helper: extraire paires depuis un segment
   const extractPairs = (segment: string): Array<[number, number]> => {
     const pairs: Array<[number, number]> = [];
-    // Cherche motifs comme "0,25" ou "0.25" suivis de "kg" et un prix "4,20" ou "4.20"
     const re =
       /(\d+[.,]?\d*)\s*(?:kg|KG)[^\d]{1,20}?(\d+[.,]?\d*)\s*(?:€|eur)/gi;
     let m: RegExpExecArray | null;
@@ -590,7 +556,7 @@ function parseMondialRelayHtml(html: string): {
         pairs.push([kg, eur]);
       }
     }
-    // Tri par poids croissant, suppression doublons
+
     const seen = new Set<number>();
     const sorted = pairs
       .sort((a, b) => a[0] - b[0])
@@ -598,7 +564,6 @@ function parseMondialRelayHtml(html: string): {
     return sorted;
   };
 
-  // Tenter d'isoler des blocs pour Point Relais et Locker
   const lower = text.toLowerCase();
   const relayIdx = lower.indexOf('point relais');
   const lockerIdx = lower.indexOf('locker');

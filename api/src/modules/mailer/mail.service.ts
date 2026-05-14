@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
+import { InvoiceService } from './invoice.service';
 
 type DeliveryMode = 'HOME' | 'RELAY';
 
 interface OrderItemCtx {
   name: string;
   quantity: number;
-  unitPrice: string; // formaté en "xx.yy"
-  lineTotal: string; // formaté en "xx.yy"
+  unitPrice: string;
+  lineTotal: string;
 }
 
 interface OrderMailContext {
@@ -21,14 +22,17 @@ interface OrderMailContext {
   etaDays?: number;
 
   items: OrderItemCtx[];
-  itemsSubtotal: string; // formaté
-  shippingFee: string; // formaté
-  total: string; // formaté
+  itemsSubtotal: string;
+  shippingFee: string;
+  total: string;
 }
 
 @Injectable()
 export class MailService {
-  constructor(private readonly mailerService: MailerService) {}
+  constructor(
+    private readonly mailerService: MailerService,
+    private readonly invoiceService: InvoiceService,
+  ) {}
 
   frontend = process.env.FRONTEND_URL;
 
@@ -64,7 +68,6 @@ export class MailService {
   async sendOrderPaidEmail(to: string, ctx: Omit<OrderMailContext, 'etaDays'>) {
     const etaDays = this.estimateDays(ctx.deliveryMode);
 
-    // format des montants
     const itemsFormatted = ctx.items.map((it) => ({
       ...it,
       unitPrice: isNaN(Number(it.unitPrice))
@@ -86,6 +89,14 @@ export class MailService {
       ? '0.00'
       : Number(ctx.total).toFixed(2);
 
+    const pdfBuffer = await this.invoiceService.generateInvoicePdf({
+      ...ctx,
+      items: itemsFormatted,
+      itemsSubtotal,
+      shippingFee,
+      total,
+    });
+
     await this.mailerService.sendMail({
       to,
       subject: `Votre paiement est confirmé – commande #${ctx.orderId}`,
@@ -98,6 +109,12 @@ export class MailService {
         shippingFee,
         total,
       },
+      attachments: [
+        {
+          filename: `facture-${ctx.orderId}.pdf`,
+          content: pdfBuffer,
+        },
+      ],
     });
   }
 
@@ -115,6 +132,29 @@ export class MailService {
       subject: `Réservation confirmée – ${ctx.serviceName}`,
       template: 'slot-booked',
       context: { ...ctx, depositAmountEUR: ctx.depositAmountEUR.toFixed(2) },
+    });
+  }
+
+  async sendOrderApologyEmail(
+    to: string,
+    ctx: Omit<OrderMailContext, 'etaDays'>,
+  ) {
+    const pdfBuffer = await this.invoiceService.generateInvoicePdf(ctx);
+
+    await this.mailerService.sendMail({
+      to,
+      subject: `Nos excuses concernant votre commande #${ctx.orderId}`,
+      template: 'order-apology',
+      context: {
+        ...ctx,
+        year: new Date().getFullYear(),
+      },
+      attachments: [
+        {
+          filename: `facture-${ctx.orderId}.pdf`,
+          content: pdfBuffer,
+        },
+      ],
     });
   }
 }

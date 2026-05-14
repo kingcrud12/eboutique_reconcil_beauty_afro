@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./Layout/Layout";
 import Home from "./pages/Home";
-import About from "./pages/About";
+
 import Appointment from "./pages/Appointment";
 import Account from "./pages/Account";
 import Login from "./pages/Login";
@@ -29,23 +29,26 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="products" element={<ProductsSEO />} />
-          <Route path="about" element={<About />} />
-          <Route path="prenez-un-rendez-vous-pour-une-coiffure-afro" element={<Appointment />} />
+          <Route path="products/:categoryFilter" element={<ProductsSEO />} />
+          <Route path="boutique" element={<ProductsSEO />} /> {/* Fallback */}
+          <Route path="about" element={<AboutUs />} />
+          <Route path="aboutUs" element={<AboutUs />} /> {/* Fallback */}
+          <Route path="services" element={<Appointment />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
-          <Route path="product/:slug" element={<ProductSEO />} />
+          <Route path="product/:category/:slug" element={<ProductSEO />} />
+          <Route path="boutique/:category/:slug" element={<ProductSEO />} /> {/* Fallback */}
           <Route path="confirm-account" element={<ConfirmAccount />} />
           <Route path="check" element={<CheckEmail />} />
           <Route path="reset-password" element={<ResetPassword />} />
           <Route path="cart" element={<Cart />} />
-          <Route path="delivery" element={<Checkout />} />
+          <Route path="checkout" element={<Checkout />} />
           <Route path="orders" element={<Orders />} />
           <Route path="checkout/success/slot" element={<SuccessPageSlot />} />
           <Route path="checkout/success" element={<SuccessPageOrder />} />
           <Route path="checkout/cancel" element={<CancelPage />} />
           <Route path="TestPage" element={<TestPage />} />
           <Route path="contact" element={<Contact />} />
-          <Route path="aboutUs" element={<AboutUs />} />
 
           <Route
             path="account"

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { PrismaService } from '../../prisma/prisma.service';
+import { InvoiceService } from './invoice.service';
 
 type DeliveryMode = 'HOME' | 'RELAY';
 
@@ -26,7 +27,6 @@ interface AdminOrderMailContext {
   shippingFee: number | string;
   total: number | string;
 
-  // possibilité de passer directement phone / adress depuis le webhook
   phone?: string | null;
   adress?: string | null;
 }
@@ -36,6 +36,7 @@ export class AdminMailService {
   constructor(
     private readonly mailerService: MailerService,
     private readonly prisma: PrismaService,
+    private readonly invoiceService: InvoiceService,
   ) {}
 
   private estimateDays(mode: DeliveryMode): number {
@@ -50,7 +51,6 @@ export class AdminMailService {
   async sendOrderPaidToAdmins(ctx: Omit<AdminOrderMailContext, 'etaDays'>) {
     const etaDays = this.estimateDays(ctx.deliveryMode);
 
-    // récupérer tous les utilisateurs avec rôle 'admin'
     const admins = await this.prisma.user.findMany({
       where: { role: 'admin' },
       select: { email: true },
@@ -59,7 +59,6 @@ export class AdminMailService {
     const adminEmails = admins.map((a) => a.email).filter(Boolean);
     if (adminEmails.length === 0) return;
 
-    // --- Résolution phone/adress : préférer ctx, sinon lire en DB ---
     let resolvedPhone: string | null = ctx.phone ?? null;
     let resolvedAdress: string | null = ctx.adress ?? null;
 
@@ -84,9 +83,6 @@ export class AdminMailService {
         }
       }
     }
-    // ---------------------------------------------------------------
-
-    // formater les montants en string "xx.xx"
     const items = ctx.items.map((it) => ({
       ...it,
       unitPrice: Number(it.unitPrice).toFixed(2),
@@ -96,6 +92,16 @@ export class AdminMailService {
     const itemsSubtotal = Number(ctx.itemsSubtotal).toFixed(2);
     const shippingFee = Number(ctx.shippingFee).toFixed(2);
     const total = Number(ctx.total).toFixed(2);
+
+    const pdfBuffer = await this.invoiceService.generateInvoicePdf({
+      ...ctx,
+      items,
+      itemsSubtotal,
+      shippingFee,
+      total,
+      phone: resolvedPhone,
+      adress: resolvedAdress,
+    });
 
     await this.mailerService.sendMail({
       to: adminEmails,
@@ -111,6 +117,39 @@ export class AdminMailService {
         shippingFee,
         total,
       },
+      attachments: [
+        {
+          filename: `facture-${ctx.orderId}.pdf`,
+          content: pdfBuffer,
+        },
+      ],
+    });
+  }
+  async sendOrderApologyToAdmins(ctx: Omit<AdminOrderMailContext, 'etaDays'>) {
+    const admins = await this.prisma.user.findMany({
+      where: { role: 'admin' },
+      select: { email: true },
+    });
+
+    const adminEmails = admins.map((a) => a.email).filter(Boolean);
+    if (adminEmails.length === 0) return;
+
+    const pdfBuffer = await this.invoiceService.generateInvoicePdf(ctx);
+
+    await this.mailerService.sendMail({
+      to: adminEmails,
+      subject: `[COPIE ADMIN] Excuses concernant la commande #${ctx.orderId}`,
+      template: 'order-apology',
+      context: {
+        ...ctx,
+        year: new Date().getFullYear(),
+      },
+      attachments: [
+        {
+          filename: `facture-${ctx.orderId}.pdf`,
+          content: pdfBuffer,
+        },
+      ],
     });
   }
 }

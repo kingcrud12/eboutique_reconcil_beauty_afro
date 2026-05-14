@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { color: #8B4513; margin: 0; }
+        .content { margin-bottom: 30px; }
+        .footer { text-align: center; font-size: 12px; color: #777; border-top: 1px solid #eee; padding-top: 20px; }
+        .btn { display: inline-block; padding: 10px 20px; background-color: #8B4513; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Reconcil Afro Beauty</h1>
+        </div>
+        <div class="content">
+            <p>Bonjour {{customerFirstName}},</p>
+            
+            <p>Nous vous présentons nos plus sincères excuses pour le retard concernant l'envoi de votre mail de confirmation de commande.</p>
+            
+            <p>Suite à un léger contretemps technique, votre confirmation pour la commande <strong>#{{orderId}}</strong> ne vous est parvenue que ce matin. Nous regrettons sincèrement ce désagrément et vous remercions de votre patience et de votre confiance.</p>
+            
+            <p>Votre commande est bien enregistrée et nous mettons tout en œuvre pour qu'elle vous parvienne dans les meilleurs délais.</p>
+            
+            <p>Vous trouverez ci-joint la facture correspondant à votre achat en format PDF.</p>
+            
+            <p>Si vous avez la moindre question, n'hésitez pas à répondre à ce mail ou à nous contacter.</p>
+            
+            <p>Bien cordialement,<br>
+            L'équipe Reconcil Afro Beauty</p>
+        </div>
+        <div class="footer">
+            <p>&copy; {{year}} Reconcil Afro Beauty. Tous droits réservés.</p>
+        </div>
+    </div>
+</body>
+</html>

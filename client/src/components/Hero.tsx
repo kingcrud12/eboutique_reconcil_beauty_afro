@@ -1,120 +1,110 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import Slider from "react-slick";
-
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 
 const slides = [
   {
-    image: "ban_2.png",
-    mobileImage: "ban_2_mobile.png",
-    title: "L'Élégance Naturelle",
-    subtitle: "L'alliance parfaite du beure de mangue et de la carthame.",
-    cta: "Voir",
+    image: "bannerAlph_square.png",
+    tag: "Nouveauté",
+    title: "Huile de Chébé",
+    titleGreen: "L'élixir pour la pousse des cheveux afro",
+    subtitle: "Découvrez notre secret traditionnel tchadien pour des cheveux longs, forts et nourris en profondeur.",
+    cta: "Découvrir la gamme",
     link: "/products",
   },
   {
-    image: "bannerAlph.png",
-    mobileImage: "bannerAlph_mobile.png",
-    title: "Duo Éclat & Douceur",
-    subtitle: "La magie de la Mangue et du Carthame pour vos cheveux.",
-    cta: "Découvrir le Duo",
+    image: "ban_1_square.png",
+    tag: "Best-seller",
+    title: "Nos Huiles Naturelles",
+    titleGreen: "100% pures & artisanales",
+    subtitle: "Ricin, argan, coco — des soins ancestraux pour nourrir et sublimer vos cheveux naturellement.",
+    cta: "Voir la collection",
     link: "/products",
   },
   {
-    image: "cinematic_hero.png",
-    mobileImage: "cinematic_hero_mobile.png",
-    title: "L'Essence de la Nature",
-    subtitle: "Plongez dans un univers où la beauté rencontre l'authenticité.",
-    cta: "Explorer la Collection",
+    image: "banner_carthame_desktop.png",
+    tag: "Sélection",
+    title: "Huile de Carthame",
+    titleGreen: "Légèreté & Nutrition",
+    subtitle: "Idéale pour sceller l'hydratation de vos boucles sans les alourdir. L'indispensable de votre routine capillaire.",
+    cta: "Explorer",
     link: "/products",
-    isCinematic: true, // Marker for full-screen mode
   },
 ];
 
 function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const settings = {
-    dots: true,
-    infinite: true,
-    speed: 1500, // Slower transition for elegance
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 8000, // Longer for cinematic slide
-    fade: true,
-    arrows: false,
-    beforeChange: (_: number, newIndex: number) => setCurrentSlide(newIndex),
-    appendDots: (dots: React.ReactNode) => (
-      <div
-        style={{
-          position: "absolute",
-          bottom: "30px",
-          width: "100%",
-          display: "flex",
-          justifyContent: "center",
-          zIndex: 70, // Ensure dots are above the full-screen slide
-        }}
-      >
-        <ul className="flex gap-2"> {dots} </ul>
-      </div>
-    ),
-    customPaging: (i: number) => (
-      <div
-        className={`w-3 h-3 rounded-full transition-all duration-300 border border-white/50 backdrop-blur-sm ${i === currentSlide ? "bg-white scale-125" : "bg-transparent opacity-40 hover:opacity-100"
-          }`}
-      ></div>
-    ),
-  };
+  const goTo = (index: number) => setCurrentSlide(index);
+  const goNext = () => setCurrentSlide((prev) => (prev + 1) % slides.length);
 
-  // Check if current slide is cinematic (needs to cover Appbar)
-  const isCinematicMode = slides[currentSlide].isCinematic;
+  // Auto-advance
+  React.useEffect(() => {
+    const timer = setInterval(goNext, 2000);
+    return () => clearInterval(timer);
+  }, [currentSlide]);
+
+  const slide = slides[currentSlide];
 
   return (
-    // If cinematic, use z-[60] to cover the fixed z-50 Appbar. Also enforce h-screen.
-    <div className={`w-full relative overflow-hidden bg-white transition-all duration-500
-      ${isCinematicMode ? "z-[60] h-screen fixed inset-0" : "relative h-[45vh] md:h-screen z-0"}
-    `}>
-      <Slider {...settings} className="h-full">
-        {slides.map((slide, index) => (
-          <div key={index} className="relative w-full h-full outline-none group overflow-hidden">
-            <Link to={slide.link} className="block w-full h-full relative">
-              <div className="w-full h-full overflow-hidden relative">
-                <picture className="w-full h-full block">
-                  <source media="(max-width: 768px)" srcSet={slide.mobileImage || slide.image} />
-                  <img
-                    src={slide.image}
-                    alt={slide.title}
-                    className={`w-full h-full object-cover object-top transform transition-transform ease-in-out will-change-transform 
-                      ${slide.isCinematic ? "animate-ken-burns" : (index === currentSlide ? "scale-110 duration-[10000ms]" : "scale-100 duration-[10000ms]")} 
-                      filter brightness-105`}
-                  />
-                </picture>
+    <section className="w-full bg-sage-50">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-10 md:py-16">
+        <div className="flex flex-col-reverse md:flex-row items-center gap-8 md:gap-12">
 
-                {/* Text Overlay */}
-                <div className={`absolute inset-0 flex flex-col items-center justify-center text-center p-4 
-                  ${slide.isCinematic ? "bg-black/40 justify-end pb-32" : "bg-black/40"}`}>
+          {/* Left — Text */}
+          <div className="flex-1 space-y-4 sm:space-y-5 text-center md:text-left w-full">
+            <span className="inline-block bg-sage-100 text-sage-700 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide">
+              {slide.tag}
+            </span>
 
-                  <div className="max-w-4xl space-y-4 animate-fade-in-up">
-                    <h2 className="text-4xl md:text-6xl lg:text-7xl font-playfair text-white drop-shadow-lg font-bold">
-                      {slide.title}
-                    </h2>
-                    <p className="text-xl md:text-2xl font-open-sans text-white/95 drop-shadow-md font-medium max-w-2xl mx-auto">
-                      {slide.subtitle}
-                    </p>
-                    <span className="inline-block mt-6 px-8 py-3 bg-purple-900 text-white font-semibold rounded-full hover:bg-white hover:text-purple-900 transition-all duration-300 transform hover:scale-105 shadow-lg border border-transparent hover:border-purple-900">
-                      {slide.cta}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </Link>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif text-gray-800 leading-tight">
+              {slide.title}
+              <br />
+              <span className="text-sage-600">{slide.titleGreen}</span>
+            </h1>
+
+            <p className="text-gray-500 text-sm sm:text-base md:text-lg max-w-lg mx-auto md:mx-0 leading-relaxed">
+              {slide.subtitle}
+            </p>
+
+            <div className="pt-2">
+              <Link
+                to={slide.link}
+                className="inline-block px-5 py-2.5 sm:px-7 sm:py-3 bg-sage-600 text-white font-medium rounded-lg hover:bg-sage-700 transition-colors duration-200 text-sm sm:text-base"
+              >
+                {slide.cta}
+              </Link>
+            </div>
+
+            {/* Dots */}
+            <div className="flex gap-2 pt-4 justify-center md:justify-start">
+              {slides.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => goTo(i)}
+                  className={`rounded-full transition-all duration-300 ${i === currentSlide
+                    ? "w-8 h-2 bg-sage-600"
+                    : "w-2 h-2 bg-gray-300 hover:bg-gray-400"
+                    }`}
+                  aria-label={`Slide ${i + 1}`}
+                />
+              ))}
+            </div>
           </div>
-        ))}
-      </Slider>
-    </div>
+
+          {/* Right — Product Image */}
+          <div className="flex-1 flex justify-center w-full">
+            <div className="w-full max-w-[280px] sm:max-w-md md:max-w-lg aspect-square rounded-2xl overflow-hidden bg-sage-50 shadow-sm md:shadow-none">
+              <img
+                src={`/${slide.image}`}
+                alt={slide.title}
+                className="w-full h-full object-cover transition-opacity duration-500"
+                key={currentSlide}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 

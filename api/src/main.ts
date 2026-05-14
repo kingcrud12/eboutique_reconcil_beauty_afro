@@ -6,6 +6,9 @@ import * as express from 'express';
 import { join } from 'path';
 import './config/cloudinary.config';
 import cookieParser from 'cookie-parser';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 type RequestWithRawBody = express.Request & { rawBody?: Buffer };
 
